@@ -1,6 +1,6 @@
 # EduHub Foundation
 
-We are building EduHub, a small LMS for the SJ Innovation Week 1 assignment.
+We are building EduHub, a small LMS.
 
 Please analyze the attached assignment requirements, the connected Supabase project, and the provided UI reference.
 
