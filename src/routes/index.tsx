@@ -71,7 +71,7 @@ const roleAreas = [
     name: "Admin",
     icon: ShieldCheck,
     soft: "bg-admin-soft",
-    tone: "text-admin-foreground",
+    tone: "text-foreground",
     description:
       "Review submitted courses, manage users and categories, and keep an eye on enrolments across the platform.",
     items: [
