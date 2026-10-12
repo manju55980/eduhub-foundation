@@ -1,0 +1,123 @@
+---
+description: SJ Innovation LLC shared engineering standards — architecture, security, logging, testing, review, performance, DevOps, accessibility, and AI usage. Apply to all code generated, edited, or reviewed in SJI repositories (Goa, Dhaka, Sylhet).
+globs: ["**/*"]
+alwaysApply: true
+---
+
+<!--
+  Cursor Rule: sji-coding-standards
+  Compiled from: SJ Innovation LLC — Shared Coding Framework & Standards, v1.6
+  Source of truth: Control Tower task "Standardize Code Framework Across All Dev Teams"
+  Status: DRAFT — for engineering team review before being placed in .cursor/rules/
+  Per the source doc's AI Tool Policy (Must-Do #8): this file must be re-checked
+  every time the framework document is versioned, so it never drifts from the
+  written standard. Update the "Compiled from" version above when synced.
+-->
+
+# SJ Innovation LLC Coding Standards
+
+You are generating or reviewing code for an SJ Innovation LLC project. Apply these rules by default. If a rule can't be followed (legacy constraint, client requirement), say so explicitly and point to the Exception Policy below instead of silently deviating.
+
+## Architecture
+
+- Every project follows exactly one pattern: Clean Architecture or Feature-based (MVC is no longer used as a reference pattern). Do not mix patterns within a repo.
+- Never put business logic, database queries, or calculations inside a controller/route handler. Controllers only parse requests and call a service/use-case layer.
+- Default folder shell: `src/`, `tests/`, `docs/`, `.config/`, `README.md`. Feature-based projects group by domain under `src/features/<name>/`; Clean Architecture projects use `domain/`, `application/`, `infrastructure/`, `interfaces/`.
+
+## API Versioning
+
+- Version every public/external API in the URI: `/api/v1/...`. Never make a breaking change in place on a version already in use — cut a new version instead.
+- When deprecating a version, add `Deprecation` and `Sunset` response headers and give consumers a 90-day window by default.
+- Reflect every version change in the OpenAPI/Swagger spec.
+
+## Naming
+
+- Files: kebab-case. Variables/functions: camelCase. Components/classes: PascalCase. Constants: UPPER_SNAKE_CASE.
+- Branches: `type/short-description` (`feat/`, `fix/`, `chore/`, `refactor/`, `docs/`, `hotfix/`).
+
+## Linting, Formatting, Dependencies
+
+- Use the project's configured linter/formatter (ESLint+Prettier for JS/TS, Ruff/Pylint+Black for Python). Never suggest disabling a lint rule to make code pass — fix the code.
+- Always update the lock file alongside a manifest change (`package-lock.json`, `pnpm-lock.yaml`, `poetry.lock`, etc.). Never hand-edit a lock file.
+- When adding a dependency, prefer one already used elsewhere in the org over introducing a new one for the same purpose.
+- Flag any dependency with a known Critical/High CVE — these block deployment per the patching SLA (Critical: 24–48h, High: 7 days) unless a TL has signed off an exception.
+
+## Git Flow & PRs
+
+- Trunk-based development, short-lived feature branches off `main`. Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`). Squash merge to `main`.
+- Every PR needs: a filled-out PR template, lint/test/build passing in CI, at least one reviewer (prefer a different office than the author), and the AI-assisted field answered truthfully.
+- No merge without the standards checklist acknowledged — this isn't optional even for small changes.
+
+## Security (non-negotiable)
+
+- Never write a secret, API key, password, or token into source code. Config comes from environment variables only; `.env` is git-ignored, `.env.example` documents the shape.
+- Validate every API request at the boundary (Zod/Joi/class-validator or equivalent) before it reaches business logic.
+- Use parameterized queries / ORM builders only — never string-concatenate SQL.
+- Escape/encode all user-generated content rendered in the browser; avoid `dangerouslySetInnerHTML`/`v-html` unless the content is sanitized first.
+- Add CSRF protection and SameSite cookies for cookie-authenticated apps.
+- JWTs: short-lived access tokens, refresh rotation, RS256 where multiple consumers exist, nothing sensitive in the payload.
+- Hash passwords with bcrypt or Argon2 only.
+- HTTPS-only, HSTS in production, `Secure`/`HttpOnly`/`SameSite` cookies.
+- Validate file uploads by content type, cap size, never execute from the upload directory.
+- Any Supabase project must have RLS enabled on every table before launch, and never expose the service-role key client-side.
+
+## Logging
+
+- Use exactly four levels: `DEBUG`, `INFO`, `WARNING`, `ERROR`. Don't invent others.
+- Every log line should carry `requestId`, `correlationId`, and `userId` (when authenticated) — wire these through, don't log without them.
+- Never log raw PII (emails, phone numbers, names, payment details, government IDs). Mask before logging.
+
+## Testing
+
+- Business logic (service/use-case layer) needs unit tests with dependencies mocked.
+- Real dependencies (DB, cache) get integration tests, not more mocks.
+- Every new or changed API endpoint needs an API-level test (status codes, response shape, auth, validation errors).
+- Critical user journeys need E2E coverage.
+
+## Code Review Lens
+
+When reviewing (or self-reviewing generated code), explicitly check: security, performance (N+1 queries, missing indexes), readability, reusability, adherence to the chosen architecture pattern, edge cases (null/empty/concurrent/timeout), and — if AI-assisted — whether the logic was actually tested or just looks plausible.
+
+## Performance
+
+- Index every column used in a `WHERE`, `ORDER BY`, or `JOIN`.
+- Cache expensive/frequent reads with an explicit TTL and invalidation plan.
+- Lazy-load large lists/images. Serve optimized image formats.
+- Set an explicit timeout on every external call — no unbounded waits.
+
+## Accessibility (frontend)
+
+- Target WCAG 2.1 AA for customer-facing UI. Semantic HTML first; ARIA only when semantic HTML can't express the pattern.
+- Every interactive element must be keyboard-operable with visible focus.
+- Contrast: 4.5:1 normal text, 3:1 large text/UI components.
+- All inputs get associated `<label>`s; images get meaningful `alt` (or `alt=""` if decorative).
+
+## Database Migrations
+
+- Every schema change is a versioned, timestamped migration file — never a manual change against a live database.
+- Never edit a migration that's already merged; fix mistakes with a new migration.
+- Irreversible migrations (dropped columns, etc.) need a documented backup step and TL sign-off in the PR.
+
+## DevOps
+
+- Environments are named `dev` → `staging` → `production`. Nothing else.
+- Rollback happens through GitHub: re-run the last known-good "Deploy to production" Actions workflow, or `git revert` the bad merge commit and let CI/CD redeploy. Never a manual, untracked server-side swap.
+- Infrastructure is defined as code (Terraform/CloudFormation) — don't suggest manual console changes.
+
+## Documentation
+
+- Every repo needs a README (what it does, local setup, env vars, owner) and, for APIs, a current OpenAPI/Swagger spec.
+
+## AI Usage (applies to you, right now)
+
+- Match model/effort to the task: don't reach for a large context dump or a heavyweight approach for routine CRUD/formatting/boilerplate work; reserve deep reasoning for architecture and hard debugging.
+- Only pull in the files actually relevant to the task — don't request or assume access to the whole repo when a few files suffice.
+- If your output was substantially AI-generated, say so plainly so it gets flagged for the "AI-assisted" PR field and extra reviewer scrutiny.
+- Never place client PII, credentials, or proprietary source outside the current repo into a prompt.
+
+## Exceptions
+
+Legacy version mismatches or standards gaps are allowed only if documented in the repo's README or `docs/exceptions.md`: which standard isn't met, why, who approved it, and the target resolution date. If you notice undocumented drift from these rules in existing code, flag it rather than silently working around it.
+
+---
+*Full detail, rationale, and examples for every rule above: see "SJ Innovation LLC — Shared Coding Framework & Standards" (Control Tower task, current version v1.6).*
