@@ -22,6 +22,8 @@ describe("LandingPage", () => {
       expect.arrayContaining(["/auth", "/student", "/instructor", "/admin", "#roles"]),
     );
     expect(screen.queryByText(/next phase/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Study Companion" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "AI Course Builder" })).toBeInTheDocument();
   });
 
   it("hides sign-in while the session is still loading", () => {

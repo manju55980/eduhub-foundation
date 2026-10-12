@@ -7,6 +7,7 @@ import {
   GraduationCap,
   Presentation,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
 const roleAreas = [
@@ -17,8 +18,15 @@ const roleAreas = [
     tone: "text-primary",
     to: "/student",
     description:
-      "Browse the catalogue, keep your enrolled courses together, submit assignments and track your grades.",
-    items: ["Browse courses", "My courses", "Assignments", "My grades", "My profile"],
+      "Browse the catalogue, keep your enrolled courses together, ask the Study Companion about a course you have joined, submit assignments and track your grades.",
+    items: [
+      "Browse courses",
+      "My courses",
+      "Study Companion",
+      "Assignments",
+      "My grades",
+      "My profile",
+    ],
   },
   {
     name: "Instructor",
@@ -27,8 +35,15 @@ const roleAreas = [
     tone: "text-accent-foreground",
     to: "/instructor",
     description:
-      "Create courses, publish lessons, review submissions and record the grades that reach your students.",
-    items: ["Instructor dashboard", "Create a course", "My courses", "Submissions", "My profile"],
+      "Create a course by hand or with the AI Course Builder, publish lessons, review submissions and record the grades that reach your students.",
+    items: [
+      "Instructor dashboard",
+      "Create a course",
+      "AI Course Builder",
+      "My courses",
+      "Submissions",
+      "My profile",
+    ],
   },
   {
     name: "Admin",
@@ -70,6 +85,25 @@ const flow = [
   },
 ] as const;
 
+const agents = [
+  {
+    audience: "Student",
+    name: "Study Companion",
+    soft: { backgroundColor: "var(--student-soft, #d3efff)" },
+    tone: "text-primary",
+    detail:
+      "On an enrolled course, ask one question. The answer is an explanation, an example, and practice questions. Nothing is saved.",
+  },
+  {
+    audience: "Instructor",
+    name: "AI Course Builder",
+    soft: { backgroundColor: "var(--instructor-soft, #d6f7e0)" },
+    tone: "text-accent-foreground",
+    detail:
+      "Describe a course and choose a level. Review the outline, lessons, and assignment questions, then save them as a new draft.",
+  },
+] as const;
+
 export function LandingPage({ checking }: { checking: boolean }) {
   return (
     <div className="min-h-screen bg-background">
@@ -104,7 +138,8 @@ export function LandingPage({ checking }: { checking: boolean }) {
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             EduHub gives students, instructors and admins their own clear spaces, so every part of a
-            course has a natural home.
+            course has a natural home. Students and instructors each have an AI agent for the work
+            they already do.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
@@ -165,6 +200,34 @@ export function LandingPage({ checking }: { checking: boolean }) {
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="pb-4 pt-12">
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">AI agents</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              One agent for students, one for instructors.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {agents.map((agent) => (
+              <div key={agent.name} className="rounded-sm border border-border bg-card p-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex size-8 items-center justify-center rounded-sm"
+                    style={agent.soft}
+                  >
+                    <Sparkles className={`size-4 ${agent.tone}`} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">{agent.audience}</p>
+                    <h3 className="text-base font-medium text-foreground">{agent.name}</h3>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{agent.detail}</p>
+              </div>
             ))}
           </div>
         </section>
