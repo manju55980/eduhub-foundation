@@ -14,4 +14,36 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it("matches auth and role routes", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+
+    for (const path of [
+      "/auth",
+      "/student",
+      "/student/courses",
+      "/student/my-courses",
+      "/student/my-courses/course-1",
+      "/student/assignments",
+      "/student/grades",
+      "/student/profile",
+      "/instructor",
+      "/instructor/courses",
+      "/instructor/courses/new",
+      "/instructor/courses/course-1/lessons",
+      "/instructor/courses/course-1/assignments",
+      "/instructor/submissions",
+      "/instructor/profile",
+      "/admin",
+      "/admin/courses/approvals",
+      "/admin/courses/archive",
+      "/admin/users",
+      "/admin/categories",
+      "/admin/enrollments",
+      "/admin/reports",
+    ]) {
+      const matches = router.matchRoutes(path);
+      expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
+    }
+  });
 });

@@ -1,1 +1,7 @@
-project_id = "efygzxstztadihqsxoeb"
+project_id = "thuaplbbrzkblozboymg"
+
+[functions.ai-study]
+verify_jwt = true
+
+[functions.ai-course-builder]
+verify_jwt = true

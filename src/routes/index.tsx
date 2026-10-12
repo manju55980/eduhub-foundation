@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { EduHubLanding } from "@/components/landing/eduhub-landing";
+
+import { EntryScreen } from "@/features/auth/entry-screen";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,5 +24,5 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: EduHubLanding,
+  component: EntryScreen,
 });
