@@ -22,6 +22,7 @@ export type StudentName = {
 
 export type AdminEnrollment = {
   id: string;
+  courseId: string;
   studentName: string | null;
   title: string | null;
   courseStatus: string | null;
@@ -48,6 +49,7 @@ export function adminEnrollments(
       return [
         {
           id: enrollment.id,
+          courseId: course.id,
           studentName: nameById.has(enrollment.studentId)
             ? (nameById.get(enrollment.studentId) ?? null)
             : null,

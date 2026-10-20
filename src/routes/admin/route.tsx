@@ -15,7 +15,12 @@ function AdminLayout() {
     return <ProfileError message={session.message} />;
   }
   return (
-    <AppShell role="admin" email={session.email} fullName={session.fullName}>
+    <AppShell
+      role="admin"
+      email={session.email}
+      fullName={session.fullName}
+      userId={session.userId}
+    >
       <Outlet />
     </AppShell>
   );

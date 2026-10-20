@@ -15,7 +15,12 @@ function StudentLayout() {
     return <ProfileError message={session.message} />;
   }
   return (
-    <AppShell role="student" email={session.email} fullName={session.fullName}>
+    <AppShell
+      role="student"
+      email={session.email}
+      fullName={session.fullName}
+      userId={session.userId}
+    >
       <Outlet />
     </AppShell>
   );

@@ -9,6 +9,8 @@ import {
   LayoutDashboard,
   Library,
   ListChecks,
+  Medal,
+  MessagesSquare,
   PenLine,
   Sparkles,
   Sprout,
@@ -28,14 +30,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { roleNavigation, type AppRole } from "@/lib/roles";
 
 const navIcon: Record<string, LucideIcon> = {
   "/student/courses": Library,
   "/student/my-courses": BookOpen,
+  "/student/assistant": MessagesSquare,
   "/student/assignments": ClipboardList,
   "/student/grades": Award,
+  "/student/certificates": Medal,
   "/student/profile": User,
   "/instructor": LayoutDashboard,
   "/instructor/courses/new": PenLine,
@@ -53,10 +58,11 @@ const navIcon: Record<string, LucideIcon> = {
 
 export function AppSidebar({ role }: { role: AppRole }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const { setOpenMobile } = useSidebar();
   const items = roleNavigation[role];
 
   return (
-    <Sidebar>
+    <Sidebar className="print:hidden">
       <SidebarHeader className="px-4 py-5">
         <div className="flex items-center gap-2 text-base font-semibold text-foreground">
           <GraduationCap className="size-5 text-primary" />
@@ -73,7 +79,7 @@ export function AppSidebar({ role }: { role: AppRole }) {
                 return (
                   <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton asChild isActive={isCurrentPath(pathname, item.to)}>
-                      <Link to={item.to}>
+                      <Link to={item.to} onClick={() => setOpenMobile(false)}>
                         {Icon ? <Icon /> : null}
                         <span>{item.label}</span>
                       </Link>

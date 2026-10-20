@@ -6,7 +6,7 @@ This feature does not add a table, column, policy, route sidebar item, or migrat
 
 ## Route
 
-`/admin/courses/archive` is Archive Courses. The heading is “Archive Courses”. It is not a sidebar item. A back link returns to Approve Courses. Approve Courses links here with the text “Archive a published course”. Do not add that link to the admin sidebar. Do not add a course-detail route. Each published course is a card.
+`/admin/courses/archive` is Archive Courses. The heading is “Archive Courses”. It is not a sidebar item. A back link returns to Approve Courses. Approve Courses links here with the text “Archive a published course”. Do not add that link to the admin sidebar. The card summary opens `/admin/courses/$courseId`, specified in `../course-details.md`. Archive stays outside that link. Each published course is a card.
 
 ## Schema and RLS
 

@@ -1,0 +1,602 @@
+[
+  {
+    "id": "matching-01",
+    "set": "matching",
+    "query": "In what way does note taking support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0001"],
+    "pair_id": "pair-01"
+  },
+  {
+    "id": "matching-02",
+    "set": "matching",
+    "query": "In what way does spaced repetition support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0002"],
+    "pair_id": "pair-02"
+  },
+  {
+    "id": "matching-03",
+    "set": "matching",
+    "query": "In what way does practice questions support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0003"],
+    "pair_id": "pair-03"
+  },
+  {
+    "id": "matching-04",
+    "set": "matching",
+    "query": "In what way does reading a lesson support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0004"],
+    "pair_id": "pair-04"
+  },
+  {
+    "id": "matching-05",
+    "set": "matching",
+    "query": "In what way does summarising a chapter support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0005"],
+    "pair_id": "pair-05"
+  },
+  {
+    "id": "matching-06",
+    "set": "matching",
+    "query": "In what way does asking for support help a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0006"],
+    "pair_id": "pair-06"
+  },
+  {
+    "id": "matching-07",
+    "set": "matching",
+    "query": "In what way does reviewing feedback support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0007"],
+    "pair_id": "pair-07"
+  },
+  {
+    "id": "matching-08",
+    "set": "matching",
+    "query": "In what way does planning study time support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0008"],
+    "pair_id": "pair-08"
+  },
+  {
+    "id": "matching-09",
+    "set": "matching",
+    "query": "In what way does setting a learning goal support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0009"],
+    "pair_id": "pair-09"
+  },
+  {
+    "id": "matching-10",
+    "set": "matching",
+    "query": "In what way does checking understanding support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0010"],
+    "pair_id": "pair-10"
+  },
+  {
+    "id": "matching-11",
+    "set": "matching",
+    "query": "In what way does using examples support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0011"],
+    "pair_id": "pair-11"
+  },
+  {
+    "id": "matching-12",
+    "set": "matching",
+    "query": "In what way does comparing two ideas support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0012"],
+    "pair_id": "pair-12"
+  },
+  {
+    "id": "matching-13",
+    "set": "matching",
+    "query": "In what way does defining a term support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0013"],
+    "pair_id": "pair-13"
+  },
+  {
+    "id": "matching-14",
+    "set": "matching",
+    "query": "In what way does following a worked example support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0014"],
+    "pair_id": "pair-14"
+  },
+  {
+    "id": "matching-15",
+    "set": "matching",
+    "query": "In what way does spotting a mistake support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0015"],
+    "pair_id": "pair-15"
+  },
+  {
+    "id": "matching-16",
+    "set": "matching",
+    "query": "In what way does revising before a deadline support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0016"],
+    "pair_id": "pair-16"
+  },
+  {
+    "id": "matching-17",
+    "set": "matching",
+    "query": "In what way does breaking a topic into parts support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0017"],
+    "pair_id": "pair-17"
+  },
+  {
+    "id": "matching-18",
+    "set": "matching",
+    "query": "In what way does linking a lesson to an assignment support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0018"],
+    "pair_id": "pair-18"
+  },
+  {
+    "id": "matching-19",
+    "set": "matching",
+    "query": "In what way does choosing a beginner course support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0019"],
+    "pair_id": "pair-19"
+  },
+  {
+    "id": "matching-20",
+    "set": "matching",
+    "query": "In what way does choosing an intermediate course support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0020"],
+    "pair_id": "pair-20"
+  },
+  {
+    "id": "matching-21",
+    "set": "matching",
+    "query": "In what way does choosing an advanced course support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0021"],
+    "pair_id": "pair-21"
+  },
+  {
+    "id": "matching-22",
+    "set": "matching",
+    "query": "In what way does reading a course description support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0022"],
+    "pair_id": "pair-22"
+  },
+  {
+    "id": "matching-23",
+    "set": "matching",
+    "query": "In what way does finishing a lesson support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0023"],
+    "pair_id": "pair-23"
+  },
+  {
+    "id": "matching-24",
+    "set": "matching",
+    "query": "In what way does tracking progress support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0024"],
+    "pair_id": "pair-24"
+  },
+  {
+    "id": "matching-25",
+    "set": "matching",
+    "query": "In what way does joining a published course support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0025"],
+    "pair_id": "pair-25"
+  },
+  {
+    "id": "matching-26",
+    "set": "matching",
+    "query": "In what way does reading a grade support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0026"],
+    "pair_id": "pair-26"
+  },
+  {
+    "id": "matching-27",
+    "set": "matching",
+    "query": "In what way does using written feedback support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0027"],
+    "pair_id": "pair-27"
+  },
+  {
+    "id": "matching-28",
+    "set": "matching",
+    "query": "In what way does preparing a submission support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0028"],
+    "pair_id": "pair-28"
+  },
+  {
+    "id": "matching-29",
+    "set": "matching",
+    "query": "In what way does meeting a due date support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0029"],
+    "pair_id": "pair-29"
+  },
+  {
+    "id": "matching-30",
+    "set": "matching",
+    "query": "In what way does returning after a break support a new learner when they need what it means?",
+    "expected_source_keys": ["faq:0030"],
+    "pair_id": "pair-30"
+  },
+  {
+    "id": "noisy-01",
+    "set": "noisy",
+    "query": "In what way does note taking support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0001"],
+    "pair_id": "pair-01"
+  },
+  {
+    "id": "noisy-02",
+    "set": "noisy",
+    "query": "In what way does spaced repetition support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0002"],
+    "pair_id": "pair-02"
+  },
+  {
+    "id": "noisy-03",
+    "set": "noisy",
+    "query": "In what way does practice questions support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0003"],
+    "pair_id": "pair-03"
+  },
+  {
+    "id": "noisy-04",
+    "set": "noisy",
+    "query": "In what way does reading a lesson support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0004"],
+    "pair_id": "pair-04"
+  },
+  {
+    "id": "noisy-05",
+    "set": "noisy",
+    "query": "In what way does summarising a chapter support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0005"],
+    "pair_id": "pair-05"
+  },
+  {
+    "id": "noisy-06",
+    "set": "noisy",
+    "query": "In what way does asking for support help a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0006"],
+    "pair_id": "pair-06"
+  },
+  {
+    "id": "noisy-07",
+    "set": "noisy",
+    "query": "In what way does reviewing feedback support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0007"],
+    "pair_id": "pair-07"
+  },
+  {
+    "id": "noisy-08",
+    "set": "noisy",
+    "query": "In what way does planning study time support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0008"],
+    "pair_id": "pair-08"
+  },
+  {
+    "id": "noisy-09",
+    "set": "noisy",
+    "query": "In what way does setting a learning goal support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0009"],
+    "pair_id": "pair-09"
+  },
+  {
+    "id": "noisy-10",
+    "set": "noisy",
+    "query": "In what way does checking understanding support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0010"],
+    "pair_id": "pair-10"
+  },
+  {
+    "id": "noisy-11",
+    "set": "noisy",
+    "query": "In what way does using examples support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0011"],
+    "pair_id": "pair-11"
+  },
+  {
+    "id": "noisy-12",
+    "set": "noisy",
+    "query": "In what way does comparing two ideas support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0012"],
+    "pair_id": "pair-12"
+  },
+  {
+    "id": "noisy-13",
+    "set": "noisy",
+    "query": "In what way does defining a term support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0013"],
+    "pair_id": "pair-13"
+  },
+  {
+    "id": "noisy-14",
+    "set": "noisy",
+    "query": "In what way does following a worked example support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0014"],
+    "pair_id": "pair-14"
+  },
+  {
+    "id": "noisy-15",
+    "set": "noisy",
+    "query": "In what way does spotting a mistake support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0015"],
+    "pair_id": "pair-15"
+  },
+  {
+    "id": "noisy-16",
+    "set": "noisy",
+    "query": "In what way does revising before a deadline support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0016"],
+    "pair_id": "pair-16"
+  },
+  {
+    "id": "noisy-17",
+    "set": "noisy",
+    "query": "In what way does breaking a topic into parts support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0017"],
+    "pair_id": "pair-17"
+  },
+  {
+    "id": "noisy-18",
+    "set": "noisy",
+    "query": "In what way does linking a lesson to an assignment support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0018"],
+    "pair_id": "pair-18"
+  },
+  {
+    "id": "noisy-19",
+    "set": "noisy",
+    "query": "In what way does choosing a beginner course support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0019"],
+    "pair_id": "pair-19"
+  },
+  {
+    "id": "noisy-20",
+    "set": "noisy",
+    "query": "In what way does choosing an intermediate course support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0020"],
+    "pair_id": "pair-20"
+  },
+  {
+    "id": "noisy-21",
+    "set": "noisy",
+    "query": "In what way does choosing an advanced course support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0021"],
+    "pair_id": "pair-21"
+  },
+  {
+    "id": "noisy-22",
+    "set": "noisy",
+    "query": "In what way does reading a course description support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0022"],
+    "pair_id": "pair-22"
+  },
+  {
+    "id": "noisy-23",
+    "set": "noisy",
+    "query": "In what way does finishing a lesson support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0023"],
+    "pair_id": "pair-23"
+  },
+  {
+    "id": "noisy-24",
+    "set": "noisy",
+    "query": "In what way does tracking progress support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0024"],
+    "pair_id": "pair-24"
+  },
+  {
+    "id": "noisy-25",
+    "set": "noisy",
+    "query": "In what way does joining a published course support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0025"],
+    "pair_id": "pair-25"
+  },
+  {
+    "id": "noisy-26",
+    "set": "noisy",
+    "query": "In what way does reading a grade support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0026"],
+    "pair_id": "pair-26"
+  },
+  {
+    "id": "noisy-27",
+    "set": "noisy",
+    "query": "In what way does using written feedback support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0027"],
+    "pair_id": "pair-27"
+  },
+  {
+    "id": "noisy-28",
+    "set": "noisy",
+    "query": "In what way does preparing a submission support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0028"],
+    "pair_id": "pair-28"
+  },
+  {
+    "id": "noisy-29",
+    "set": "noisy",
+    "query": "In what way does meeting a due date support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0029"],
+    "pair_id": "pair-29"
+  },
+  {
+    "id": "noisy-30",
+    "set": "noisy",
+    "query": "In what way does returning after a break support a new learnr when they need what it meens? zxqvjunk",
+    "expected_source_keys": ["faq:0030"],
+    "pair_id": "pair-30"
+  },
+  {
+    "id": "extreme-key-01",
+    "set": "extreme",
+    "query": "note taking",
+    "expected_source_keys": ["faq:0001"]
+  },
+  {
+    "id": "extreme-key-02",
+    "set": "extreme",
+    "query": "spaced repetition",
+    "expected_source_keys": ["faq:0002"]
+  },
+  {
+    "id": "extreme-key-03",
+    "set": "extreme",
+    "query": "practice questions",
+    "expected_source_keys": ["faq:0003"]
+  },
+  {
+    "id": "extreme-key-04",
+    "set": "extreme",
+    "query": "reading a lesson",
+    "expected_source_keys": ["faq:0004"]
+  },
+  {
+    "id": "extreme-key-05",
+    "set": "extreme",
+    "query": "summarising a chapter",
+    "expected_source_keys": ["faq:0005"]
+  },
+  {
+    "id": "extreme-key-06",
+    "set": "extreme",
+    "query": "asking for help",
+    "expected_source_keys": ["faq:0006"]
+  },
+  {
+    "id": "extreme-key-07",
+    "set": "extreme",
+    "query": "reviewing feedback",
+    "expected_source_keys": ["faq:0007"]
+  },
+  {
+    "id": "extreme-key-08",
+    "set": "extreme",
+    "query": "planning study time",
+    "expected_source_keys": ["faq:0008"]
+  },
+  {
+    "id": "extreme-key-09",
+    "set": "extreme",
+    "query": "setting a learning goal",
+    "expected_source_keys": ["faq:0009"]
+  },
+  {
+    "id": "extreme-key-10",
+    "set": "extreme",
+    "query": "checking understanding",
+    "expected_source_keys": ["faq:0010"]
+  },
+  {
+    "id": "extreme-key-11",
+    "set": "extreme",
+    "query": "using examples",
+    "expected_source_keys": ["faq:0011"]
+  },
+  {
+    "id": "extreme-key-12",
+    "set": "extreme",
+    "query": "comparing two ideas",
+    "expected_source_keys": ["faq:0012"]
+  },
+  {
+    "id": "extreme-key-13",
+    "set": "extreme",
+    "query": "defining a term",
+    "expected_source_keys": ["faq:0013"]
+  },
+  {
+    "id": "extreme-key-14",
+    "set": "extreme",
+    "query": "following a worked example",
+    "expected_source_keys": ["faq:0014"]
+  },
+  {
+    "id": "extreme-key-15",
+    "set": "extreme",
+    "query": "spotting a mistake",
+    "expected_source_keys": ["faq:0015"]
+  },
+  {
+    "id": "extreme-out-01",
+    "set": "extreme",
+    "query": "Which metal has atomic number 79?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-02",
+    "set": "extreme",
+    "query": "Name the largest moon of Jupiter.",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-03",
+    "set": "extreme",
+    "query": "Who painted the ceiling of the Sistine Chapel?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-04",
+    "set": "extreme",
+    "query": "What is the boiling point of ethanol in degrees Celsius?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-05",
+    "set": "extreme",
+    "query": "Which river flows through Cairo?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-06",
+    "set": "extreme",
+    "query": "How many strings does a standard violin have?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-07",
+    "set": "extreme",
+    "query": "What year did the first powered airplane fly?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-08",
+    "set": "extreme",
+    "query": "Which planet has the shortest orbit around the sun?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-09",
+    "set": "extreme",
+    "query": "Name the currency used in Japan.",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-10",
+    "set": "extreme",
+    "query": "What instrument measures atmospheric pressure?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-11",
+    "set": "extreme",
+    "query": "Which ocean borders the west coast of Portugal?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-12",
+    "set": "extreme",
+    "query": "How many players are on a volleyball team on the court?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-13",
+    "set": "extreme",
+    "query": "What is the chemical symbol for tungsten?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-14",
+    "set": "extreme",
+    "query": "Which city hosted the 1960 Summer Olympics?",
+    "expected_source_keys": []
+  },
+  {
+    "id": "extreme-out-15",
+    "set": "extreme",
+    "query": "Name the author of One Hundred Years of Solitude.",
+    "expected_source_keys": []
+  }
+]

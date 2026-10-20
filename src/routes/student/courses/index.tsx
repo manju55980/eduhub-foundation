@@ -4,7 +4,7 @@ import { BrowseCoursesScreen } from "@/features/student/browse-courses-screen";
 
 const studentRoute = getRouteApi("/student");
 
-export const Route = createFileRoute("/student/courses")({
+export const Route = createFileRoute("/student/courses/")({
   component: BrowseCoursesPage,
 });
 

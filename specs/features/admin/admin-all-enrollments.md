@@ -6,7 +6,7 @@ This feature does not add a table, column, policy, route, or migration.
 
 ## Route
 
-`/admin/enrollments` is All Enrollments. The heading is “All Enrollments”. It is a sidebar item, so it has no back link. The existing file route stays in place. Do not add an enrollment-detail route. Each enrollment is a card.
+`/admin/enrollments` is All Enrollments. The heading is “All Enrollments”. It is a sidebar item, so it has no back link. The existing file route stays in place. Do not add an enrollment-detail route. Each enrollment is a card. The card summary opens that course’s details page, specified in `../course-details.md`.
 
 ## Schema and RLS
 

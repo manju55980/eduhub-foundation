@@ -1,9 +1,14 @@
 import { render, screen, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { listPendingCourses } from "./approve-courses-api";
 import { AdminDashboardScreen } from "./dashboard-screen";
 import { listAllEnrollments } from "./enrollments-api";
+
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children?: ReactNode }) => <a href="#">{children}</a>,
+}));
 
 vi.mock("./approve-courses-api", () => ({
   listPendingCourses: vi.fn(),
@@ -29,6 +34,7 @@ const pendingCourse = {
 function enrollment(id: string, title: string, enrolledAt: string) {
   return {
     id,
+    courseId: "course-1",
     studentName: "Ada Lovelace",
     title,
     courseStatus: "published",
@@ -90,7 +96,8 @@ describe("AdminDashboardScreen", () => {
     expect(screen.queryByRole("heading", { name: "Older" })).not.toBeInTheDocument();
     expect(screen.queryByText("Progress")).not.toBeInTheDocument();
     expect(screen.queryByText("40%")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Algebra/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Newest/ })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /approve|archive|promote/i }),
     ).not.toBeInTheDocument();

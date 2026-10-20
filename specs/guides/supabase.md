@@ -12,9 +12,15 @@ Read this before changing Supabase clients, auth, schema, or policies. The requi
 - `supabase/migrations/20261010230000_promote_student_to_instructor.sql`
 - `supabase/migrations/20261010233000_create_categories.sql`
 
-The first two files are applied on the remote project. The instructor submitter-name policy, the student-to-instructor promotion, and categories are local and have not been applied. Do not apply further database changes without saying so first.
+Specified for Assessment 2:
 
-When a migration is added, create only the tables and columns in `architecture.md`. `categories` and `courses.category_id` are specified in `features/admin/admin-manage-categories.md`. Do not add a second roles table or any other unspecified table.
+- `supabase/migrations/20261016220000_lesson_completions.sql` matches the linked database. Its tables, policies, grants, and triggers were already present.
+- `supabase/migrations/20261016221000_certificates_and_notifications.sql` matches the linked database. The certificate trigger is `after update` with the completed-status condition, because `update of status` does not see the status assigned by `enrollments_sync_status`.
+- `supabase/migrations/20261016222000_rag_chunks.sql` is applied. RAG is partially completed at 572 embedded chunks: 6 course, 13 lesson, and 553 FAQ. The retrieval report still scores the earlier 300-chunk run. The 5,000 FAQ requirement is not met. See `assessment-2-gap.md`.
+
+The first two files are applied on the remote project. The instructor submitter-name policy, the student-to-instructor promotion, and categories are local and have not been applied. Lesson completions, certificates, and notifications are on the linked database. The RAG corpus migration is applied. Do not apply further database changes without saying so first.
+
+When a migration is added, create only the tables and columns in `architecture.md`. `categories` and `courses.category_id` are specified in `features/admin/admin-manage-categories.md`. Lesson completion, certificates, notifications, and `rag_chunks` are specified in `architecture.md`. Do not add a second roles table or any other unspecified table.
 
 `drizzle-orm` and `postgres` are installed. `drizzle/schema.ts` is an empty generated file. Leave it blank. It is not the data layer.
 
@@ -52,13 +58,15 @@ The first Admin is configured manually in Supabase, outside the app. In-app prom
 
 ## Edge Functions
 
-`supabase/functions/ai-study` and `supabase/functions/ai-course-builder` are the only AI entry points. `verify_jwt` is true for both in `supabase/config.toml`. Each function builds a Supabase client with `SUPABASE_URL` and `SUPABASE_ANON_KEY`, or `SUPABASE_PUBLISHABLE_KEY` when the anon key is not injected, plus the caller’s bearer token. It does not read `SUPABASE_SERVICE_ROLE_KEY`. Queries run as that user, so the existing RLS policies apply.
+`supabase/functions/ai-study`, `supabase/functions/ai-course-builder`, and `supabase/functions/ai-agent` are the AI entry points. `verify_jwt` is true for each of them in `supabase/config.toml`. Each function builds a Supabase client with `SUPABASE_URL` and `SUPABASE_ANON_KEY`, or `SUPABASE_PUBLISHABLE_KEY` when the anon key is not injected, plus the caller’s bearer token. It does not read `SUPABASE_SERVICE_ROLE_KEY`. Queries run as that user, so the existing RLS policies apply. The RAG seed script is the service-role path, and it is not a browser request.
 
 `GEMINI_API_KEY` is a Supabase function secret used only inside those functions. Do not put it in `.env` as a `VITE_` name, and do not send it to the browser. A missing key returns “AI is not configured.” The response does not include the secret or the upstream error body.
 
 `ai-study` reads `profiles.role`, then `courses.title` and `courses.description`, then `enrollments.id`, then `lessons.title` and `lessons.content`. It does not read grades, submissions, or other courses. `ai-course-builder` reads only `profiles.role`. It does not insert rows.
 
-These functions do not add a table, column, or policy. Set the secret with `supabase secrets set GEMINI_API_KEY` before calling them. The model is `gemini-3.5-flash-lite`, which has free-tier input and output on the Gemini Developer API.
+`POST /api/assignment-reminders` is the scheduled assignment reminder. It is not an Edge Function and not a browser route. The cron bearer is checked before the service-role client inserts `assignment_due` notifications. Course completion stays on the `enrollments_issue_certificate` trigger. The endpoint is implemented. The published app has no built-in caller that can POST this path with `LOVABLE_CRON_SECRET`. Hourly scheduling and deployment configuration are pending manual setup. The hourly caller is documented in the README. It has not been invoked against the database.
+
+These functions do not add a table, column, or policy. Set the secret with `supabase secrets set GEMINI_API_KEY` before calling them. The chat model is `gemini-3.5-flash-lite`, which has free-tier input and output on the Gemini Developer API. The level-accuracy and RAG-evaluation scripts are not Edge Functions. They read that same secret from the environment when run locally, and they are not shipped to the browser.
 
 ## RLS and role permissions
 

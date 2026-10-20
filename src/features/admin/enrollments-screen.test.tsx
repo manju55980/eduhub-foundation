@@ -1,8 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EnrollmentsScreen } from "./enrollments-screen";
 import { listAllEnrollments } from "./enrollments-api";
+
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children?: ReactNode }) => <a href="#">{children}</a>,
+}));
 
 vi.mock("./enrollments-api", () => ({
   listAllEnrollments: vi.fn(),
@@ -12,6 +17,7 @@ const listEnrollments = vi.mocked(listAllEnrollments);
 
 const enrollment = {
   id: "enrollment-1",
+  courseId: "course-1",
   studentName: "Ada Lovelace",
   title: "Archived course",
   courseStatus: "archived",

@@ -11,7 +11,7 @@ This feature does not add a table, column, policy, route, or migration.
 | `/student/courses`              | Browse Courses. Sidebar label: “Browse Courses”. No back link. |
 | `/student/my-courses/$courseId` | Learning view for one course. No separate sidebar item.        |
 
-Do not add a course-detail route. On the catalogue, each card shows the stored `title`, `description`, `level`, and `created_at`. A null `title` or `description` is shown blank. Do not substitute a made-up name.
+The catalogue card shows the stored course fields. Its status label is Published. When this student’s enrollment for that course is `completed`, the label is Completed instead. An enrollment that is still `active` keeps Published. The stored course status is not changed.
 
 A student cannot read another person’s profile, so a card does not show an instructor name. The catalogue does not list lessons. Lessons stay hidden until the student is enrolled.
 
@@ -57,7 +57,7 @@ If the course row is not returned, show that it is not available. Do not list le
 - **Not enrolled.** Do not read or show lessons, including when the course is published. Do not offer Enroll here. Enrollment stays on Browse Courses.
 - **Enrolled.** List that course’s lessons with no sample rows. Order by `order_index` ascending, nulls last, then `created_at` ascending. Show each lesson’s stored `title` and `content`. A null title or content is shown blank. Show `video_url` only when the stored value is an absolute `http` or `https` URL, as a plain-text link that opens in a new tab. A blank or other value is omitted. An enrolled course with no lessons is an empty lesson list, not sample lessons.
 
-The learning view does not create, edit, delete, or reorder lessons. It does not change enrollment progress or course status. Students who already enrolled can open an archived course here, because `courses_select` still returns it and lesson select still allows an enrolled student. The catalogue does not list that archived course.
+The learning view does not create, edit, delete, or reorder lessons, and it does not change course status. Students who already enrolled can open an archived course here, because `courses_select` still returns it and lesson select still allows an enrolled student. The catalogue does not list that archived course. Marking a lesson complete is specified in `student-lesson-completion.md`. This screen does not write `enrollments.progress` itself.
 
 ## UI
 
@@ -80,7 +80,7 @@ RLS is the data boundary. A hidden control is not enough. Do not hand-edit `src/
 
 - The My Courses list. It is specified in `student-my-courses.md`.
 - Assignments and grades.
-- Unenroll, progress changes, and course publishing or archiving.
+- Unenroll, a direct progress edit, and course publishing or archiving. Marking a lesson complete is specified in `student-lesson-completion.md`.
 - Creating or editing lessons. The study companion on the learning view is specified in `student-ai-study-companion.md`. It does not write lessons, assignments, or submissions.
 - Instructor and admin screens.
 - Creating or editing categories. The catalogue filter is specified in `../admin/admin-manage-categories.md`.

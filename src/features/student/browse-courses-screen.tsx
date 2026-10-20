@@ -3,23 +3,11 @@ import { Link } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import {
-  MetaItem,
-  MetaList,
-  PageSection,
-  RecordCard,
-  RecordList,
-} from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordList } from "@/components/app-shell/record-card";
+import { CourseListing } from "@/features/courses/course-listing";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   categoriesByName,
   storedCategoryName,
@@ -83,22 +71,21 @@ export function BrowseCoursesScreen({ studentId }: { studentId: string }) {
       {!loading && !loadError ? (
         <div className="max-w-sm space-y-2">
           <Label htmlFor="catalogue-category">Category</Label>
-          <Select
+          <select
+            id="catalogue-category"
+            className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             value={categoryId || allCategoriesValue}
-            onValueChange={(value) => setCategoryId(value === allCategoriesValue ? "" : value)}
+            onChange={(event) =>
+              setCategoryId(event.target.value === allCategoriesValue ? "" : event.target.value)
+            }
           >
-            <SelectTrigger id="catalogue-category" className="w-full">
-              <SelectValue placeholder="All categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={allCategoriesValue}>All categories</SelectItem>
-              {categoriesByName(categories).map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <option value={allCategoriesValue}>All categories</option>
+            {categoriesByName(categories).map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
       ) : null}
       {!loading && !loadError && visibleCourses.length === 0 ? (
@@ -165,19 +152,15 @@ function CourseCard({
   }
 
   return (
-    <RecordCard
-      className="flex h-full flex-col"
+    <CourseListing
+      role="student"
+      from="browse"
+      courseId={course.id}
       title={course.title ?? ""}
-      badge={<StatusBadge value="published" />}
+      badge={<StatusBadge value={course.completed ? "completed" : "published"} />}
       description={course.description}
-    >
-      <MetaList stacked>
-        <MetaItem label="Category" value={categoryName} />
-        <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
-        <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
-      </MetaList>
-      <div className="mt-auto">
-        {course.enrolled ? (
+      actions={
+        course.enrolled ? (
           <Button asChild>
             <Link to="/student/my-courses/$courseId" params={{ courseId: course.id }}>
               Open course
@@ -187,9 +170,15 @@ function CourseCard({
           <Button type="button" disabled={pending} onClick={handleEnroll}>
             {pending ? "Enrolling…" : "Enroll"}
           </Button>
-        )}
-      </div>
-    </RecordCard>
+        )
+      }
+    >
+      <MetaList stacked>
+        <MetaItem label="Category" value={categoryName} />
+        <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
+        <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
+      </MetaList>
+    </CourseListing>
   );
 }
 

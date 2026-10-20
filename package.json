@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
+    "test:e2e": "vitest run src/test/student-happy-path.test.tsx",
     "test:watch": "vitest"
   },
   "overrides": {

@@ -8,13 +8,13 @@ Specifies how an instructor reviews submissions for their own courses and record
 
 ## Schema and RLS
 
-The submission table, its grants, and its policies already support grading. Do not add a column, a grade scale, a status trigger, or a change to `submissions`.
+The submission table, its grants, and its policies already support grading. Do not add a column, a database constraint, a status trigger, or a change to `submissions`.
 
 | Need                               | What already exists                                                                                                                                                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Read submissions for owned courses | `submissions_select` lets an instructor read a submission when `is_course_owner` is true for that assignment’s course. Another instructor’s submissions are not returned. An admin can read them, but this screen is instructor-only. |
 | Read the student’s text or link    | `content_url` is selectable. It is not in the update grant, so a grade save cannot change it.                                                                                                                                         |
-| Write a grade and feedback         | The update grant is `grade`, `feedback`, and `status` only. `submissions_update_instructor` allows that update only for the owning instructor. `grade` is text. No scale is defined.                                                  |
+| Write a grade and feedback         | The update grant is `grade`, `feedback`, and `status` only. `submissions_update_instructor` allows that update only for the owning instructor. `grade` is text. This screen stores a whole number from 1 to 10. |
 | Mark the submission graded         | `status` allows `submitted` or `graded`. This screen sends `graded`.                                                                                                                                                                  |
 | No delete                          | There is no delete grant.                                                                                                                                                                                                             |
 
@@ -71,7 +71,7 @@ Save sends only:
 
 | Column     | Value                                                               |
 | ---------- | ------------------------------------------------------------------- |
-| `grade`    | Required. Trimmed text. Reject blank. No scale and no number check. |
+| `grade`    | Required. A whole number from 1 to 10, stored as text. Reject blank, and reject any other value, including a number above 10. |
 | `feedback` | Optional. Trimmed text, or null when blank.                         |
 | `status`   | `graded`. Not collected from a status control.                      |
 
@@ -93,7 +93,7 @@ Follow the visual direction in `product.md`. Use `PageHeader`, the existing tabs
 - **Graded.** Stay on this screen and on the view that was open. The saved submission is in Graded, with status Graded and the saved grade and feedback. The banner says “This submission was graded.” It can be dismissed. Dismissing it does not change the grade back, move the submission, or change the route.
 - **Error.** Show the Supabase or form error inline. An error replaces the success banner. Leave the entered grade and feedback in place. A failed save leaves the submission in the view it was in.
 
-No second visual system. No file upload and no grading scale on this screen.
+No second visual system. No file upload. The grade control is a number input limited to 1 through 10.
 
 ## Authorization
 
@@ -116,12 +116,12 @@ RLS is the data boundary. A hidden control is not enough. Do not hand-edit `src/
 - An instructor sees submissions only for courses they own, newest submission `created_at` first.
 - To Grade lists `submitted` rows. Graded lists `graded` rows. The page opens on To Grade.
 - Each card shows the stored assignment title, course title, student name, submitted text or link, status, and created time. A null or missing related name is blank.
-- Save updates only `grade`, `feedback`, and `status`. Status is `graded`. Grade is trimmed text and is rejected when blank. A blank feedback is stored as null.
+- Save updates only `grade`, `feedback`, and `status`. Status is `graded`. Grade is a whole number from 1 to 10 and is rejected when blank or outside that range. A blank feedback is stored as null.
 - After a successful save, that submission leaves To Grade and appears in Graded. The screen stays on the open view.
 - A past or missing due date is not part of this screen. The submitted text stays read-only.
 - A graded submission can be reviewed and saved again from Graded. The screen does not send `submitted` and has no delete control.
 - An empty view has no sample submissions and no save control.
 - A failed submission, assignment, course, or profile load shows the error and does not offer save.
 - A failed save shows the database error, leaves the entered grade and feedback in place, and leaves the submission in its current view.
-- The only schema change is `profiles_select_instructor_submission`. No column, grade scale, or status trigger is added.
+- The only schema change is `profiles_select_instructor_submission`. No column or status trigger is added. The 1-to-10 limit is enforced by the grading form.
 - A student or admin does not get this screen.

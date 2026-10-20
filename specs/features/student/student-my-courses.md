@@ -6,7 +6,7 @@ This feature does not add a table, column, policy, route, or migration.
 
 ## Route
 
-`/student/my-courses` is My Courses. The heading is “My Courses”. It is a sidebar item, so it has no back link. The existing file route stays in place. Do not add a course-detail route.
+`/student/my-courses` is My Courses. The heading is “My Courses”. It is a sidebar item, so it has no back link. The existing file route stays in place. The card summary opens `/student/courses/$courseId`, specified in `../course-details.md`. Open course still goes to the learning route.
 
 Open course goes to the existing learning view, `/student/my-courses/$courseId`. Do not change that screen. Its heading, lesson list, and back link stay as specified in `student-browse-courses.md`. The back link still goes to `/student/courses` and its label is still “Browse Courses”.
 
@@ -28,7 +28,7 @@ If an enrollment’s course row is not returned, omit that enrollment. Do not in
 
 Each card shows the stored course `title`, `description`, and `level`, and the course `created_at`. A null `title` or `description` is shown blank. Do not substitute a made-up name. A student cannot read another person’s profile, so a card does not show an instructor name.
 
-Also show the stored course `status`, the enrollment `progress`, the enrollment `status`, and the enrollment `created_at`. Progress is the stored integer from 0 to 100. Show it as that percentage. Enrollment status is the stored `active` or `completed` value. Do not calculate a different progress, and do not add a progress bar. The animated progress tracker stays a bonus.
+Also show the stored course `status`, the enrollment `progress`, the enrollment `status`, and the enrollment `created_at`. For a student, a `published` course whose enrollment `status` is `completed` shows Completed in place of Published. Any other stored course status, including `archived`, stays as stored. An `active` enrollment on a published course still shows Published. Progress is the stored integer from 0 to 100. Show it as that percentage. Enrollment status is the stored `active` or `completed` value. This screen does not calculate a different progress, and it does not add a progress bar. The stored value is derived from lesson completions, as specified in `student-lesson-completion.md`. The animated progress tracker stays a bonus. A certificate line, when one exists and the enrollment is `completed`, is specified in `student-certificates-and-notifications.md`.
 
 Do not list lessons on this screen. Lessons stay on the learning view, and only after enrollment, as `student-browse-courses.md` already specifies.
 
@@ -36,7 +36,7 @@ Do not list lessons on this screen. Lessons stay on the learning view, and only 
 
 The only action is Open course, on every card that is shown. It goes to `/student/my-courses/$courseId`. There is no Enroll control here.
 
-This screen does not insert, update, or delete an enrollment. It shows the stored `progress` and does not offer a progress control. The assignment does not specify who updates progress after enrollment, and no screen updates it. There is no unenroll control and no delete grant. It does not change course status, and it does not create a lesson, assignment, or submission.
+This screen does not insert, update, or delete an enrollment. It shows the stored `progress` and does not offer a progress control. Lesson completion on the learning view is what changes that stored value. There is no unenroll control and no delete grant. It does not change course status, and it does not create a lesson, assignment, or submission. Notifications are in the shared header bell, specified in `student-certificates-and-notifications.md`.
 
 ## UI
 

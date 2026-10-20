@@ -15,7 +15,12 @@ function InstructorLayout() {
     return <ProfileError message={session.message} />;
   }
   return (
-    <AppShell role="instructor" email={session.email} fullName={session.fullName}>
+    <AppShell
+      role="instructor"
+      email={session.email}
+      fullName={session.fullName}
+      userId={session.userId}
+    >
       <Outlet />
     </AppShell>
   );

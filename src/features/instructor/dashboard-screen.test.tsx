@@ -1,9 +1,14 @@
 import { render, screen, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { InstructorDashboardScreen } from "./dashboard-screen";
 import { listInstructorCourses } from "./my-courses-api";
 import { listInstructorSubmissions } from "./submissions-api";
+
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children?: ReactNode }) => <a href="#">{children}</a>,
+}));
 
 vi.mock("./my-courses-api", () => ({
   listInstructorCourses: vi.fn(),
@@ -102,7 +107,8 @@ describe("InstructorDashboardScreen", () => {
     expect(screen.getByRole("heading", { name: "Fourth" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Older" })).not.toBeInTheDocument();
     expect(screen.getAllByText("Beginner")).toHaveLength(4);
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Newest/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Essay/ })).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /save grade|submit|create/i }),
     ).not.toBeInTheDocument();

@@ -33,3 +33,5 @@ Follow `coding-standards.md`.
 - Category storage is specified in `features/admin/admin-manage-categories.md`. Do not invent report metrics. Course status, grades, progress, and submission storage follow `product.md`.
 - Do not start the bonus progress animation or deployment until the core path works. Deployment to Vercel is a required deliverable after that path, not a bonus.
 - The AI Study Companion and AI Course Builder are specified. They add no table, column, or policy. Gemini is called only from Supabase Edge Functions.
+- The learning assistant is specified and adds the Edge Function `ai-agent` only. The level classifier and the RAG evaluation are specified scripts. None of those three adds a table.
+- Lesson completion, certificates, and notifications are on the linked database. `rag_chunks` is applied. RAG and the level classifier are partially completed and paused on the Gemini quota. See `assessment-2-gap.md`. Do not add any table beyond that list.

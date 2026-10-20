@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 const tones = {
   progress: "border-transparent bg-student-soft text-lozenge-foreground",
   done: "border-transparent bg-instructor-soft text-lozenge-foreground",
+  complete: "border-transparent bg-completed-soft text-completed-foreground",
   attention: "border-primary/40 bg-card text-primary",
   muted: "border-transparent bg-muted text-muted-foreground",
 } as const;
@@ -14,7 +15,7 @@ const statuses: Record<string, { label: string; tone: keyof typeof tones }> = {
   published: { label: "Published", tone: "done" },
   archived: { label: "Archived", tone: "muted" },
   active: { label: "Active", tone: "progress" },
-  completed: { label: "Completed", tone: "done" },
+  completed: { label: "Completed", tone: "complete" },
   submitted: { label: "Submitted", tone: "progress" },
   graded: { label: "Graded", tone: "done" },
   student: { label: "Student", tone: "progress" },

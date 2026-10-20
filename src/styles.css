@@ -56,6 +56,8 @@
   --color-admin-soft: var(--admin-soft);
   --color-brand-soft: var(--brand-soft);
   --color-lozenge-foreground: var(--lozenge-foreground);
+  --color-completed-soft: var(--completed-soft);
+  --color-completed-foreground: var(--completed-foreground);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -105,6 +107,8 @@
   --admin-soft: oklch(0.96 0.008 255);
   --brand-soft: oklch(0.96 0.012 255);
   --lozenge-foreground: oklch(0.36 0.11 255);
+  --completed-soft: oklch(0.93 0.06 155);
+  --completed-foreground: oklch(0.35 0.12 155);
 }
 
 .dark {
@@ -145,6 +149,8 @@
   --admin-soft: oklch(0.3 0.015 255);
   --brand-soft: oklch(0.3 0.02 255);
   --lozenge-foreground: oklch(0.9 0.04 255);
+  --completed-soft: oklch(0.32 0.06 155);
+  --completed-foreground: oklch(0.92 0.05 155);
 }
 
 @layer base {

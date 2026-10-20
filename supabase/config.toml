@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.ai-course-builder]
 verify_jwt = true
+
+[functions.ai-agent]
+verify_jwt = true

@@ -5,7 +5,7 @@ import { enrolledCourses } from "./my-courses";
 export async function listEnrolledCourses(studentId: string) {
   const enrollmentsResult = await supabase
     .from("enrollments")
-    .select("course_id, progress, status, created_at")
+    .select("id, course_id, progress, status, created_at")
     .eq("student_id", studentId)
     .order("created_at", { ascending: false });
   if (enrollmentsResult.error) {
@@ -26,6 +26,7 @@ export async function listEnrolledCourses(studentId: string) {
     ok: true as const,
     courses: enrolledCourses(
       enrollments.map((row) => ({
+        enrollmentId: row.id,
         courseId: row.course_id,
         progress: row.progress,
         status: row.status,

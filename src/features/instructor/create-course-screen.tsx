@@ -7,13 +7,6 @@ import { SaveNotice } from "@/features/instructor/save-notice";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/app-shell/page-header";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 import { listCategories } from "@/features/categories/categories-api";
@@ -142,23 +135,20 @@ export function CreateCourseScreen({ instructorId }: { instructorId: string }) {
               label="Level"
               hint="Select the appropriate level for your course."
             >
-              <Select
-                key={level || "none"}
-                {...(level ? { value: level } : {})}
-                onValueChange={setLevel}
+              <select
+                id="course-level"
+                className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                value={level}
                 disabled={pending}
+                onChange={(event) => setLevel(event.target.value)}
               >
-                <SelectTrigger id="course-level" className="w-full">
-                  <SelectValue placeholder="Choose a level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courseLevels.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {levelLabels[item]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <option value="">Choose a level</option>
+                {courseLevels.map((item) => (
+                  <option key={item} value={item}>
+                    {levelLabels[item]}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field id="course-category" label="Category" hint="Optional." required={false}>
               <CategorySelect

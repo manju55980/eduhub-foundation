@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, RecordCard, RecordList } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, RecordList } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
+import { CourseListing } from "@/features/courses/course-listing";
 
 import { listAllEnrollments } from "./enrollments-api";
 import type { AdminEnrollment } from "./enrollments";
@@ -50,8 +51,10 @@ export function EnrollmentsScreen() {
 
 function EnrollmentCard({ enrollment }: { enrollment: AdminEnrollment }) {
   return (
-    <RecordCard
-      className="flex h-full flex-col"
+    <CourseListing
+      role="admin"
+      from="enrollments"
+      courseId={enrollment.courseId}
       title={enrollment.title ?? ""}
       badge={
         <span className="flex flex-wrap justify-end gap-1">
@@ -64,7 +67,7 @@ function EnrollmentCard({ enrollment }: { enrollment: AdminEnrollment }) {
         <MetaItem label="Student" value={enrollment.studentName ?? ""} />
         <MetaItem label="Enrolled" value={formatCreatedAt(enrollment.enrolledAt)} />
       </MetaList>
-    </RecordCard>
+    </CourseListing>
   );
 }
 
