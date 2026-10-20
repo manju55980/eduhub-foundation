@@ -1,14 +1,9 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import { categoriesByName, type CourseCategory } from "./category-name";
 
 export const noCategoryValue = "none";
+
+const selectClassName =
+  "flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 export function CategorySelect({
   id,
@@ -24,23 +19,21 @@ export function CategorySelect({
   disabled: boolean;
 }) {
   return (
-    <Select
-      key={categoryId || noCategoryValue}
+    <select
+      id={id}
+      className={selectClassName}
       value={categoryId || noCategoryValue}
-      onValueChange={(value) => onChange(value === noCategoryValue ? "" : value)}
       disabled={disabled}
+      onChange={(event) =>
+        onChange(event.target.value === noCategoryValue ? "" : event.target.value)
+      }
     >
-      <SelectTrigger id={id} className="w-full">
-        <SelectValue placeholder="No category" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value={noCategoryValue}>No category</SelectItem>
-        {categoriesByName(categories).map((category) => (
-          <SelectItem key={category.id} value={category.id}>
-            {category.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      <option value={noCategoryValue}>No category</option>
+      {categoriesByName(categories).map((category) => (
+        <option key={category.id} value={category.id}>
+          {category.name}
+        </option>
+      ))}
+    </select>
   );
 }

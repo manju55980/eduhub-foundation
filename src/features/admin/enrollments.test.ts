@@ -46,6 +46,7 @@ describe("adminEnrollments", () => {
     ]);
     expect(enrollments[0]).toEqual({
       id: "enrollment-blank",
+      courseId: "course-blank",
       studentName: null,
       title: null,
       courseStatus: "published",
@@ -55,6 +56,7 @@ describe("adminEnrollments", () => {
     });
     expect(enrollments[1]).toEqual({
       id: "enrollment-old",
+      courseId: "course-1",
       studentName: "Ada Lovelace",
       title: "Archived course",
       courseStatus: "archived",

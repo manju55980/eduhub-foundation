@@ -4,6 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { listAllEnrollments } from "./enrollments-api";
 import { ReportsScreen } from "./reports-screen";
 
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => vi.fn(),
+}));
+
 vi.mock("./enrollments-api", () => ({
   listAllEnrollments: vi.fn(),
 }));
@@ -18,6 +22,7 @@ function enrollment(
 ) {
   return {
     id,
+    courseId: "course-1",
     studentName: "Ada Lovelace",
     title,
     courseStatus,

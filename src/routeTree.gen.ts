@@ -24,16 +24,22 @@ import { Route as InstructorProfileRouteImport } from './routes/instructor/profi
 import { Route as InstructorSubmissionsRouteImport } from './routes/instructor/submissions'
 import { Route as StudentIndexRouteImport } from './routes/student/index'
 import { Route as StudentAssignmentsRouteImport } from './routes/student/assignments'
-import { Route as StudentCoursesRouteImport } from './routes/student/courses'
+import { Route as StudentAssistantRouteImport } from './routes/student/assistant'
 import { Route as StudentGradesRouteImport } from './routes/student/grades'
 import { Route as StudentProfileRouteImport } from './routes/student/profile'
+import { Route as AdminCoursesCourseIdRouteImport } from './routes/admin/courses/$courseId'
 import { Route as AdminCoursesApprovalsRouteImport } from './routes/admin/courses/approvals'
 import { Route as AdminCoursesArchiveRouteImport } from './routes/admin/courses/archive'
 import { Route as InstructorCoursesIndexRouteImport } from './routes/instructor/courses/index'
 import { Route as InstructorCoursesGenerateRouteImport } from './routes/instructor/courses/generate'
 import { Route as InstructorCoursesNewRouteImport } from './routes/instructor/courses/new'
+import { Route as StudentCertificatesIndexRouteImport } from './routes/student/certificates/index'
+import { Route as StudentCertificatesCertificateIdRouteImport } from './routes/student/certificates/$certificateId'
+import { Route as StudentCoursesIndexRouteImport } from './routes/student/courses/index'
+import { Route as StudentCoursesCourseIdRouteImport } from './routes/student/courses/$courseId'
 import { Route as StudentMyCoursesIndexRouteImport } from './routes/student/my-courses/index'
 import { Route as StudentMyCoursesCourseIdRouteImport } from './routes/student/my-courses/$courseId'
+import { Route as InstructorCoursesCourseIdIndexRouteImport } from './routes/instructor/courses/$courseId/index'
 import { Route as InstructorCoursesCourseIdAssignmentsRouteImport } from './routes/instructor/courses/$courseId/assignments'
 import { Route as InstructorCoursesCourseIdLessonsRouteImport } from './routes/instructor/courses/$courseId/lessons'
 
@@ -112,9 +118,9 @@ const StudentAssignmentsRoute = StudentAssignmentsRouteImport.update({
   path: '/assignments',
   getParentRoute: () => StudentRouteRoute,
 } as any)
-const StudentCoursesRoute = StudentCoursesRouteImport.update({
-  id: '/courses',
-  path: '/courses',
+const StudentAssistantRoute = StudentAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => StudentRouteRoute,
 } as any)
 const StudentGradesRoute = StudentGradesRouteImport.update({
@@ -126,6 +132,11 @@ const StudentProfileRoute = StudentProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => StudentRouteRoute,
+} as any)
+const AdminCoursesCourseIdRoute = AdminCoursesCourseIdRouteImport.update({
+  id: '/courses/$courseId',
+  path: '/courses/$courseId',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCoursesApprovalsRoute = AdminCoursesApprovalsRouteImport.update({
   id: '/courses/approvals',
@@ -153,6 +164,28 @@ const InstructorCoursesNewRoute = InstructorCoursesNewRouteImport.update({
   path: '/courses/new',
   getParentRoute: () => InstructorRouteRoute,
 } as any)
+const StudentCertificatesIndexRoute =
+  StudentCertificatesIndexRouteImport.update({
+    id: '/certificates/',
+    path: '/certificates/',
+    getParentRoute: () => StudentRouteRoute,
+  } as any)
+const StudentCertificatesCertificateIdRoute =
+  StudentCertificatesCertificateIdRouteImport.update({
+    id: '/certificates/$certificateId',
+    path: '/certificates/$certificateId',
+    getParentRoute: () => StudentRouteRoute,
+  } as any)
+const StudentCoursesIndexRoute = StudentCoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => StudentRouteRoute,
+} as any)
+const StudentCoursesCourseIdRoute = StudentCoursesCourseIdRouteImport.update({
+  id: '/courses/$courseId',
+  path: '/courses/$courseId',
+  getParentRoute: () => StudentRouteRoute,
+} as any)
 const StudentMyCoursesIndexRoute = StudentMyCoursesIndexRouteImport.update({
   id: '/my-courses/',
   path: '/my-courses/',
@@ -163,6 +196,12 @@ const StudentMyCoursesCourseIdRoute =
     id: '/my-courses/$courseId',
     path: '/my-courses/$courseId',
     getParentRoute: () => StudentRouteRoute,
+  } as any)
+const InstructorCoursesCourseIdIndexRoute =
+  InstructorCoursesCourseIdIndexRouteImport.update({
+    id: '/courses/$courseId/',
+    path: '/courses/$courseId/',
+    getParentRoute: () => InstructorRouteRoute,
   } as any)
 const InstructorCoursesCourseIdAssignmentsRoute =
   InstructorCoursesCourseIdAssignmentsRouteImport.update({
@@ -190,21 +229,27 @@ export interface FileRoutesByFullPath {
   '/instructor/profile': typeof InstructorProfileRoute
   '/instructor/submissions': typeof InstructorSubmissionsRoute
   '/student/assignments': typeof StudentAssignmentsRoute
-  '/student/courses': typeof StudentCoursesRoute
+  '/student/assistant': typeof StudentAssistantRoute
   '/student/grades': typeof StudentGradesRoute
   '/student/profile': typeof StudentProfileRoute
   '/admin/': typeof AdminIndexRoute
   '/instructor/': typeof InstructorIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/admin/courses/$courseId': typeof AdminCoursesCourseIdRoute
   '/admin/courses/approvals': typeof AdminCoursesApprovalsRoute
   '/admin/courses/archive': typeof AdminCoursesArchiveRoute
   '/instructor/courses/generate': typeof InstructorCoursesGenerateRoute
   '/instructor/courses/new': typeof InstructorCoursesNewRoute
+  '/student/certificates/$certificateId': typeof StudentCertificatesCertificateIdRoute
+  '/student/courses/$courseId': typeof StudentCoursesCourseIdRoute
   '/student/my-courses/$courseId': typeof StudentMyCoursesCourseIdRoute
   '/instructor/courses/': typeof InstructorCoursesIndexRoute
+  '/student/certificates/': typeof StudentCertificatesIndexRoute
+  '/student/courses/': typeof StudentCoursesIndexRoute
   '/student/my-courses/': typeof StudentMyCoursesIndexRoute
   '/instructor/courses/$courseId/assignments': typeof InstructorCoursesCourseIdAssignmentsRoute
   '/instructor/courses/$courseId/lessons': typeof InstructorCoursesCourseIdLessonsRoute
+  '/instructor/courses/$courseId/': typeof InstructorCoursesCourseIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -216,21 +261,27 @@ export interface FileRoutesByTo {
   '/instructor/profile': typeof InstructorProfileRoute
   '/instructor/submissions': typeof InstructorSubmissionsRoute
   '/student/assignments': typeof StudentAssignmentsRoute
-  '/student/courses': typeof StudentCoursesRoute
+  '/student/assistant': typeof StudentAssistantRoute
   '/student/grades': typeof StudentGradesRoute
   '/student/profile': typeof StudentProfileRoute
   '/admin': typeof AdminIndexRoute
   '/instructor': typeof InstructorIndexRoute
   '/student': typeof StudentIndexRoute
+  '/admin/courses/$courseId': typeof AdminCoursesCourseIdRoute
   '/admin/courses/approvals': typeof AdminCoursesApprovalsRoute
   '/admin/courses/archive': typeof AdminCoursesArchiveRoute
   '/instructor/courses/generate': typeof InstructorCoursesGenerateRoute
   '/instructor/courses/new': typeof InstructorCoursesNewRoute
+  '/student/certificates/$certificateId': typeof StudentCertificatesCertificateIdRoute
+  '/student/courses/$courseId': typeof StudentCoursesCourseIdRoute
   '/student/my-courses/$courseId': typeof StudentMyCoursesCourseIdRoute
   '/instructor/courses': typeof InstructorCoursesIndexRoute
+  '/student/certificates': typeof StudentCertificatesIndexRoute
+  '/student/courses': typeof StudentCoursesIndexRoute
   '/student/my-courses': typeof StudentMyCoursesIndexRoute
   '/instructor/courses/$courseId/assignments': typeof InstructorCoursesCourseIdAssignmentsRoute
   '/instructor/courses/$courseId/lessons': typeof InstructorCoursesCourseIdLessonsRoute
+  '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -246,21 +297,27 @@ export interface FileRoutesById {
   '/instructor/profile': typeof InstructorProfileRoute
   '/instructor/submissions': typeof InstructorSubmissionsRoute
   '/student/assignments': typeof StudentAssignmentsRoute
-  '/student/courses': typeof StudentCoursesRoute
+  '/student/assistant': typeof StudentAssistantRoute
   '/student/grades': typeof StudentGradesRoute
   '/student/profile': typeof StudentProfileRoute
   '/admin/': typeof AdminIndexRoute
   '/instructor/': typeof InstructorIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/admin/courses/$courseId': typeof AdminCoursesCourseIdRoute
   '/admin/courses/approvals': typeof AdminCoursesApprovalsRoute
   '/admin/courses/archive': typeof AdminCoursesArchiveRoute
   '/instructor/courses/generate': typeof InstructorCoursesGenerateRoute
   '/instructor/courses/new': typeof InstructorCoursesNewRoute
+  '/student/certificates/$certificateId': typeof StudentCertificatesCertificateIdRoute
+  '/student/courses/$courseId': typeof StudentCoursesCourseIdRoute
   '/student/my-courses/$courseId': typeof StudentMyCoursesCourseIdRoute
   '/instructor/courses/': typeof InstructorCoursesIndexRoute
+  '/student/certificates/': typeof StudentCertificatesIndexRoute
+  '/student/courses/': typeof StudentCoursesIndexRoute
   '/student/my-courses/': typeof StudentMyCoursesIndexRoute
   '/instructor/courses/$courseId/assignments': typeof InstructorCoursesCourseIdAssignmentsRoute
   '/instructor/courses/$courseId/lessons': typeof InstructorCoursesCourseIdLessonsRoute
+  '/instructor/courses/$courseId/': typeof InstructorCoursesCourseIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -277,21 +334,27 @@ export interface FileRouteTypes {
     | '/instructor/profile'
     | '/instructor/submissions'
     | '/student/assignments'
-    | '/student/courses'
+    | '/student/assistant'
     | '/student/grades'
     | '/student/profile'
     | '/admin/'
     | '/instructor/'
     | '/student/'
+    | '/admin/courses/$courseId'
     | '/admin/courses/approvals'
     | '/admin/courses/archive'
     | '/instructor/courses/generate'
     | '/instructor/courses/new'
+    | '/student/certificates/$certificateId'
+    | '/student/courses/$courseId'
     | '/student/my-courses/$courseId'
     | '/instructor/courses/'
+    | '/student/certificates/'
+    | '/student/courses/'
     | '/student/my-courses/'
     | '/instructor/courses/$courseId/assignments'
     | '/instructor/courses/$courseId/lessons'
+    | '/instructor/courses/$courseId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -303,21 +366,27 @@ export interface FileRouteTypes {
     | '/instructor/profile'
     | '/instructor/submissions'
     | '/student/assignments'
-    | '/student/courses'
+    | '/student/assistant'
     | '/student/grades'
     | '/student/profile'
     | '/admin'
     | '/instructor'
     | '/student'
+    | '/admin/courses/$courseId'
     | '/admin/courses/approvals'
     | '/admin/courses/archive'
     | '/instructor/courses/generate'
     | '/instructor/courses/new'
+    | '/student/certificates/$certificateId'
+    | '/student/courses/$courseId'
     | '/student/my-courses/$courseId'
     | '/instructor/courses'
+    | '/student/certificates'
+    | '/student/courses'
     | '/student/my-courses'
     | '/instructor/courses/$courseId/assignments'
     | '/instructor/courses/$courseId/lessons'
+    | '/instructor/courses/$courseId'
   id:
     | '__root__'
     | '/'
@@ -332,21 +401,27 @@ export interface FileRouteTypes {
     | '/instructor/profile'
     | '/instructor/submissions'
     | '/student/assignments'
-    | '/student/courses'
+    | '/student/assistant'
     | '/student/grades'
     | '/student/profile'
     | '/admin/'
     | '/instructor/'
     | '/student/'
+    | '/admin/courses/$courseId'
     | '/admin/courses/approvals'
     | '/admin/courses/archive'
     | '/instructor/courses/generate'
     | '/instructor/courses/new'
+    | '/student/certificates/$certificateId'
+    | '/student/courses/$courseId'
     | '/student/my-courses/$courseId'
     | '/instructor/courses/'
+    | '/student/certificates/'
+    | '/student/courses/'
     | '/student/my-courses/'
     | '/instructor/courses/$courseId/assignments'
     | '/instructor/courses/$courseId/lessons'
+    | '/instructor/courses/$courseId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -464,11 +539,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentAssignmentsRouteImport
       parentRoute: typeof StudentRouteRoute
     }
-    '/student/courses': {
-      id: '/student/courses'
-      path: '/courses'
-      fullPath: '/student/courses'
-      preLoaderRoute: typeof StudentCoursesRouteImport
+    '/student/assistant': {
+      id: '/student/assistant'
+      path: '/assistant'
+      fullPath: '/student/assistant'
+      preLoaderRoute: typeof StudentAssistantRouteImport
       parentRoute: typeof StudentRouteRoute
     }
     '/student/grades': {
@@ -484,6 +559,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/student/profile'
       preLoaderRoute: typeof StudentProfileRouteImport
       parentRoute: typeof StudentRouteRoute
+    }
+    '/admin/courses/$courseId': {
+      id: '/admin/courses/$courseId'
+      path: '/courses/$courseId'
+      fullPath: '/admin/courses/$courseId'
+      preLoaderRoute: typeof AdminCoursesCourseIdRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/courses/approvals': {
       id: '/admin/courses/approvals'
@@ -520,6 +602,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstructorCoursesNewRouteImport
       parentRoute: typeof InstructorRouteRoute
     }
+    '/student/certificates/': {
+      id: '/student/certificates/'
+      path: '/certificates'
+      fullPath: '/student/certificates/'
+      preLoaderRoute: typeof StudentCertificatesIndexRouteImport
+      parentRoute: typeof StudentRouteRoute
+    }
+    '/student/certificates/$certificateId': {
+      id: '/student/certificates/$certificateId'
+      path: '/certificates/$certificateId'
+      fullPath: '/student/certificates/$certificateId'
+      preLoaderRoute: typeof StudentCertificatesCertificateIdRouteImport
+      parentRoute: typeof StudentRouteRoute
+    }
+    '/student/courses/': {
+      id: '/student/courses/'
+      path: '/courses'
+      fullPath: '/student/courses/'
+      preLoaderRoute: typeof StudentCoursesIndexRouteImport
+      parentRoute: typeof StudentRouteRoute
+    }
+    '/student/courses/$courseId': {
+      id: '/student/courses/$courseId'
+      path: '/courses/$courseId'
+      fullPath: '/student/courses/$courseId'
+      preLoaderRoute: typeof StudentCoursesCourseIdRouteImport
+      parentRoute: typeof StudentRouteRoute
+    }
     '/student/my-courses/': {
       id: '/student/my-courses/'
       path: '/my-courses'
@@ -533,6 +643,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/student/my-courses/$courseId'
       preLoaderRoute: typeof StudentMyCoursesCourseIdRouteImport
       parentRoute: typeof StudentRouteRoute
+    }
+    '/instructor/courses/$courseId/': {
+      id: '/instructor/courses/$courseId/'
+      path: '/courses/$courseId'
+      fullPath: '/instructor/courses/$courseId/'
+      preLoaderRoute: typeof InstructorCoursesCourseIdIndexRouteImport
+      parentRoute: typeof InstructorRouteRoute
     }
     '/instructor/courses/$courseId/assignments': {
       id: '/instructor/courses/$courseId/assignments'
@@ -557,6 +674,7 @@ interface AdminRouteRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminCoursesCourseIdRoute: typeof AdminCoursesCourseIdRoute
   AdminCoursesApprovalsRoute: typeof AdminCoursesApprovalsRoute
   AdminCoursesArchiveRoute: typeof AdminCoursesArchiveRoute
 }
@@ -567,6 +685,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminCoursesCourseIdRoute: AdminCoursesCourseIdRoute,
   AdminCoursesApprovalsRoute: AdminCoursesApprovalsRoute,
   AdminCoursesArchiveRoute: AdminCoursesArchiveRoute,
 }
@@ -584,6 +703,7 @@ interface InstructorRouteRouteChildren {
   InstructorCoursesIndexRoute: typeof InstructorCoursesIndexRoute
   InstructorCoursesCourseIdAssignmentsRoute: typeof InstructorCoursesCourseIdAssignmentsRoute
   InstructorCoursesCourseIdLessonsRoute: typeof InstructorCoursesCourseIdLessonsRoute
+  InstructorCoursesCourseIdIndexRoute: typeof InstructorCoursesCourseIdIndexRoute
 }
 
 const InstructorRouteRouteChildren: InstructorRouteRouteChildren = {
@@ -596,6 +716,7 @@ const InstructorRouteRouteChildren: InstructorRouteRouteChildren = {
   InstructorCoursesCourseIdAssignmentsRoute:
     InstructorCoursesCourseIdAssignmentsRoute,
   InstructorCoursesCourseIdLessonsRoute: InstructorCoursesCourseIdLessonsRoute,
+  InstructorCoursesCourseIdIndexRoute: InstructorCoursesCourseIdIndexRoute,
 }
 
 const InstructorRouteRouteWithChildren = InstructorRouteRoute._addFileChildren(
@@ -604,21 +725,29 @@ const InstructorRouteRouteWithChildren = InstructorRouteRoute._addFileChildren(
 
 interface StudentRouteRouteChildren {
   StudentAssignmentsRoute: typeof StudentAssignmentsRoute
-  StudentCoursesRoute: typeof StudentCoursesRoute
+  StudentAssistantRoute: typeof StudentAssistantRoute
   StudentGradesRoute: typeof StudentGradesRoute
   StudentProfileRoute: typeof StudentProfileRoute
   StudentIndexRoute: typeof StudentIndexRoute
+  StudentCertificatesCertificateIdRoute: typeof StudentCertificatesCertificateIdRoute
+  StudentCoursesCourseIdRoute: typeof StudentCoursesCourseIdRoute
   StudentMyCoursesCourseIdRoute: typeof StudentMyCoursesCourseIdRoute
+  StudentCertificatesIndexRoute: typeof StudentCertificatesIndexRoute
+  StudentCoursesIndexRoute: typeof StudentCoursesIndexRoute
   StudentMyCoursesIndexRoute: typeof StudentMyCoursesIndexRoute
 }
 
 const StudentRouteRouteChildren: StudentRouteRouteChildren = {
   StudentAssignmentsRoute: StudentAssignmentsRoute,
-  StudentCoursesRoute: StudentCoursesRoute,
+  StudentAssistantRoute: StudentAssistantRoute,
   StudentGradesRoute: StudentGradesRoute,
   StudentProfileRoute: StudentProfileRoute,
   StudentIndexRoute: StudentIndexRoute,
+  StudentCertificatesCertificateIdRoute: StudentCertificatesCertificateIdRoute,
+  StudentCoursesCourseIdRoute: StudentCoursesCourseIdRoute,
   StudentMyCoursesCourseIdRoute: StudentMyCoursesCourseIdRoute,
+  StudentCertificatesIndexRoute: StudentCertificatesIndexRoute,
+  StudentCoursesIndexRoute: StudentCoursesIndexRoute,
   StudentMyCoursesIndexRoute: StudentMyCoursesIndexRoute,
 }
 

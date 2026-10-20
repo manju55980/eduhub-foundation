@@ -9,19 +9,13 @@ import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 import { listCategories } from "@/features/categories/categories-api";
 import { CategorySelect } from "@/features/categories/category-select";
 import { storedCategoryName, type CourseCategory } from "@/features/categories/category-name";
 
+import { CourseDetailsLink, CourseListing, InstructorCourseLinks } from "@/features/courses/course-listing";
 import { courseLevels } from "./course-draft";
 import { canSubmitCourse, courseFieldUpdate } from "./course-update";
 import {
@@ -196,7 +190,12 @@ function DraftCourseCard({
       className="flex h-full flex-col space-y-4 rounded-sm border border-border bg-card p-4 shadow-none"
       onSubmit={handleSave}
     >
-      <CourseMeta course={course} />
+      <CourseDetailsLink role="instructor" from="courses" courseId={course.id}>
+        <h2 className="text-base font-medium text-foreground [overflow-wrap:anywhere]">
+          {course.title ?? ""}
+        </h2>
+        <CourseMeta course={course} />
+      </CourseDetailsLink>
       <Field id={`title-${course.id}`} label="Title" hint="This will be the name of your course.">
         <Input
           id={`title-${course.id}`}
@@ -227,23 +226,20 @@ function DraftCourseCard({
         label="Level"
         hint="Select the appropriate level for your course."
       >
-        <Select
-          key={level || "none"}
-          {...(level ? { value: level } : {})}
-          onValueChange={setLevel}
+        <select
+          id={`level-${course.id}`}
+          className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          value={level}
           disabled={busy}
+          onChange={(event) => setLevel(event.target.value)}
         >
-          <SelectTrigger id={`level-${course.id}`} className="w-full">
-            <SelectValue placeholder="Choose a level" />
-          </SelectTrigger>
-          <SelectContent>
-            {courseLevels.map((item) => (
-              <SelectItem key={item} value={item}>
-                {levelLabels[item]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <option value="">Choose a level</option>
+          {courseLevels.map((item) => (
+            <option key={item} value={item}>
+              {levelLabels[item]}
+            </option>
+          ))}
+        </select>
       </Field>
       <Field id={`category-${course.id}`} label="Category" hint="Optional." required={false}>
         <CategorySelect
@@ -268,7 +264,7 @@ function DraftCourseCard({
             Add a lesson before submitting this course.
           </p>
         )}
-        <CourseLinks courseId={course.id} />
+        <InstructorCourseLinks courseId={course.id} />
       </div>
     </form>
   );
@@ -282,21 +278,21 @@ function CourseSummary({
   categories: CourseCategory[];
 }) {
   return (
-    <article className="flex h-full flex-col space-y-3 rounded-sm border border-border bg-card p-4 shadow-none">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-base font-medium text-foreground">{course.title ?? ""}</h2>
-        <StatusBadge value={course.status} />
-      </div>
+    <CourseListing
+      role="instructor"
+      from="courses"
+      courseId={course.id}
+      title={course.title ?? ""}
+      badge={<StatusBadge value={course.status} />}
+      actions={<InstructorCourseLinks courseId={course.id} />}
+    >
       <p className="line-clamp-2 text-sm text-muted-foreground">{course.description ?? ""}</p>
       <CourseMeta
         course={course}
         categoryName={storedCategoryName(categories, course.categoryId)}
         showStatus={false}
       />
-      <div className="mt-auto flex flex-wrap gap-3">
-        <CourseLinks courseId={course.id} />
-      </div>
-    </article>
+    </CourseListing>
   );
 }
 
@@ -327,23 +323,6 @@ function MetaItem({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
       <dd className="text-foreground">{value}</dd>
     </div>
-  );
-}
-
-function CourseLinks({ courseId }: { courseId: string }) {
-  return (
-    <>
-      <Button variant="outline" asChild>
-        <Link to="/instructor/courses/$courseId/lessons" params={{ courseId }}>
-          Lessons
-        </Link>
-      </Button>
-      <Button variant="outline" asChild>
-        <Link to="/instructor/courses/$courseId/assignments" params={{ courseId }}>
-          Assignments
-        </Link>
-      </Button>
-    </>
   );
 }
 

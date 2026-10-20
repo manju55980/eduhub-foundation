@@ -53,7 +53,7 @@ describe("SubmissionsScreen", () => {
           ...submitted,
           id: "submission-2",
           assignmentTitle: "Quiz",
-          grade: "Pass",
+          grade: "8",
           feedback: "Clear.",
           status: "graded",
         },
@@ -69,8 +69,8 @@ describe("SubmissionsScreen", () => {
 
     const gradedCard = (await screen.findByRole("heading", { name: "Quiz" })).closest("article");
     expect(gradedCard).not.toBeNull();
-    expect(within(gradedCard as HTMLElement).getByRole("textbox", { name: /^Grade / })).toHaveValue(
-      "Pass",
+    expect(within(gradedCard as HTMLElement).getByRole("spinbutton", { name: /^Grade / })).toHaveValue(
+      8,
     );
     expect(
       within(gradedCard as HTMLElement).getByRole("textbox", { name: "Feedback" }),
@@ -105,13 +105,13 @@ describe("SubmissionsScreen", () => {
 
     render(<SubmissionsScreen />);
 
-    fireEvent.change(await screen.findByRole("textbox", { name: /^Grade / }), {
-      target: { value: "  Pass  " },
+    fireEvent.change(await screen.findByRole("spinbutton", { name: /^Grade / }), {
+      target: { value: "8" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save grade" }));
 
     expect(await screen.findByRole("status")).toHaveTextContent("This submission was graded.");
-    expect(save).toHaveBeenCalledWith("submission-1", { grade: "Pass", feedback: null });
+    expect(save).toHaveBeenCalledWith("submission-1", { grade: "8", feedback: null });
     expect(screen.getByRole("tab", { name: "To Grade" })).toHaveAttribute("data-state", "active");
     expect(screen.getByText("No submissions to grade.")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Essay" })).not.toBeInTheDocument();
@@ -121,8 +121,8 @@ describe("SubmissionsScreen", () => {
     const gradedCard = (await screen.findByRole("heading", { name: "Essay" })).closest("article");
     expect(gradedCard).not.toBeNull();
     expect(within(gradedCard as HTMLElement).getByText("Graded")).toBeInTheDocument();
-    expect(within(gradedCard as HTMLElement).getByRole("textbox", { name: /^Grade / })).toHaveValue(
-      "Pass",
+    expect(within(gradedCard as HTMLElement).getByRole("spinbutton", { name: /^Grade / })).toHaveValue(
+      8,
     );
     expect(within(gradedCard as HTMLElement).getByText("My essay.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Submissions (grading)" })).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe("SubmissionsScreen", () => {
   it("saves a graded submission again without changing the submitted text", async () => {
     listSubmissions.mockResolvedValue({
       ok: true,
-      submissions: [{ ...submitted, grade: "Pass", feedback: "Clear.", status: "graded" }],
+      submissions: [{ ...submitted, grade: "7", feedback: "Clear.", status: "graded" }],
     });
     save.mockResolvedValue({ ok: true });
 
@@ -139,16 +139,20 @@ describe("SubmissionsScreen", () => {
 
     fireEvent.mouseDown(await screen.findByRole("tab", { name: "Graded" }));
 
-    expect(await screen.findByRole("textbox", { name: /^Grade / })).toHaveValue("Pass");
+    expect(await screen.findByRole("spinbutton", { name: /^Grade / })).toHaveValue(7);
     expect(screen.getByRole("textbox", { name: "Feedback" })).toHaveValue("Clear.");
-    fireEvent.change(screen.getByRole("textbox", { name: /^Grade / }), {
-      target: { value: "18/20" },
+    fireEvent.change(screen.getByRole("spinbutton", { name: /^Grade / }), {
+      target: { value: "11" },
+    });
+    expect(screen.getByRole("spinbutton", { name: /^Grade / })).toHaveValue(7);
+    fireEvent.change(screen.getByRole("spinbutton", { name: /^Grade / }), {
+      target: { value: "10" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save grade" }));
 
     expect(await screen.findByRole("status")).toHaveTextContent("This submission was graded.");
     expect(save).toHaveBeenCalledWith("submission-1", {
-      grade: "18/20",
+      grade: "10",
       feedback: "Clear.",
     });
     expect(screen.getByText("My essay.")).toBeInTheDocument();
@@ -160,8 +164,8 @@ describe("SubmissionsScreen", () => {
 
     render(<SubmissionsScreen />);
 
-    fireEvent.change(await screen.findByRole("textbox", { name: /^Grade / }), {
-      target: { value: "Pass" },
+    fireEvent.change(await screen.findByRole("spinbutton", { name: /^Grade / }), {
+      target: { value: "6" },
     });
     fireEvent.change(screen.getByRole("textbox", { name: "Feedback" }), {
       target: { value: "Clear." },
@@ -169,7 +173,7 @@ describe("SubmissionsScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save grade" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("course update is not allowed");
-    expect(screen.getByRole("textbox", { name: /^Grade / })).toHaveValue("Pass");
+    expect(screen.getByRole("spinbutton", { name: /^Grade / })).toHaveValue(6);
     expect(screen.getByRole("textbox", { name: "Feedback" })).toHaveValue("Clear.");
     expect(screen.getByText("Submitted")).toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();

@@ -1,0 +1,1202 @@
+[
+  {
+    "id": "label-0001",
+    "title": "Beginner introduction to photosynthesis",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of photosynthesis.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0002",
+    "title": "Intermediate practice in fractions",
+    "description": "This course builds on a first course. Learners practice fractions and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0003",
+    "title": "Advanced specialist study of map reading",
+    "description": "This expert course is for learners who already work with map reading. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0004",
+    "title": "Beginner introduction to sentence structure",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of sentence structure.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0005",
+    "title": "Intermediate practice in simple circuits",
+    "description": "This course builds on a first course. Learners practice simple circuits and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0006",
+    "title": "Advanced specialist study of plant care",
+    "description": "This expert course is for learners who already work with plant care. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0007",
+    "title": "Beginner introduction to counting money",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of counting money.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0008",
+    "title": "Intermediate practice in local history",
+    "description": "This course builds on a first course. Learners practice local history and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0009",
+    "title": "Advanced specialist study of water safety",
+    "description": "This expert course is for learners who already work with water safety. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0010",
+    "title": "Beginner introduction to drawing shapes",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of drawing shapes.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0011",
+    "title": "Intermediate practice in kitchen measures",
+    "description": "This course builds on a first course. Learners practice kitchen measures and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0012",
+    "title": "Advanced specialist study of animal habitats",
+    "description": "This expert course is for learners who already work with animal habitats. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0013",
+    "title": "Beginner introduction to calendar time",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of calendar time.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0014",
+    "title": "Intermediate practice in basic maps",
+    "description": "This course builds on a first course. Learners practice basic maps and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0015",
+    "title": "Advanced specialist study of sound and pitch",
+    "description": "This expert course is for learners who already work with sound and pitch. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0016",
+    "title": "Beginner introduction to recycling",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of recycling.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0017",
+    "title": "Intermediate practice in story sequence",
+    "description": "This course builds on a first course. Learners practice story sequence and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0018",
+    "title": "Advanced specialist study of weather charts",
+    "description": "This expert course is for learners who already work with weather charts. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0019",
+    "title": "Beginner introduction to hand tools",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of hand tools.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0020",
+    "title": "Intermediate practice in number patterns",
+    "description": "This course builds on a first course. Learners practice number patterns and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0021",
+    "title": "Advanced specialist study of library search",
+    "description": "This expert course is for learners who already work with library search. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0022",
+    "title": "Beginner introduction to team sports rules",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of team sports rules.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0023",
+    "title": "Intermediate practice in color mixing",
+    "description": "This course builds on a first course. Learners practice color mixing and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0024",
+    "title": "Advanced specialist study of food groups",
+    "description": "This expert course is for learners who already work with food groups. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0025",
+    "title": "Beginner introduction to neighborhood maps",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of neighborhood maps.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0026",
+    "title": "Intermediate practice in simple machines",
+    "description": "This course builds on a first course. Learners practice simple machines and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0027",
+    "title": "Advanced specialist study of public speaking",
+    "description": "This expert course is for learners who already work with public speaking. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0028",
+    "title": "Beginner introduction to note taking",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of note taking.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0029",
+    "title": "Intermediate practice in data tables",
+    "description": "This course builds on a first course. Learners practice data tables and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0030",
+    "title": "Advanced specialist study of first aid basics",
+    "description": "This expert course is for learners who already work with first aid basics. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0031",
+    "title": "Beginner introduction to music rhythm",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of music rhythm.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0032",
+    "title": "Intermediate practice in garden soil",
+    "description": "This course builds on a first course. Learners practice garden soil and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0033",
+    "title": "Advanced specialist study of computer files",
+    "description": "This expert course is for learners who already work with computer files. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0034",
+    "title": "Beginner introduction to geometry names",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of geometry names.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0035",
+    "title": "Intermediate practice in photosynthesis",
+    "description": "This course builds on a first course. Learners practice photosynthesis and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0036",
+    "title": "Advanced specialist study of fractions",
+    "description": "This expert course is for learners who already work with fractions. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0037",
+    "title": "Beginner introduction to map reading",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of map reading.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0038",
+    "title": "Intermediate practice in sentence structure",
+    "description": "This course builds on a first course. Learners practice sentence structure and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0039",
+    "title": "Advanced specialist study of simple circuits",
+    "description": "This expert course is for learners who already work with simple circuits. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0040",
+    "title": "Beginner introduction to plant care",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of plant care.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0041",
+    "title": "Intermediate practice in counting money",
+    "description": "This course builds on a first course. Learners practice counting money and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0042",
+    "title": "Advanced specialist study of local history",
+    "description": "This expert course is for learners who already work with local history. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0043",
+    "title": "Beginner introduction to water safety",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of water safety.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0044",
+    "title": "Intermediate practice in drawing shapes",
+    "description": "This course builds on a first course. Learners practice drawing shapes and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0045",
+    "title": "Advanced specialist study of kitchen measures",
+    "description": "This expert course is for learners who already work with kitchen measures. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0046",
+    "title": "Beginner introduction to animal habitats",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of animal habitats.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0047",
+    "title": "Intermediate practice in calendar time",
+    "description": "This course builds on a first course. Learners practice calendar time and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0048",
+    "title": "Advanced specialist study of basic maps",
+    "description": "This expert course is for learners who already work with basic maps. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0049",
+    "title": "Beginner introduction to sound and pitch",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of sound and pitch.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0050",
+    "title": "Intermediate practice in recycling",
+    "description": "This course builds on a first course. Learners practice recycling and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0051",
+    "title": "Advanced specialist study of story sequence",
+    "description": "This expert course is for learners who already work with story sequence. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0052",
+    "title": "Beginner introduction to weather charts",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of weather charts.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0053",
+    "title": "Intermediate practice in hand tools",
+    "description": "This course builds on a first course. Learners practice hand tools and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0054",
+    "title": "Advanced specialist study of number patterns",
+    "description": "This expert course is for learners who already work with number patterns. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0055",
+    "title": "Beginner introduction to library search",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of library search.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0056",
+    "title": "Intermediate practice in team sports rules",
+    "description": "This course builds on a first course. Learners practice team sports rules and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0057",
+    "title": "Advanced specialist study of color mixing",
+    "description": "This expert course is for learners who already work with color mixing. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0058",
+    "title": "Beginner introduction to food groups",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of food groups.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0059",
+    "title": "Intermediate practice in neighborhood maps",
+    "description": "This course builds on a first course. Learners practice neighborhood maps and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0060",
+    "title": "Advanced specialist study of simple machines",
+    "description": "This expert course is for learners who already work with simple machines. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0061",
+    "title": "Beginner introduction to public speaking",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of public speaking.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0062",
+    "title": "Intermediate practice in note taking",
+    "description": "This course builds on a first course. Learners practice note taking and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0063",
+    "title": "Advanced specialist study of data tables",
+    "description": "This expert course is for learners who already work with data tables. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0064",
+    "title": "Beginner introduction to first aid basics",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of first aid basics.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0065",
+    "title": "Intermediate practice in music rhythm",
+    "description": "This course builds on a first course. Learners practice music rhythm and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0066",
+    "title": "Advanced specialist study of garden soil",
+    "description": "This expert course is for learners who already work with garden soil. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0067",
+    "title": "Beginner introduction to computer files",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of computer files.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0068",
+    "title": "Intermediate practice in geometry names",
+    "description": "This course builds on a first course. Learners practice geometry names and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0069",
+    "title": "Advanced specialist study of photosynthesis",
+    "description": "This expert course is for learners who already work with photosynthesis. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0070",
+    "title": "Beginner introduction to fractions",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of fractions.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0071",
+    "title": "Intermediate practice in map reading",
+    "description": "This course builds on a first course. Learners practice map reading and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0072",
+    "title": "Advanced specialist study of sentence structure",
+    "description": "This expert course is for learners who already work with sentence structure. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0073",
+    "title": "Beginner introduction to simple circuits",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of simple circuits.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0074",
+    "title": "Intermediate practice in plant care",
+    "description": "This course builds on a first course. Learners practice plant care and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0075",
+    "title": "Advanced specialist study of counting money",
+    "description": "This expert course is for learners who already work with counting money. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0076",
+    "title": "Beginner introduction to local history",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of local history.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0077",
+    "title": "Intermediate practice in water safety",
+    "description": "This course builds on a first course. Learners practice water safety and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0078",
+    "title": "Advanced specialist study of drawing shapes",
+    "description": "This expert course is for learners who already work with drawing shapes. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0079",
+    "title": "Beginner introduction to kitchen measures",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of kitchen measures.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0080",
+    "title": "Intermediate practice in animal habitats",
+    "description": "This course builds on a first course. Learners practice animal habitats and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0081",
+    "title": "Advanced specialist study of calendar time",
+    "description": "This expert course is for learners who already work with calendar time. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0082",
+    "title": "Beginner introduction to basic maps",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of basic maps.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0083",
+    "title": "Intermediate practice in sound and pitch",
+    "description": "This course builds on a first course. Learners practice sound and pitch and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0084",
+    "title": "Advanced specialist study of recycling",
+    "description": "This expert course is for learners who already work with recycling. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0085",
+    "title": "Beginner introduction to story sequence",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of story sequence.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0086",
+    "title": "Intermediate practice in weather charts",
+    "description": "This course builds on a first course. Learners practice weather charts and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0087",
+    "title": "Advanced specialist study of hand tools",
+    "description": "This expert course is for learners who already work with hand tools. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0088",
+    "title": "Beginner introduction to number patterns",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of number patterns.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0089",
+    "title": "Intermediate practice in library search",
+    "description": "This course builds on a first course. Learners practice library search and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0090",
+    "title": "Advanced specialist study of team sports rules",
+    "description": "This expert course is for learners who already work with team sports rules. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0091",
+    "title": "Beginner introduction to color mixing",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of color mixing.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0092",
+    "title": "Intermediate practice in food groups",
+    "description": "This course builds on a first course. Learners practice food groups and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0093",
+    "title": "Advanced specialist study of neighborhood maps",
+    "description": "This expert course is for learners who already work with neighborhood maps. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0094",
+    "title": "Beginner introduction to simple machines",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of simple machines.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0095",
+    "title": "Intermediate practice in public speaking",
+    "description": "This course builds on a first course. Learners practice public speaking and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0096",
+    "title": "Advanced specialist study of note taking",
+    "description": "This expert course is for learners who already work with note taking. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0097",
+    "title": "Beginner introduction to data tables",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of data tables.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0098",
+    "title": "Intermediate practice in first aid basics",
+    "description": "This course builds on a first course. Learners practice first aid basics and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0099",
+    "title": "Advanced specialist study of music rhythm",
+    "description": "This expert course is for learners who already work with music rhythm. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0100",
+    "title": "Beginner introduction to garden soil",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of garden soil.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0101",
+    "title": "Intermediate practice in computer files",
+    "description": "This course builds on a first course. Learners practice computer files and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0102",
+    "title": "Advanced specialist study of geometry names",
+    "description": "This expert course is for learners who already work with geometry names. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0103",
+    "title": "Beginner introduction to photosynthesis",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of photosynthesis.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0104",
+    "title": "Intermediate practice in fractions",
+    "description": "This course builds on a first course. Learners practice fractions and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0105",
+    "title": "Advanced specialist study of map reading",
+    "description": "This expert course is for learners who already work with map reading. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0106",
+    "title": "Beginner introduction to sentence structure",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of sentence structure.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0107",
+    "title": "Intermediate practice in simple circuits",
+    "description": "This course builds on a first course. Learners practice simple circuits and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0108",
+    "title": "Advanced specialist study of plant care",
+    "description": "This expert course is for learners who already work with plant care. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0109",
+    "title": "Beginner introduction to counting money",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of counting money.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0110",
+    "title": "Intermediate practice in local history",
+    "description": "This course builds on a first course. Learners practice local history and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0111",
+    "title": "Advanced specialist study of water safety",
+    "description": "This expert course is for learners who already work with water safety. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0112",
+    "title": "Beginner introduction to drawing shapes",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of drawing shapes.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0113",
+    "title": "Intermediate practice in kitchen measures",
+    "description": "This course builds on a first course. Learners practice kitchen measures and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0114",
+    "title": "Advanced specialist study of animal habitats",
+    "description": "This expert course is for learners who already work with animal habitats. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0115",
+    "title": "Beginner introduction to calendar time",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of calendar time.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0116",
+    "title": "Intermediate practice in basic maps",
+    "description": "This course builds on a first course. Learners practice basic maps and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0117",
+    "title": "Advanced specialist study of sound and pitch",
+    "description": "This expert course is for learners who already work with sound and pitch. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0118",
+    "title": "Beginner introduction to recycling",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of recycling.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0119",
+    "title": "Intermediate practice in story sequence",
+    "description": "This course builds on a first course. Learners practice story sequence and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0120",
+    "title": "Advanced specialist study of weather charts",
+    "description": "This expert course is for learners who already work with weather charts. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0121",
+    "title": "Beginner introduction to hand tools",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of hand tools.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0122",
+    "title": "Intermediate practice in number patterns",
+    "description": "This course builds on a first course. Learners practice number patterns and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0123",
+    "title": "Advanced specialist study of library search",
+    "description": "This expert course is for learners who already work with library search. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0124",
+    "title": "Beginner introduction to team sports rules",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of team sports rules.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0125",
+    "title": "Intermediate practice in color mixing",
+    "description": "This course builds on a first course. Learners practice color mixing and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0126",
+    "title": "Advanced specialist study of food groups",
+    "description": "This expert course is for learners who already work with food groups. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0127",
+    "title": "Beginner introduction to neighborhood maps",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of neighborhood maps.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0128",
+    "title": "Intermediate practice in simple machines",
+    "description": "This course builds on a first course. Learners practice simple machines and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0129",
+    "title": "Advanced specialist study of public speaking",
+    "description": "This expert course is for learners who already work with public speaking. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0130",
+    "title": "Beginner introduction to note taking",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of note taking.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0131",
+    "title": "Intermediate practice in data tables",
+    "description": "This course builds on a first course. Learners practice data tables and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0132",
+    "title": "Advanced specialist study of first aid basics",
+    "description": "This expert course is for learners who already work with first aid basics. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0133",
+    "title": "Beginner introduction to music rhythm",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of music rhythm.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0134",
+    "title": "Intermediate practice in garden soil",
+    "description": "This course builds on a first course. Learners practice garden soil and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0135",
+    "title": "Advanced specialist study of computer files",
+    "description": "This expert course is for learners who already work with computer files. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0136",
+    "title": "Beginner introduction to geometry names",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of geometry names.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0137",
+    "title": "Intermediate practice in photosynthesis",
+    "description": "This course builds on a first course. Learners practice photosynthesis and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0138",
+    "title": "Advanced specialist study of fractions",
+    "description": "This expert course is for learners who already work with fractions. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0139",
+    "title": "Beginner introduction to map reading",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of map reading.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0140",
+    "title": "Intermediate practice in sentence structure",
+    "description": "This course builds on a first course. Learners practice sentence structure and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0141",
+    "title": "Advanced specialist study of simple circuits",
+    "description": "This expert course is for learners who already work with simple circuits. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0142",
+    "title": "Beginner introduction to plant care",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of plant care.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0143",
+    "title": "Intermediate practice in counting money",
+    "description": "This course builds on a first course. Learners practice counting money and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0144",
+    "title": "Advanced specialist study of local history",
+    "description": "This expert course is for learners who already work with local history. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0145",
+    "title": "Beginner introduction to water safety",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of water safety.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0146",
+    "title": "Intermediate practice in drawing shapes",
+    "description": "This course builds on a first course. Learners practice drawing shapes and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0147",
+    "title": "Advanced specialist study of kitchen measures",
+    "description": "This expert course is for learners who already work with kitchen measures. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0148",
+    "title": "Beginner introduction to animal habitats",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of animal habitats.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0149",
+    "title": "Intermediate practice in calendar time",
+    "description": "This course builds on a first course. Learners practice calendar time and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0150",
+    "title": "Advanced specialist study of basic maps",
+    "description": "This expert course is for learners who already work with basic maps. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0151",
+    "title": "Beginner introduction to sound and pitch",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of sound and pitch.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0152",
+    "title": "Intermediate practice in recycling",
+    "description": "This course builds on a first course. Learners practice recycling and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0153",
+    "title": "Advanced specialist study of story sequence",
+    "description": "This expert course is for learners who already work with story sequence. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0154",
+    "title": "Beginner introduction to weather charts",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of weather charts.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0155",
+    "title": "Intermediate practice in hand tools",
+    "description": "This course builds on a first course. Learners practice hand tools and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0156",
+    "title": "Advanced specialist study of number patterns",
+    "description": "This expert course is for learners who already work with number patterns. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0157",
+    "title": "Beginner introduction to library search",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of library search.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0158",
+    "title": "Intermediate practice in team sports rules",
+    "description": "This course builds on a first course. Learners practice team sports rules and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0159",
+    "title": "Advanced specialist study of color mixing",
+    "description": "This expert course is for learners who already work with color mixing. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0160",
+    "title": "Beginner introduction to food groups",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of food groups.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0161",
+    "title": "Intermediate practice in neighborhood maps",
+    "description": "This course builds on a first course. Learners practice neighborhood maps and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0162",
+    "title": "Advanced specialist study of simple machines",
+    "description": "This expert course is for learners who already work with simple machines. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0163",
+    "title": "Beginner introduction to public speaking",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of public speaking.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0164",
+    "title": "Intermediate practice in note taking",
+    "description": "This course builds on a first course. Learners practice note taking and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0165",
+    "title": "Advanced specialist study of data tables",
+    "description": "This expert course is for learners who already work with data tables. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0166",
+    "title": "Beginner introduction to first aid basics",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of first aid basics.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0167",
+    "title": "Intermediate practice in music rhythm",
+    "description": "This course builds on a first course. Learners practice music rhythm and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0168",
+    "title": "Advanced specialist study of garden soil",
+    "description": "This expert course is for learners who already work with garden soil. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0169",
+    "title": "Beginner introduction to computer files",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of computer files.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0170",
+    "title": "Intermediate practice in geometry names",
+    "description": "This course builds on a first course. Learners practice geometry names and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0171",
+    "title": "Advanced specialist study of photosynthesis",
+    "description": "This expert course is for learners who already work with photosynthesis. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0172",
+    "title": "Beginner introduction to fractions",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of fractions.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0173",
+    "title": "Intermediate practice in map reading",
+    "description": "This course builds on a first course. Learners practice map reading and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0174",
+    "title": "Advanced specialist study of sentence structure",
+    "description": "This expert course is for learners who already work with sentence structure. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0175",
+    "title": "Beginner introduction to simple circuits",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of simple circuits.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0176",
+    "title": "Intermediate practice in plant care",
+    "description": "This course builds on a first course. Learners practice plant care and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0177",
+    "title": "Advanced specialist study of counting money",
+    "description": "This expert course is for learners who already work with counting money. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0178",
+    "title": "Beginner introduction to local history",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of local history.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0179",
+    "title": "Intermediate practice in water safety",
+    "description": "This course builds on a first course. Learners practice water safety and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0180",
+    "title": "Advanced specialist study of drawing shapes",
+    "description": "This expert course is for learners who already work with drawing shapes. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0181",
+    "title": "Beginner introduction to kitchen measures",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of kitchen measures.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0182",
+    "title": "Intermediate practice in animal habitats",
+    "description": "This course builds on a first course. Learners practice animal habitats and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0183",
+    "title": "Advanced specialist study of calendar time",
+    "description": "This expert course is for learners who already work with calendar time. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0184",
+    "title": "Beginner introduction to basic maps",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of basic maps.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0185",
+    "title": "Intermediate practice in sound and pitch",
+    "description": "This course builds on a first course. Learners practice sound and pitch and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0186",
+    "title": "Advanced specialist study of recycling",
+    "description": "This expert course is for learners who already work with recycling. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0187",
+    "title": "Beginner introduction to story sequence",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of story sequence.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0188",
+    "title": "Intermediate practice in weather charts",
+    "description": "This course builds on a first course. Learners practice weather charts and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0189",
+    "title": "Advanced specialist study of hand tools",
+    "description": "This expert course is for learners who already work with hand tools. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0190",
+    "title": "Beginner introduction to number patterns",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of number patterns.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0191",
+    "title": "Intermediate practice in library search",
+    "description": "This course builds on a first course. Learners practice library search and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0192",
+    "title": "Advanced specialist study of team sports rules",
+    "description": "This expert course is for learners who already work with team sports rules. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0193",
+    "title": "Beginner introduction to color mixing",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of color mixing.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0194",
+    "title": "Intermediate practice in food groups",
+    "description": "This course builds on a first course. Learners practice food groups and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0195",
+    "title": "Advanced specialist study of neighborhood maps",
+    "description": "This expert course is for learners who already work with neighborhood maps. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0196",
+    "title": "Beginner introduction to simple machines",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of simple machines.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0197",
+    "title": "Intermediate practice in public speaking",
+    "description": "This course builds on a first course. Learners practice public speaking and already have some experience.",
+    "level": "intermediate"
+  },
+  {
+    "id": "label-0198",
+    "title": "Advanced specialist study of note taking",
+    "description": "This expert course is for learners who already work with note taking. It covers specialist problems.",
+    "level": "advanced"
+  },
+  {
+    "id": "label-0199",
+    "title": "Beginner introduction to data tables",
+    "description": "This first-steps course assumes no prior knowledge. Learners start with the basic terms of data tables.",
+    "level": "beginner"
+  },
+  {
+    "id": "label-0200",
+    "title": "Intermediate practice in first aid basics",
+    "description": "This course builds on a first course. Learners practice first aid basics and already have some experience.",
+    "level": "intermediate"
+  }
+]

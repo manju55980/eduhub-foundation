@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { useNavigate } from "@tanstack/react-router";
+
 import { DataCell, DataRow, DataTable } from "@/components/app-shell/data-table";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
@@ -51,9 +53,29 @@ export function ReportsScreen() {
 }
 
 function EnrollmentReportRow({ enrollment }: { enrollment: AdminEnrollment }) {
+  const navigate = useNavigate();
+
+  function openCourse() {
+    void navigate({
+      to: "/admin/courses/$courseId",
+      params: { courseId: enrollment.courseId },
+      search: { from: "reports" },
+    });
+  }
+
   return (
-    <DataRow>
-      <DataCell heading>{enrollment.title ?? ""}</DataCell>
+    <DataRow
+      onClick={(event) => {
+        const target = event.target;
+        if (target instanceof Element && target.closest("a, button")) return;
+        openCourse();
+      }}
+    >
+      <DataCell heading>
+        <button type="button" className="text-left font-medium" onClick={openCourse}>
+          {enrollment.title ?? ""}
+        </button>
+      </DataCell>
       <DataCell>{enrollment.studentName ?? ""}</DataCell>
       <DataCell>
         {enrollment.courseStatus ? <StatusBadge value={enrollment.courseStatus} /> : null}

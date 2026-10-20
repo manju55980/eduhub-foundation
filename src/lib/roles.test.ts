@@ -7,8 +7,10 @@ describe("roleNavigation", () => {
     expect(roleNavigation.student.map((item) => item.label)).toEqual([
       "Browse Courses",
       "My Courses",
+      "Learning Assistant",
       "Assignments",
       "My Grades",
+      "My Certificates",
       "My Profile",
     ]);
     expect(roleNavigation.instructor.map((item) => item.label)).toEqual([

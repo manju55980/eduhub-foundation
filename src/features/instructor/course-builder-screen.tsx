@@ -1,20 +1,12 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordCard } from "@/components/app-shell/record-card";
+import { CourseListing, InstructorCourseLinks } from "@/features/courses/course-listing";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { listCategories } from "@/features/categories/categories-api";
 import { CategorySelect } from "@/features/categories/category-select";
@@ -212,23 +204,20 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
             label="Level"
             hint="Select the appropriate level for your course."
           >
-            <Select
-              key={level || "none"}
-              {...(level ? { value: level } : {})}
-              onValueChange={setLevel}
+            <select
+              id="course-level"
+              className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              value={level}
               disabled={pending !== null || locked || preview !== null}
+              onChange={(event) => setLevel(event.target.value)}
             >
-              <SelectTrigger id="course-level" className="w-full">
-                <SelectValue placeholder="Choose a level" />
-              </SelectTrigger>
-              <SelectContent>
-                {courseLevels.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {levelLabels[item]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">Choose a level</option>
+              {courseLevels.map((item) => (
+                <option key={item} value={item}>
+                  {levelLabels[item]}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field id="course-category" label="Category" hint="Optional." required={false}>
             <CategorySelect
@@ -277,8 +266,8 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
           </Field>
           {preview.lessons.map((lesson, index) => (
             <div key={`lesson-${index}`} className="space-y-3 border-t border-border pt-3">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium text-foreground">Lesson {index + 1}</h3>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="min-w-0 text-sm font-medium text-foreground">Lesson {index + 1}</h3>
                 <Button
                   type="button"
                   variant="outline"
@@ -309,8 +298,8 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
           ))}
           {preview.assignments.map((assignment, index) => (
             <div key={`assignment-${index}`} className="space-y-3 border-t border-border pt-3">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-medium text-foreground">Assignment {index + 1}</h3>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="min-w-0 text-sm font-medium text-foreground">Assignment {index + 1}</h3>
                 <Button
                   type="button"
                   variant="outline"
@@ -382,7 +371,10 @@ export function CreatedCoursePanel({
 }) {
   const title = course.title.trim() || "Draft course";
   return (
-    <RecordCard
+    <CourseListing
+      role="instructor"
+      from="builder"
+      courseId={course.id}
       title={title}
       badge={<StatusBadge value="draft" />}
       description={
@@ -390,20 +382,8 @@ export function CreatedCoursePanel({
           ? "This course was saved as a draft. Submit it for approval from My Courses after you review the lessons."
           : "This draft was created. Saving stopped before every lesson and assignment was added. Finish it on the lesson and assignment screens. It is still a draft."
       }
-    >
-      <div className="flex flex-wrap gap-2">
-        <Button variant="outline" asChild>
-          <Link to="/instructor/courses/$courseId/lessons" params={{ courseId: course.id }}>
-            Lessons
-          </Link>
-        </Button>
-        <Button variant="outline" asChild>
-          <Link to="/instructor/courses/$courseId/assignments" params={{ courseId: course.id }}>
-            Assignments
-          </Link>
-        </Button>
-      </div>
-    </RecordCard>
+      actions={<InstructorCourseLinks courseId={course.id} />}
+    />
   );
 }
 

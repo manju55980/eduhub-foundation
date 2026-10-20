@@ -52,13 +52,64 @@ export function logAiFailure(entry: AiFailureLog) {
   );
 }
 
+export type CompletionFailureKind = "quota" | "rate_limit" | "server" | "network" | "fatal";
+
+export type CompletionResult =
+  | { ok: true; value: unknown }
+  | {
+      ok: false;
+      message: string;
+      failure: "invalid";
+    }
+  | {
+      ok: false;
+      message: string;
+      failure: "infrastructure";
+      kind: CompletionFailureKind;
+      retryable: boolean;
+      retryAfterMs: number | null;
+    };
+
+export function classifyGeminiHttpFailure(status: number, detail: string) {
+  const text = detail.toLowerCase();
+  if (
+    status === 429 &&
+    text.includes("quota") &&
+    (text.includes("billing") || text.includes("plan"))
+  ) {
+    return { kind: "quota" as const, retryable: false };
+  }
+  if (status === 429) return { kind: "rate_limit" as const, retryable: true };
+  if (status >= 500 && status <= 599) return { kind: "server" as const, retryable: true };
+  return { kind: "fatal" as const, retryable: false };
+}
+
 export async function completeJson(
-  input: { apiKey: string | undefined; system: string; user: string },
+  input: { apiKey: string | undefined; system: string; user: string; temperature?: number },
   fetchImpl: typeof fetch,
   log: (entry: AiFailureLog) => void = logAiFailure,
 ): Promise<{ ok: true; value: unknown } | { ok: false; message: string }> {
+  const result = await completeJsonDetailed(input, fetchImpl, log);
+  if (result.ok) return result;
+  return { ok: false, message: result.message };
+}
+
+export async function completeJsonDetailed(
+  input: { apiKey: string | undefined; system: string; user: string; temperature?: number },
+  fetchImpl: typeof fetch,
+  log: (entry: AiFailureLog) => void = logAiFailure,
+): Promise<CompletionResult> {
   const apiKey = input.apiKey?.trim() ?? "";
-  if (!apiKey) return { ok: false, message: missingAiMessage };
+  if (!apiKey) {
+    return {
+      ok: false,
+      message: missingAiMessage,
+      failure: "infrastructure",
+      kind: "fatal",
+      retryable: false,
+      retryAfterMs: null,
+    };
+  }
   const redactions = [apiKey, input.system, input.user];
 
   let response: Response;
@@ -73,7 +124,7 @@ export async function completeJson(
         systemInstruction: { parts: [{ text: input.system }] },
         contents: [{ role: "user", parts: [{ text: input.user }] }],
         generationConfig: {
-          temperature: 0.4,
+          temperature: input.temperature ?? 0.4,
           responseMimeType: "application/json",
         },
       }),
@@ -86,29 +137,55 @@ export async function completeJson(
       errorCode: null,
       detail: sanitizeAiDetail(message, redactions),
     });
-    return { ok: false, message: failedAiMessage };
+    return {
+      ok: false,
+      message: failedAiMessage,
+      failure: "infrastructure",
+      kind: "network",
+      retryable: true,
+      retryAfterMs: null,
+    };
   }
 
   if (!response.ok) {
-    log(await geminiFailure(response, redactions));
-    return { ok: false, message: failedAiMessage };
+    const retryAfterMs = retryAfterHeaderMs(response.headers.get("retry-after"));
+    const failure = await geminiFailure(response, redactions);
+    log(failure);
+    const classified = classifyGeminiHttpFailure(response.status, failure.detail);
+    return {
+      ok: false,
+      message: failedAiMessage,
+      failure: "infrastructure",
+      kind: classified.kind,
+      retryable: classified.retryable,
+      retryAfterMs,
+    };
   }
 
   let payload: unknown;
   try {
     payload = await response.json();
   } catch {
-    return { ok: false, message: invalidAiMessage };
+    return { ok: false, message: invalidAiMessage, failure: "invalid" };
   }
 
   const content = messageContent(payload);
-  if (!content) return { ok: false, message: invalidAiMessage };
+  if (!content) return { ok: false, message: invalidAiMessage, failure: "invalid" };
 
   try {
     return { ok: true, value: JSON.parse(stripJsonFence(content)) as unknown };
   } catch {
-    return { ok: false, message: invalidAiMessage };
+    return { ok: false, message: invalidAiMessage, failure: "invalid" };
   }
+}
+
+function retryAfterHeaderMs(header: string | null) {
+  if (!header) return null;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const date = Date.parse(header);
+  if (Number.isNaN(date)) return null;
+  return Math.max(0, date - Date.now());
 }
 
 function stripJsonFence(content: string) {

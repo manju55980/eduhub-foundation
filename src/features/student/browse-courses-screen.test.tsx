@@ -27,6 +27,7 @@ const course = {
   categoryId: null as string | null,
   createdAt: "2026-10-10T00:00:00.000Z",
   enrolled: false,
+  completed: false,
 };
 
 function loaded(courses: (typeof course)[]) {
@@ -61,8 +62,25 @@ describe("BrowseCoursesScreen", () => {
     expect(screen.getByText("Basics")).toBeInTheDocument();
     expect(screen.getByText("Beginner")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Enroll" })).toBeInTheDocument();
+    expect(screen.getByText("Published")).toBeInTheDocument();
+    expect(screen.queryByText("Completed")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Open course" })).not.toBeInTheDocument();
     expect(screen.queryByText(/instructor/i)).not.toBeInTheDocument();
+  });
+
+  it("shows a green completed label only for a course that student finished", async () => {
+    listCourses.mockResolvedValue(
+      loaded([
+        { ...course, id: "course-done", title: "Finished course", completed: true, enrolled: true },
+        course,
+      ]),
+    );
+
+    render(<BrowseCoursesScreen studentId="student-1" />);
+
+    expect(await screen.findByRole("heading", { name: "Finished course" })).toBeInTheDocument();
+    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByText("Published")).toBeInTheDocument();
   });
 
   it("offers open course instead of enroll when the student has already joined", async () => {

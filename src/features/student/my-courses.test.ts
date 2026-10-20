@@ -21,6 +21,7 @@ const published: EnrolledCourseSource = {
 };
 
 const older: EnrollmentRow = {
+  enrollmentId: "enrollment-older",
   courseId: "course-archived",
   progress: 40,
   status: "active",
@@ -28,6 +29,7 @@ const older: EnrollmentRow = {
 };
 
 const newer: EnrollmentRow = {
+  enrollmentId: "enrollment-newer",
   courseId: "course-published",
   progress: 100,
   status: "completed",

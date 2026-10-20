@@ -12,8 +12,10 @@ export const roleNavigation = {
   student: [
     { label: "Browse Courses", to: "/student/courses" },
     { label: "My Courses", to: "/student/my-courses" },
+    { label: "Learning Assistant", to: "/student/assistant" },
     { label: "Assignments", to: "/student/assignments" },
     { label: "My Grades", to: "/student/grades" },
+    { label: "My Certificates", to: "/student/certificates" },
     { label: "My Profile", to: "/student/profile" },
   ],
   instructor: [

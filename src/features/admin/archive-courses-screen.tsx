@@ -5,6 +5,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/pag
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "@/features/instructor/save-notice";
+import { CourseListing } from "@/features/courses/course-listing";
 
 import { archiveCourse, listPublishedCourses, type PublishedCourse } from "./archive-courses-api";
 
@@ -101,21 +102,25 @@ function PublishedCourseCard({
   }
 
   return (
-    <article className="space-y-3 rounded-sm border border-border bg-card p-4 shadow-none">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-base font-medium text-foreground">{course.title ?? ""}</h2>
-        <StatusBadge value="published" />
-      </div>
+    <CourseListing
+      role="admin"
+      from="archive"
+      courseId={course.id}
+      title={course.title ?? ""}
+      badge={<StatusBadge value="published" />}
+      actions={
+        <Button type="button" disabled={pending} onClick={handleArchive}>
+          {pending ? "Archiving…" : "Archive"}
+        </Button>
+      }
+    >
       <p className="line-clamp-2 text-sm text-muted-foreground">{course.description ?? ""}</p>
       <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
         <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
         <MetaItem label="Instructor" value={course.instructorName ?? ""} />
         <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
       </dl>
-      <Button type="button" disabled={pending} onClick={handleArchive}>
-        {pending ? "Archiving…" : "Archive"}
-      </Button>
-    </article>
+    </CourseListing>
   );
 }
 

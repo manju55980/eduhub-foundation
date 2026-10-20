@@ -26,18 +26,34 @@ const newer: SubmissionSource = {
 };
 
 describe("gradeDraft", () => {
-  it("requires a trimmed grade and stores a blank feedback as null", () => {
-    expect(gradeDraft("  Pass  ", "   ")).toEqual({
+  it("requires a whole number from 1 to 10 and stores a blank feedback as null", () => {
+    expect(gradeDraft("  8  ", "   ")).toEqual({
       ok: true,
-      grade: { grade: "Pass", feedback: null },
+      grade: { grade: "8", feedback: null },
     });
-    expect(gradeDraft("  18/20  ", "  Clear argument.  ")).toEqual({
+    expect(gradeDraft("10", "  Clear argument.  ")).toEqual({
       ok: true,
-      grade: { grade: "18/20", feedback: "Clear argument." },
+      grade: { grade: "10", feedback: "Clear argument." },
+    });
+    expect(gradeDraft("1", "")).toEqual({
+      ok: true,
+      grade: { grade: "1", feedback: null },
     });
     expect(gradeDraft("  ", "Clear.")).toEqual({
       ok: false,
       message: "Enter a grade.",
+    });
+    expect(gradeDraft("11", "Clear.")).toEqual({
+      ok: false,
+      message: "Enter a grade from 1 to 10.",
+    });
+    expect(gradeDraft("0", "Clear.")).toEqual({
+      ok: false,
+      message: "Enter a grade from 1 to 10.",
+    });
+    expect(gradeDraft("Pass", "Clear.")).toEqual({
+      ok: false,
+      message: "Enter a grade from 1 to 10.",
     });
   });
 });

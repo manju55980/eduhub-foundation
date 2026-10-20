@@ -7,6 +7,7 @@ import { RecordList } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "@/features/instructor/save-notice";
+import { CourseListing } from "@/features/courses/course-listing";
 
 import { listPendingCourses, publishCourse, type PendingCourse } from "./approve-courses-api";
 
@@ -107,11 +108,18 @@ function PendingCourseCard({
   }
 
   return (
-    <article className="flex h-full flex-col space-y-3 rounded-sm border border-border bg-card p-4 shadow-none">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-base font-medium text-foreground">{course.title ?? ""}</h2>
-        <StatusBadge value="pending" />
-      </div>
+    <CourseListing
+      role="admin"
+      from="approvals"
+      courseId={course.id}
+      title={course.title ?? ""}
+      badge={<StatusBadge value="pending" />}
+      actions={
+        <Button type="button" disabled={pending} onClick={handleApprove}>
+          {pending ? "Publishing…" : "Approve"}
+        </Button>
+      }
+    >
       <p className="line-clamp-2 text-sm text-muted-foreground">{course.description ?? ""}</p>
       <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
         <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
@@ -133,12 +141,7 @@ function PendingCourseCard({
           ))}
         </div>
       )}
-      <div className="mt-auto">
-        <Button type="button" disabled={pending} onClick={handleApprove}>
-          {pending ? "Publishing…" : "Approve"}
-        </Button>
-      </div>
-    </article>
+    </CourseListing>
   );
 }
 

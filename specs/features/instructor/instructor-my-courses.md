@@ -19,7 +19,7 @@ A signed-in instructor sees the `courses` rows RLS already returns for them: `co
 
 Read with the signed-in browser client from `@/integrations/supabase/client`. The route stays thin. The query lives in `features/instructor/`. Do not use the service-role client.
 
-Show each course’s stored `title`, `description`, `level`, and `status`. Show `created_at`. Order by `created_at` descending. Do not add search, filters, pagination, enrollment counts, grades, or assignment counts.
+Show each course’s stored `title`, `description`, `level`, and `status`. Show `created_at`. The saved title opens that course’s details page, specified in `../course-details.md`. On a draft, the inputs and save controls stay outside that link. Order by `created_at` descending. Do not add search, filters, pagination, enrollment counts, grades, or assignment counts.
 
 An empty list is an empty state, not sample courses. Link to the existing Create Course route. The heading is “My Courses (including lessons)”. This page has no back link; it is a sidebar item.
 
@@ -73,7 +73,7 @@ Lesson policies do not check course status. Do not add a client-side status gate
 
 List the course’s lessons with no sample rows. Order by `order_index` ascending, nulls last, then `created_at` ascending. Show each lesson’s stored `title`, `content`, `video_url`, and `order_index`.
 
-The page can create a lesson and edit an existing one. Both stay on this page. A create saves one row and then clears the form so the same lesson is not inserted twice. An edit leaves the saved values in place. Neither save changes the course status or edits the course fields.
+The page can create a lesson and edit an existing one. Both stay on this page. A create saves one row and then clears the form so the same lesson is not inserted twice. An edit leaves the saved values in place. Neither save changes the course status or edits the course fields. This screen does not write `enrollments`. After a lesson insert, the database recalculates `enrollments.progress` for that course, as specified in `../student/student-lesson-completion.md`. An edit of lesson text does not clear a student’s completion.
 
 | Column        | On create                                                                                                                         | On edit                    |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |

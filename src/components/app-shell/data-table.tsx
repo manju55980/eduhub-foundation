@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 
 export function BoardSection({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -34,8 +34,25 @@ export function DataTable({ columns, children }: { columns: string[]; children: 
   );
 }
 
-export function DataRow({ children }: { children: ReactNode }) {
-  return <tr className="border-b border-border last:border-b-0">{children}</tr>;
+export function DataRow({
+  children,
+  onClick,
+}: {
+  children: ReactNode;
+  onClick?: (event: MouseEvent<HTMLTableRowElement>) => void;
+}) {
+  return (
+    <tr
+      className={
+        onClick
+          ? "cursor-pointer border-b border-border last:border-b-0"
+          : "border-b border-border last:border-b-0"
+      }
+      onClick={onClick}
+    >
+      {children}
+    </tr>
+  );
 }
 
 export function DataCell({

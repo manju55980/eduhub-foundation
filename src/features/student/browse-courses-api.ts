@@ -13,6 +13,7 @@ export type CatalogueCourse = {
   categoryId: string | null;
   createdAt: string;
   enrolled: boolean;
+  completed: boolean;
 };
 
 export async function listPublishedCourses(studentId: string) {
@@ -25,7 +26,7 @@ export async function listPublishedCourses(studentId: string) {
 
   const enrollmentsResult = await supabase
     .from("enrollments")
-    .select("course_id")
+    .select("course_id, status")
     .eq("student_id", studentId);
   if (enrollmentsResult.error) {
     return { ok: false as const, message: enrollmentsResult.error.message };
@@ -35,6 +36,11 @@ export async function listPublishedCourses(studentId: string) {
   if (!categoriesResult.ok) return categoriesResult;
 
   const enrolledIds = new Set((enrollmentsResult.data ?? []).map((row) => row.course_id));
+  const completedIds = new Set(
+    (enrollmentsResult.data ?? [])
+      .filter((row) => row.status === "completed")
+      .map((row) => row.course_id),
+  );
   const courses = (coursesResult.data ?? [])
     .map((course) => ({
       id: course.id,
@@ -44,6 +50,7 @@ export async function listPublishedCourses(studentId: string) {
       categoryId: course.category_id,
       createdAt: course.created_at,
       enrolled: enrolledIds.has(course.id),
+      completed: completedIds.has(course.id),
     }))
     .sort(compareCoursesNewestFirst);
 

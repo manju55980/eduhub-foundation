@@ -35,3 +35,4 @@ dist-ssr
 .env.*
 !.env.example
 supabase/.temp/
+scripts/fixtures/level-progress.json

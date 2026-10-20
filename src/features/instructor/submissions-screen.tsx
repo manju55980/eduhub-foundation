@@ -8,10 +8,9 @@ import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
-import { gradeDraft } from "./grade-draft";
+import { gradeDraft, isGradeScore } from "./grade-draft";
 import { SaveNotice } from "./save-notice";
 import { listInstructorSubmissions, saveGrade } from "./submissions-api";
 import { submissionViews, type GradableSubmission } from "./submissions";
@@ -88,29 +87,45 @@ function SubmissionViews({
 }) {
   const views = submissionViews(submissions);
 
+  const [tab, setTab] = useState<"to-grade" | "graded">("to-grade");
+  const tabs = [
+    { value: "to-grade" as const, label: "To Grade" },
+    { value: "graded" as const, label: "Graded" },
+  ];
+
   return (
-    <Tabs defaultValue="to-grade" className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="to-grade">To Grade</TabsTrigger>
-        <TabsTrigger value="graded">Graded</TabsTrigger>
-      </TabsList>
-      <TabsContent value="to-grade" className="space-y-3">
+    <div className="space-y-4">
+      <div
+        role="tablist"
+        className="inline-flex h-9 items-center justify-start gap-1 border-b border-border"
+      >
+        {tabs.map((item) => {
+          const active = tab === item.value;
+          return (
+            <button
+              key={item.value}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              data-state={active ? "active" : "inactive"}
+              className="inline-flex items-center justify-center whitespace-nowrap border-b-2 border-transparent px-3 py-1.5 text-sm font-medium text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:border-primary data-[state=active]:text-foreground"
+              onMouseDown={() => setTab(item.value)}
+              onClick={() => setTab(item.value)}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+      <div className="space-y-3">
         <SubmissionList
-          submissions={views.toGrade}
-          emptyMessage="No submissions to grade."
+          submissions={tab === "to-grade" ? views.toGrade : views.graded}
+          emptyMessage={tab === "to-grade" ? "No submissions to grade." : "No graded submissions."}
           onNotice={onNotice}
           onGraded={onGraded}
         />
-      </TabsContent>
-      <TabsContent value="graded" className="space-y-3">
-        <SubmissionList
-          submissions={views.graded}
-          emptyMessage="No graded submissions."
-          onNotice={onNotice}
-          onGraded={onGraded}
-        />
-      </TabsContent>
-    </Tabs>
+      </div>
+    </div>
   );
 }
 
@@ -199,12 +214,24 @@ function SubmissionCard({
           id={`grade-${submission.id}`}
           label="Grade"
           required
-          hint="Plain text. No grading scale is defined."
+          hint="Whole number from 1 to 10."
         >
           <Input
             id={`grade-${submission.id}`}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={10}
+            step={1}
             value={grade}
-            onChange={(event) => setGrade(event.target.value)}
+            onChange={(event) => {
+              const next = event.target.value.trim();
+              if (next === "" || isGradeScore(next)) {
+                setGrade(next);
+                return;
+              }
+              event.target.value = grade;
+            }}
             disabled={pending}
           />
         </Field>

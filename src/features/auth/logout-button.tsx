@@ -24,8 +24,14 @@ export function LogoutButton() {
   }
 
   return (
-    <div className="space-y-2">
-      <Button type="button" variant="outline" onClick={handleLogout} disabled={pending}>
+    <div className="shrink-0 space-y-2">
+      <Button
+        type="button"
+        variant="outline"
+        className="px-2.5 sm:px-4"
+        onClick={handleLogout}
+        disabled={pending}
+      >
         {pending ? "Signing out…" : "Log out"}
       </Button>
       {message ? <ErrorState message={message} /> : null}

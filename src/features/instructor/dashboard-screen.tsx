@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
 import { MetaItem, MetaList, RecordCard, RecordList } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
-
+import { CourseListing } from "@/features/courses/course-listing";
 import { listInstructorCourses, type InstructorCourse } from "./my-courses-api";
 import { listInstructorSubmissions } from "./submissions-api";
 import { submissionViews, type GradableSubmission } from "./submissions";
@@ -86,9 +86,11 @@ export function InstructorDashboardScreen({ fullName }: { fullName: string }) {
           {!courseError && courses.length > 0 ? (
             <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
               {courses.map((course) => (
-                <RecordCard
+                <CourseListing
                   key={course.id}
-                  className="flex h-full flex-col"
+                  role="instructor"
+                  from="dashboard"
+                  courseId={course.id}
                   title={course.title ?? ""}
                   badge={<StatusBadge value={course.status} />}
                 >
@@ -96,7 +98,7 @@ export function InstructorDashboardScreen({ fullName }: { fullName: string }) {
                     <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
                     <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
                   </MetaList>
-                </RecordCard>
+                </CourseListing>
               ))}
             </RecordList>
           ) : null}

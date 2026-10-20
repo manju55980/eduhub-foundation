@@ -3,18 +3,19 @@ import { Link } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import {
-  MetaItem,
-  MetaList,
-  PageSection,
-  RecordCard,
-  RecordList,
-} from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordList } from "@/components/app-shell/record-card";
+import { CourseListing } from "@/features/courses/course-listing";
+import { statusShownToStudent } from "@/features/courses/course-details";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
+import { CertificateIssued } from "@/features/notifications/notification-list";
+import {
+  listCertificates,
+  shownCertificate,
+  type CertificateRecord,
+} from "@/features/notifications/notifications-api";
 
 import { listEnrolledCourses } from "./my-courses-api";
-import type { EnrolledCourse } from "./my-courses";
 
 const levelLabels: Record<string, string> = {
   beginner: "Beginner",
@@ -24,20 +25,23 @@ const levelLabels: Record<string, string> = {
 
 export function MyCoursesScreen({ studentId }: { studentId: string }) {
   const [courses, setCourses] = useState<EnrolledCourse[]>([]);
+  const [certificates, setCertificates] = useState<CertificateRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [certificateError, setCertificateError] = useState("");
 
   useEffect(() => {
     let active = true;
-    listEnrolledCourses(studentId).then((result) => {
-      if (!active) return;
-      setLoading(false);
-      if (!result.ok) {
-        setLoadError(result.message);
-        return;
-      }
-      setCourses(result.courses);
-    });
+    Promise.all([listEnrolledCourses(studentId), listCertificates(studentId)]).then(
+      ([courseResult, certificateResult]) => {
+        if (!active) return;
+        setLoading(false);
+        if (!courseResult.ok) setLoadError(courseResult.message);
+        else setCourses(courseResult.courses);
+        if (!certificateResult.ok) setCertificateError(certificateResult.message);
+        else setCertificates(certificateResult.certificates);
+      },
+    );
     return () => {
       active = false;
     };
@@ -46,8 +50,9 @@ export function MyCoursesScreen({ studentId }: { studentId: string }) {
   return (
     <PageSection>
       <PageHeader title="My Courses" />
-      {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading courses…" /> : null}
+      {!loading && certificateError ? <ErrorState message={certificateError} /> : null}
+      {!loading && loadError ? <ErrorState message={loadError} /> : null}
       {!loading && !loadError && courses.length === 0 ? (
         <EmptyState message="You are not enrolled in any courses.">
           <Button asChild>
@@ -58,7 +63,7 @@ export function MyCoursesScreen({ studentId }: { studentId: string }) {
       {!loading && !loadError && courses.length > 0 ? (
         <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
           {courses.map((course) => (
-            <EnrolledCourseCard key={course.id} course={course} />
+            <EnrolledCourseCard key={course.id} course={course} certificates={certificates} />
           ))}
         </RecordList>
       ) : null}
@@ -66,17 +71,39 @@ export function MyCoursesScreen({ studentId }: { studentId: string }) {
   );
 }
 
-function EnrolledCourseCard({ course }: { course: EnrolledCourse }) {
+function EnrolledCourseCard({
+  course,
+  certificates,
+}: {
+  course: EnrolledCourse;
+  certificates: CertificateRecord[];
+}) {
+  const certificate = shownCertificate(course.enrollmentStatus, course.enrollmentId, certificates);
   return (
-    <RecordCard
-      className="flex h-full flex-col"
+    <CourseListing
+      role="student"
+      from="my-courses"
+      courseId={course.id}
       title={course.title ?? ""}
       description={course.description}
+      actions={
+        <>
+          {certificate ? (
+            <CertificateIssued title={course.title ?? ""} issuedAt={certificate.issuedAt} />
+          ) : null}
+          <Button asChild>
+            <Link to="/student/my-courses/$courseId" params={{ courseId: course.id }}>
+              Open course
+            </Link>
+          </Button>
+        </>
+      }
     >
       <MetaList stacked>
         <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
+        <MetaItem label="Progress" value={`${course.progress}%`} />
         <MetaItem label="Status">
-          <StatusBadge value={course.status} />
+          <StatusBadge value={statusShownToStudent(course.status, course.enrollmentStatus)} />
         </MetaItem>
         <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
         <MetaItem label="Enrollment">
@@ -84,14 +111,7 @@ function EnrolledCourseCard({ course }: { course: EnrolledCourse }) {
         </MetaItem>
         <MetaItem label="Enrolled" value={formatCreatedAt(course.enrolledAt)} />
       </MetaList>
-      <div className="mt-auto">
-        <Button asChild>
-          <Link to="/student/my-courses/$courseId" params={{ courseId: course.id }}>
-            Open course
-          </Link>
-        </Button>
-      </div>
-    </RecordCard>
+    </CourseListing>
   );
 }
 

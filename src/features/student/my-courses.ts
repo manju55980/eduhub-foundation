@@ -1,6 +1,7 @@
 import { compareCoursesNewestFirst } from "@/features/instructor/course-update";
 
 export type EnrollmentRow = {
+  enrollmentId: string;
   courseId: string;
   progress: number;
   status: string;
@@ -17,6 +18,7 @@ export type EnrolledCourseSource = {
 };
 
 export type EnrolledCourse = EnrolledCourseSource & {
+  enrollmentId: string;
   progress: number;
   enrollmentStatus: string;
   enrolledAt: string;
@@ -38,6 +40,7 @@ export function enrolledCourses(
       return [
         {
           ...course,
+          enrollmentId: enrollment.enrollmentId,
           progress: enrollment.progress,
           enrollmentStatus: enrollment.status,
           enrolledAt: enrollment.enrolledAt,

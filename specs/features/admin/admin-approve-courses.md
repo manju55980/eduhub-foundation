@@ -6,7 +6,7 @@ This feature does not add a table, column, policy, route, or migration.
 
 ## Route
 
-`/admin/courses/approvals` is Approve Courses. The heading is “Approve Courses”. It is a sidebar item, so it has no back link. A text link, “Archive a published course”, opens `/admin/courses/archive`. That link does not archive a course. Do not add a course-detail route. Each pending course is a card.
+`/admin/courses/approvals` is Approve Courses. The heading is “Approve Courses”. It is a sidebar item, so it has no back link. A text link, “Archive a published course”, opens `/admin/courses/archive`. That link does not archive a course. The card summary opens `/admin/courses/$courseId`, specified in `../course-details.md`. Approve stays outside that link. Each pending course is a card.
 
 ## Listing
 
