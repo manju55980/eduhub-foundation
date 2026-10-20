@@ -10,7 +10,9 @@ import {
   reminderWindowMs,
   runAssignmentReminders,
   type AssignmentRow,
+  type ReminderInsert,
   type ReminderStore,
+  type SubmissionReminderRow,
 } from "./assignment-reminders";
 import { supabaseReminderStore } from "./assignment-reminders.server";
 import { shownCertificate } from "./notifications-api";
@@ -29,59 +31,108 @@ const assignment: AssignmentRow = {
 };
 
 describe("assignment reminders", () => {
-  it("reminds only enrolled students who have not submitted and are inside 72 hours", async () => {
+  it("plans the 72h, 24h, and 1h stages in non-overlapping windows", () => {
+    const due72 = dueIn(48);
+    const due24 = dueIn(12);
+    const due1 = dueIn(0.5);
     const planned = planAssignmentReminders(
       reminderCandidates({
         assignments: [
-          assignment,
+          { ...assignment, id: "assignment-72", dueDate: due72 },
+          { ...assignment, id: "assignment-24", dueDate: due24 },
+          { ...assignment, id: "assignment-1", dueDate: due1 },
           { ...assignment, id: "assignment-open", dueDate: null },
-          { ...assignment, id: "assignment-past", dueDate: "2026-10-18T12:00:00.000Z" },
+          { ...assignment, id: "assignment-past", dueDate: now.toISOString() },
           { ...assignment, id: "assignment-later", dueDate: dueLater },
-          { ...assignment, id: "assignment-edge", dueDate: dueEdge, title: "Edge" },
+          { ...assignment, id: "assignment-edge", dueDate: dueEdge },
         ],
-        enrollments: [
-          { id: "enrollment-1", studentId: "student-1", courseId: "course-1" },
-          { id: "enrollment-2", studentId: "student-2", courseId: "course-1" },
-        ],
-        submissions: [
-          { assignmentId: "assignment-1", studentId: "student-2" },
-          { assignmentId: "assignment-edge", studentId: "student-2" },
-        ],
+        enrollments: [{ id: "enrollment-1", studentId: "student-1", courseId: "course-1" }],
+        submissions: [],
       }),
       now,
-      new Set([`assignment_due:assignment-edge:student-1:${dueEdge}`]),
+      new Set(),
     );
 
-    expect(planned).toEqual([
-      {
-        recipient_id: "student-1",
-        kind: "assignment_due",
-        course_id: "course-1",
-        enrollment_id: "enrollment-1",
-        assignment_id: "assignment-1",
-        title: reminderTitle,
-        body: "Essay is due soon in Algebra.",
-        dedupe_key: `assignment_due:assignment-1:student-1:${dueSoon}`,
-      },
+    expect(planned.map((row) => [row.assignment_id, row.dedupe_key, row.body])).toEqual([
+      [
+        "assignment-72",
+        `assignment_due:assignment-72:student-1:72h:${due72}`,
+        "Essay is due in 72 hours in Algebra.",
+      ],
+      [
+        "assignment-24",
+        `assignment_due:assignment-24:student-1:24h:${due24}`,
+        "Essay is due in 24 hours in Algebra.",
+      ],
+      [
+        "assignment-1",
+        `assignment_due:assignment-1:student-1:1h:${due1}`,
+        "Essay is due in 1 hour in Algebra.",
+      ],
+      [
+        "assignment-edge",
+        `assignment_due:assignment-edge:student-1:72h:${dueEdge}`,
+        "Essay is due in 72 hours in Algebra.",
+      ],
     ]);
+    expect(planned.every((row) => row.title === reminderTitle && row.kind === "assignment_due")).toBe(
+      true,
+    );
     expect(planned[0]?.body).not.toMatch(/email|phone|@/);
-
-    const store = memoryStore(planned.map((row) => row.dedupe_key));
-    const second = await runAssignmentReminders(store, now);
-    expect(second.inserted).toBe(0);
-    expect(store.inserted).toEqual([]);
   });
 
-  it("inserts a new row when the due date changes and ignores a duplicate key", async () => {
-    const changed = "2026-10-19T12:00:00.000Z";
-    const store = memoryStore([`assignment_due:assignment-1:student-1:${dueSoon}`]);
-    store.assignments = [{ ...assignment, dueDate: changed }];
+  it("does not insert a stage that was already stored", async () => {
+    const due72 = dueIn(48);
+    const due24 = dueIn(12);
+    const store = memoryStore([`assignment_due:assignment-72:student-1:72h:${due72}`]);
+    store.assignments = [
+      { ...assignment, id: "assignment-72", dueDate: due72 },
+      { ...assignment, id: "assignment-24", dueDate: due24 },
+    ];
     store.enrollments = [{ id: "enrollment-1", studentId: "student-1", courseId: "course-1" }];
+
+    const first = await runAssignmentReminders(store, now);
+    const second = await runAssignmentReminders(store, now);
+
+    expect(first.inserted).toBe(1);
+    expect(store.inserted.map((row) => row.dedupe_key)).toEqual([
+      `assignment_due:assignment-24:student-1:24h:${due24}`,
+    ]);
+    expect(second.inserted).toBe(0);
+  });
+
+  it("skips a later stage after the student submits", async () => {
+    const due24 = dueIn(12);
+    const store = memoryStore([`assignment_due:assignment-1:student-1:72h:${dueIn(48)}`]);
+    store.assignments = [{ ...assignment, dueDate: due24 }];
+    store.enrollments = [{ id: "enrollment-1", studentId: "student-1", courseId: "course-1" }];
+    store.submissions = [{ assignmentId: "assignment-1", studentId: "student-1" }];
 
     const result = await runAssignmentReminders(store, now);
 
-    expect(result.inserted).toBe(1);
-    expect(store.inserted[0]?.dedupe_key).toBe(`assignment_due:assignment-1:student-1:${changed}`);
+    expect(result.inserted).toBe(0);
+    expect(store.inserted).toEqual([]);
+  });
+
+  it("sends the current stage after a missed run and does not backfill a closed stage", async () => {
+    const due = dueIn(30);
+    const store = memoryStore();
+    store.assignments = [{ ...assignment, dueDate: due }];
+    store.enrollments = [{ id: "enrollment-1", studentId: "student-1", courseId: "course-1" }];
+
+    const caughtUp = await runAssignmentReminders(store, now);
+    expect(caughtUp.inserted).toBe(1);
+    expect(store.inserted[0]?.dedupe_key).toBe(`assignment_due:assignment-1:student-1:72h:${due}`);
+
+    store.assignments = [{ ...assignment, dueDate: dueIn(10) }];
+    const later = await runAssignmentReminders(store, now);
+    expect(later.inserted).toBe(1);
+    expect(store.inserted[1]?.dedupe_key).toBe(
+      `assignment_due:assignment-1:student-1:24h:${dueIn(10)}`,
+    );
+    expect(store.inserted.some((row) => row.dedupe_key.includes(":72h:") && row !== store.inserted[0])).toBe(
+      false,
+    );
   });
 
   it("upserts reminders on the dedupe key and does not read profiles", async () => {
@@ -191,21 +242,29 @@ describe("completion certificate visibility", () => {
   });
 });
 
-function memoryStore(existing: string[]): ReminderStore & {
+function dueIn(hours: number) {
+  return new Date(now.getTime() + hours * 60 * 60 * 1000).toISOString();
+}
+
+function memoryStore(existing: string[] = []): ReminderStore & {
   assignments: AssignmentRow[];
   enrollments: { id: string; studentId: string; courseId: string }[];
-  inserted: { dedupe_key: string }[];
+  submissions: SubmissionReminderRow[];
+  inserted: ReminderInsert[];
 } {
+  const keys = [...existing];
   const store = {
     assignments: [] as AssignmentRow[],
     enrollments: [] as { id: string; studentId: string; courseId: string }[],
-    inserted: [] as { dedupe_key: string }[],
+    submissions: [] as SubmissionReminderRow[],
+    inserted: [] as ReminderInsert[],
     loadAssignments: async () => store.assignments,
     loadEnrollments: async () => store.enrollments,
-    loadSubmissions: async () => [],
-    loadExistingKeys: async () => existing,
-    insertReminders: async (rows: { dedupe_key: string }[]) => {
+    loadSubmissions: async () => store.submissions,
+    loadExistingKeys: async (requested: string[]) => keys.filter((key) => requested.includes(key)),
+    insertReminders: async (rows: ReminderInsert[]) => {
       store.inserted.push(...rows);
+      keys.push(...rows.map((row) => row.dedupe_key));
     },
   };
   return store;

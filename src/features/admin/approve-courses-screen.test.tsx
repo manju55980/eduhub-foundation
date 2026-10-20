@@ -69,10 +69,38 @@ describe("ApproveCoursesScreen", () => {
     expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Welcome" })).toBeInTheDocument();
     expect(screen.getByText("Start here.")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /video|http/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Approve" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /archive|reject|delete|edit/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("opens an http video URL in a new tab and omits a value that is not a web URL", async () => {
+    listCourses.mockResolvedValue({
+      ok: true,
+      courses: [
+        {
+          ...course,
+          lessons: [
+            { ...course.lessons[0], videoUrl: " https://video.example/lesson " },
+            {
+              ...course.lessons[0],
+              id: "lesson-2",
+              title: "Notes",
+              videoUrl: "javascript:alert(1)",
+            },
+          ],
+        },
+      ],
+    });
+
+    render(<ApproveCoursesScreen />);
+
+    const video = await screen.findByRole("link", { name: "https://video.example/lesson" });
+    expect(video).toHaveAttribute("href", "https://video.example/lesson");
+    expect(video).toHaveAttribute("target", "_blank");
+    expect(screen.queryByRole("link", { name: "javascript:alert(1)" })).not.toBeInTheDocument();
   });
 
   it("publishes the course and removes it from the pending list", async () => {

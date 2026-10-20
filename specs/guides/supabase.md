@@ -62,7 +62,9 @@ The first Admin is configured manually in Supabase, outside the app. In-app prom
 
 `GEMINI_API_KEY` is a Supabase function secret used only inside those functions. Do not put it in `.env` as a `VITE_` name, and do not send it to the browser. A missing key returns “AI is not configured.” The response does not include the secret or the upstream error body.
 
-`ai-study` reads `profiles.role`, then `courses.title` and `courses.description`, then `enrollments.id`, then `lessons.title` and `lessons.content`. It does not read grades, submissions, or other courses. `ai-course-builder` reads only `profiles.role`. It does not insert rows.
+`YOUTUBE_API_KEY` is a Supabase function secret used only by `ai-course-builder` for `search_learning_videos`. The function reads it with `Deno.env.get("YOUTUBE_API_KEY")` and sends it to YouTube Data API v3. Do not put it in a `VITE_` name, do not hardcode it, and do not return it to the browser. Set it with `supabase secrets set YOUTUBE_API_KEY`. A missing key or a YouTube quota error still returns the course preview, with no video suggestions.
+
+`ai-study` reads `profiles.role`, then `courses.title` and `courses.description`, then `enrollments.id`, then `lessons.title` and `lessons.content`. It does not read grades, submissions, or other courses. `ai-course-builder` reads only `profiles.role`. It does not insert rows. After a valid preview it may call YouTube search once.
 
 `POST /api/assignment-reminders` is the scheduled assignment reminder. It is not an Edge Function and not a browser route. The cron bearer is checked before the service-role client inserts `assignment_due` notifications. Course completion stays on the `enrollments_issue_certificate` trigger. The endpoint is implemented. The published app has no built-in caller that can POST this path with `LOVABLE_CRON_SECRET`. Hourly scheduling and deployment configuration are pending manual setup. The hourly caller is documented in the README. It has not been invoked against the database.
 

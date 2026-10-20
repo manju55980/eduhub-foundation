@@ -6,7 +6,7 @@ This feature does not add a table, column, policy, route, or migration.
 
 ## Route
 
-`/admin/courses/approvals` is Approve Courses. The heading is “Approve Courses”. It is a sidebar item, so it has no back link. A text link, “Archive a published course”, opens `/admin/courses/archive`. That link does not archive a course. The card summary opens `/admin/courses/$courseId`, specified in `../course-details.md`. Approve stays outside that link. Each pending course is a card.
+`/admin/courses/approvals` is Approve Courses. The heading is “Approve Courses”. It is a sidebar item, so it has no back link. A text link, “Archive a published course”, opens `/admin/courses/archive`. That link does not archive a course. The card summary opens `/admin/courses/$courseId`, specified in `../course-details.md`. Approve stays outside that link. The lesson list also stays outside that link so a video URL can be opened on its own. Each pending course is a card.
 
 ## Listing
 
@@ -18,7 +18,7 @@ Order by `created_at` descending. Do not add search, filters, pagination, or enr
 
 Show each course’s stored `title`, `description`, `level`, and `created_at`. A null `title` or `description` is shown blank. Do not substitute a made-up name. Show the owning profile’s stored `full_name`. Admins can read every profile. A null name is shown blank.
 
-Also show that course’s lessons, read-only. `lessons_select` allows an admin to read them. Order by `order_index` ascending, nulls last, then `created_at` ascending. Show each lesson’s stored `title`, `content`, and `video_url`. A null value is shown blank. A pending course with no lessons is an empty lesson list, not sample lessons. The database does not require a lesson before `pending`, so an empty list does not block publish.
+Also show that course’s lessons, read-only. `lessons_select` allows an admin to read them. Order by `order_index` ascending, nulls last, then `created_at` ascending. Show each lesson’s stored `title`, `content`, and `video_url`. A null title or content is shown blank. Show `video_url` only when the stored value is an absolute `http` or `https` URL, as a link that opens in a new tab. A blank or other value is omitted. A pending course with no lessons is an empty lesson list, not sample lessons. The database does not require a lesson before `pending`, so an empty list does not block publish.
 
 If the course query, profile query, or lesson query fails, show that error and do not offer Approve. An empty pending list is an empty state, not sample courses.
 

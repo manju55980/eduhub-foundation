@@ -72,6 +72,7 @@ export function CourseListing({
   badge,
   description,
   children,
+  footer,
   actions,
   className,
   ...link
@@ -79,6 +80,7 @@ export function CourseListing({
   title: string;
   badge?: ReactNode;
   description?: string | null;
+  footer?: ReactNode;
   actions?: ReactNode;
 }) {
   const summary = description ?? "";
@@ -99,6 +101,7 @@ export function CourseListing({
         ) : null}
         {children}
       </CourseDetailsLink>
+      {footer}
       {actions ? <div className="mt-auto">{actions}</div> : null}
     </article>
   );

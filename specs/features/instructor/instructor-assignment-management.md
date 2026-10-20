@@ -59,6 +59,8 @@ The page can create an assignment and edit an existing one. Both stay on this pa
 
 Do not store `""` for `title`, `description`, or `due_date`. Do not add a character limit. The table does not make `title` unique, and this screen does not reject a duplicate. Do not add that constraint.
 
+AI Course Builder inserts generated assignments with a due date before the course is submitted. This screen is where the instructor reviews and changes that date. An edit writes `title`, `description`, and `due_date` through the existing update grant. It stores the value in the form, including a cleared null. It does not fill a new lesson-order default over a date already saved.
+
 There is no delete control.
 
 ## UI

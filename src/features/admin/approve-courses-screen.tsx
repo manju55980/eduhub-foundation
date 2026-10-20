@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "@/features/instructor/save-notice";
 import { CourseListing } from "@/features/courses/course-listing";
+import { externalVideoUrl } from "@/features/student/video-url";
 
 import { listPendingCourses, publishCourse, type PendingCourse } from "./approve-courses-api";
 
@@ -119,6 +120,23 @@ function PendingCourseCard({
           {pending ? "Publishing…" : "Approve"}
         </Button>
       }
+      footer={
+        course.lessons.length === 0 ? (
+          <p className="text-sm text-muted-foreground">This course has no lessons yet.</p>
+        ) : (
+          <div className="divide-y divide-border border-t border-border">
+            {course.lessons.map((lesson) => (
+              <div key={lesson.id} className="space-y-2 py-3">
+                <h3 className="text-sm font-medium text-foreground">{lesson.title ?? ""}</h3>
+                <dl className="space-y-2 text-sm">
+                  <MetaItem label="Content" value={lesson.content ?? ""} />
+                  <VideoUrlItem value={lesson.videoUrl} />
+                </dl>
+              </div>
+            ))}
+          </div>
+        )
+      }
     >
       <p className="line-clamp-2 text-sm text-muted-foreground">{course.description ?? ""}</p>
       <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
@@ -126,22 +144,28 @@ function PendingCourseCard({
         <MetaItem label="Instructor" value={course.instructorName ?? ""} />
         <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
       </dl>
-      {course.lessons.length === 0 ? (
-        <p className="text-sm text-muted-foreground">This course has no lessons yet.</p>
-      ) : (
-        <div className="divide-y divide-border border-t border-border">
-          {course.lessons.map((lesson) => (
-            <div key={lesson.id} className="space-y-2 py-3">
-              <h3 className="text-sm font-medium text-foreground">{lesson.title ?? ""}</h3>
-              <dl className="space-y-2 text-sm">
-                <MetaItem label="Content" value={lesson.content ?? ""} />
-                <MetaItem label="Video URL" value={lesson.videoUrl ?? ""} />
-              </dl>
-            </div>
-          ))}
-        </div>
-      )}
     </CourseListing>
+  );
+}
+
+function VideoUrlItem({ value }: { value: string | null }) {
+  const url = externalVideoUrl(value);
+  if (!url) return null;
+
+  return (
+    <div className="space-y-1">
+      <dt className="text-xs font-medium text-muted-foreground">Video URL</dt>
+      <dd className="text-foreground">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline-offset-4 hover:underline [overflow-wrap:anywhere]"
+        >
+          {url}
+        </a>
+      </dd>
+    </div>
   );
 }
 

@@ -22,6 +22,8 @@ npm i
 npm run dev
 ```
 
+AI Course Builder video suggestions need the Edge Function secret `YOUTUBE_API_KEY` (`supabase secrets set YOUTUBE_API_KEY`). Do not prefix it with `VITE_`. Generation still returns a preview when the secret is missing or YouTube quota is exhausted. See [the Supabase guide](specs/guides/supabase.md).
+
 ```sh
 npm run lint
 npm test
@@ -46,7 +48,7 @@ A student opens Learning Assistant at `/student/assistant`. The `ai-agent` Edge 
 
 Course completion is the first workflow. Marking each enrolled lesson complete inserts `lesson_completions`. When every lesson is complete, enrollment progress becomes 100, the status trigger sets `completed`, and `enrollments_issue_certificate` inserts one certificate plus one notification for the student and one for the instructor.
 
-Assignment reminders are the second workflow. `POST /api/assignment-reminders` inserts `assignment_due` notifications for assignments due within 72 hours when the student has not submitted. The hourly caller is documented below. That route has not been run against the database.
+Assignment reminders are the second workflow. `POST /api/assignment-reminders` inserts `assignment_due` notifications at 72 hours, 24 hours, and 1 hour before the due date when the student has not submitted. The hourly caller is documented below. That route has not been run against the database.
 
 ### RAG
 
@@ -93,11 +95,11 @@ After the app is published, set these on that server runtime. Do not prefix them
 - `LOVABLE_CRON_SECRET_PREVIOUS` — optional, only while rotating the bearer.
 - `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` — required by the service-role client that inserts `assignment_due` rows.
 
-Then schedule one POST every hour, cron `0 * * * *` UTC, so a due date inside the 72-hour window is not missed:
+Then schedule one POST every hour, cron `0 * * * *` UTC. Each stage stays open until the next stage starts, so a missed hour still sends the current stage and does not send a stage that has already closed:
 
 ```sh
 curl -X POST "https://<published-origin>/api/assignment-reminders" \
   -H "Authorization: Bearer <LOVABLE_CRON_SECRET>"
 ```
 
-A matching bearer returns `{"ok":true,"inserted":<number>}`. A missing or wrong bearer returns 401. An authorized GET returns 405. A second run does not insert a duplicate for the same assignment, student, and due date. Do not add a second job that inserts `assignment_due` itself.
+A matching bearer returns `{"ok":true,"inserted":<number>}`. A missing or wrong bearer returns 401. An authorized GET returns 405. A second run does not insert a duplicate for the same assignment, student, stage, and due date. Do not add a second job that inserts `assignment_due` itself.
