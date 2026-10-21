@@ -137,7 +137,7 @@ export function CreateCourseScreen({ instructorId }: { instructorId: string }) {
             >
               <select
                 id="course-level"
-                className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-full min-w-0 max-w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 value={level}
                 disabled={pending}
                 onChange={(event) => setLevel(event.target.value)}

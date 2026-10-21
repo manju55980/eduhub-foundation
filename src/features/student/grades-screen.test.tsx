@@ -72,7 +72,8 @@ describe("GradesScreen", () => {
     expect(screen.queryByText(/instructor/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/lesson/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/progress/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(view.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Search" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /save|submit|delete|edit|resubmit/i }),
     ).not.toBeInTheDocument();

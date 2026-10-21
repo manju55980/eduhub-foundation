@@ -13,9 +13,9 @@ export function BoardSection({ title, children }: { title: string; children: Rea
 
 export function DataTable({ columns, children }: { columns: string[]; children: ReactNode }) {
   return (
-    <div className="min-w-0 overflow-x-auto rounded-sm border border-border bg-card">
-      <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
-        <thead className="bg-muted/80">
+    <div className="min-w-0 rounded-sm border border-border bg-card md:overflow-x-auto">
+      <table className="block w-full border-collapse text-left text-sm md:table md:min-w-[40rem]">
+        <thead className="hidden bg-muted/80 md:table-header-group">
           <tr className="border-b border-border">
             {columns.map((column) => (
               <th
@@ -28,7 +28,7 @@ export function DataTable({ columns, children }: { columns: string[]; children: 
             ))}
           </tr>
         </thead>
-        <tbody>{children}</tbody>
+        <tbody className="block md:table-row-group">{children}</tbody>
       </table>
     </div>
   );
@@ -45,8 +45,8 @@ export function DataRow({
     <tr
       className={
         onClick
-          ? "cursor-pointer border-b border-border last:border-b-0"
-          : "border-b border-border last:border-b-0"
+          ? "block cursor-pointer border-b border-border last:border-b-0 md:table-row"
+          : "block border-b border-border last:border-b-0 md:table-row"
       }
       onClick={onClick}
     >
@@ -58,12 +58,19 @@ export function DataRow({
 export function DataCell({
   children,
   heading = false,
+  label,
 }: {
   children: ReactNode;
   heading?: boolean;
+  label?: string;
 }) {
   return (
-    <td className="px-3 py-2 align-middle text-foreground [overflow-wrap:anywhere]">
+    <td className="block min-w-0 px-3 py-2 align-middle text-foreground [overflow-wrap:anywhere] md:table-cell">
+      {label && children != null && children !== false ? (
+        <span className="mb-0.5 block text-xs font-semibold text-muted-foreground md:hidden">
+          {label}
+        </span>
+      ) : null}
       {heading ? <h3 className="text-sm font-medium leading-snug">{children}</h3> : children}
     </td>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
+import { pageFrameClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "@/features/instructor/save-notice";
@@ -42,11 +43,11 @@ export function ArchiveCoursesScreen() {
   }, []);
 
   return (
-    <section className="max-w-5xl space-y-4">
+    <section className={pageFrameClass}>
       <PageHeader
         title="Archive Courses"
-        backTo="/admin/courses/approvals"
-        backLabel="Approve Courses"
+        backTo="/admin/courses"
+        backLabel="Manage Courses"
       />
       <SaveNotice
         tone="admin"

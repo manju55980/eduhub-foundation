@@ -3,7 +3,8 @@ import { Link } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, PageSection, RecordList } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordList, recordGridClass, selectFieldClass } from "@/components/app-shell/record-card";
+import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { CourseListing } from "@/features/courses/course-listing";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export function BrowseCoursesScreen({ studentId }: { studentId: string }) {
   const [courses, setCourses] = useState<CatalogueCourse[]>([]);
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [categoryId, setCategoryId] = useState("");
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [notice, setNotice] = useState<Notice>(emptyNotice);
@@ -55,7 +57,9 @@ export function BrowseCoursesScreen({ studentId }: { studentId: string }) {
     };
   }, [studentId]);
 
-  const visibleCourses = coursesInCategory(courses, categoryId);
+  const visibleCourses = coursesInCategory(courses, categoryId).filter((course) =>
+    matchesQuery(query, [course.title]),
+  );
 
   return (
     <PageSection>
@@ -69,36 +73,46 @@ export function BrowseCoursesScreen({ studentId }: { studentId: string }) {
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading courses…" /> : null}
       {!loading && !loadError ? (
-        <div className="max-w-sm space-y-2">
-          <Label htmlFor="catalogue-category">Category</Label>
-          <select
-            id="catalogue-category"
-            className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            value={categoryId || allCategoriesValue}
-            onChange={(event) =>
-              setCategoryId(event.target.value === allCategoriesValue ? "" : event.target.value)
-            }
-          >
-            <option value={allCategoriesValue}>All categories</option>
-            {categoriesByName(categories).map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FilterToolbar
+          id="catalogue-search"
+          value={query}
+          placeholder="Search courses by title..."
+          onChange={setQuery}
+          controlsLabel="Category"
+        >
+          <div className="min-w-0 space-y-1.5 sm:w-56">
+            <Label htmlFor="catalogue-category">Category</Label>
+            <select
+              id="catalogue-category"
+              className={`${selectFieldClass} w-full px-3`}
+              value={categoryId || allCategoriesValue}
+              onChange={(event) =>
+                setCategoryId(event.target.value === allCategoriesValue ? "" : event.target.value)
+              }
+            >
+              <option value={allCategoriesValue}>All categories</option>
+              {categoriesByName(categories).map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </FilterToolbar>
       ) : null}
       {!loading && !loadError && visibleCourses.length === 0 ? (
         <EmptyState
           message={
-            categoryId
-              ? "No published courses are in this category."
-              : "No published courses are available."
+            query.trim()
+              ? "No courses match this search."
+              : categoryId
+                ? "No published courses are in this category."
+                : "No published courses are available."
           }
         />
       ) : null}
       {!loading && !loadError && visibleCourses.length > 0 ? (
-        <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
+        <RecordList className={recordGridClass}>
           {visibleCourses.map((course) => (
             <CourseCard
               key={course.id}

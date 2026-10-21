@@ -16,7 +16,7 @@ Specified for Assessment 2:
 
 - `supabase/migrations/20261016220000_lesson_completions.sql` matches the linked database. Its tables, policies, grants, and triggers were already present.
 - `supabase/migrations/20261016221000_certificates_and_notifications.sql` matches the linked database. The certificate trigger is `after update` with the completed-status condition, because `update of status` does not see the status assigned by `enrollments_sync_status`.
-- `supabase/migrations/20261016222000_rag_chunks.sql` is applied. RAG is partially completed at 572 embedded chunks: 6 course, 13 lesson, and 553 FAQ. The retrieval report still scores the earlier 300-chunk run. The 5,000 FAQ requirement is not met. See `assessment-2-gap.md`.
+- `supabase/migrations/20261016222000_rag_chunks.sql` is applied. RAG is partially completed at 676 embedded chunks: 8 course, 25 lesson, and 643 FAQ. The retrieval report scores those 676 chunks. The 5,000 FAQ requirement is not met. See `assessment-2-gap.md`.
 
 The first two files are applied on the remote project. The instructor submitter-name policy, the student-to-instructor promotion, and categories are local and have not been applied. Lesson completions, certificates, and notifications are on the linked database. The RAG corpus migration is applied. Do not apply further database changes without saying so first.
 
@@ -62,7 +62,9 @@ The first Admin is configured manually in Supabase, outside the app. In-app prom
 
 `GEMINI_API_KEY` is a Supabase function secret used only inside those functions. Do not put it in `.env` as a `VITE_` name, and do not send it to the browser. A missing key returns “AI is not configured.” The response does not include the secret or the upstream error body.
 
-`ai-study` reads `profiles.role`, then `courses.title` and `courses.description`, then `enrollments.id`, then `lessons.title` and `lessons.content`. It does not read grades, submissions, or other courses. `ai-course-builder` reads only `profiles.role`. It does not insert rows.
+`YOUTUBE_API_KEY` is a Supabase function secret used only by `ai-course-builder` for `search_learning_videos`. The function reads it with `Deno.env.get("YOUTUBE_API_KEY")` and sends it to YouTube Data API v3. Do not put it in a `VITE_` name, do not hardcode it, and do not return it to the browser. Set it with `supabase secrets set YOUTUBE_API_KEY`. A missing key or a YouTube quota error still returns the course preview, with no video suggestions.
+
+`ai-study` reads `profiles.role`, then `courses.title` and `courses.description`, then `enrollments.id`, then `lessons.title` and `lessons.content`. It does not read grades, submissions, or other courses. `ai-course-builder` reads only `profiles.role`. It does not insert rows. After a valid preview it may call YouTube search once.
 
 `POST /api/assignment-reminders` is the scheduled assignment reminder. It is not an Edge Function and not a browser route. The cron bearer is checked before the service-role client inserts `assignment_due` notifications. Course completion stays on the `enrollments_issue_certificate` trigger. The endpoint is implemented. The published app has no built-in caller that can POST this path with `LOVABLE_CRON_SECRET`. Hourly scheduling and deployment configuration are pending manual setup. The hourly caller is documented in the README. It has not been invoked against the database.
 

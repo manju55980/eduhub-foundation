@@ -1,4 +1,14 @@
-export const reminderWindowMs = 72 * 60 * 60 * 1000;
+const hourMs = 60 * 60 * 1000;
+
+export const reminderStages = [
+  { id: "72h", lead: "72 hours", afterMs: 24 * hourMs, untilMs: 72 * hourMs },
+  { id: "24h", lead: "24 hours", afterMs: hourMs, untilMs: 24 * hourMs },
+  { id: "1h", lead: "1 hour", afterMs: 0, untilMs: hourMs },
+] as const;
+
+export type ReminderStage = (typeof reminderStages)[number]["id"];
+
+export const reminderWindowMs = reminderStages[0].untilMs;
 export const reminderTitle = "Assignment due soon";
 
 export type AssignmentRow = {
@@ -42,8 +52,21 @@ export type ReminderInsert = {
   dedupe_key: string;
 };
 
-export function assignmentReminderKey(assignmentId: string, studentId: string, dueDate: string) {
-  return `assignment_due:${assignmentId}:${studentId}:${dueDate}`;
+export function reminderStage(dueMs: number, nowMs: number): ReminderStage | null {
+  const remaining = dueMs - nowMs;
+  const stage = reminderStages.find(
+    (item) => remaining > item.afterMs && remaining <= item.untilMs,
+  );
+  return stage?.id ?? null;
+}
+
+export function assignmentReminderKey(
+  assignmentId: string,
+  studentId: string,
+  stage: ReminderStage,
+  dueDate: string,
+) {
+  return `assignment_due:${assignmentId}:${studentId}:${stage}:${dueDate}`;
 }
 
 export function reminderCandidates(input: {
@@ -83,21 +106,23 @@ export function planAssignmentReminders(
   existingKeys: ReadonlySet<string>,
 ) {
   const start = now.getTime();
-  const end = start + reminderWindowMs;
   const seen = new Set(existingKeys);
   const planned: ReminderInsert[] = [];
 
   for (const candidate of candidates) {
     if (!candidate.dueDate || candidate.submitted) continue;
     const due = Date.parse(candidate.dueDate);
-    if (!Number.isFinite(due) || due <= start || due > end) continue;
+    const stage = Number.isFinite(due) ? reminderStage(due, start) : null;
+    if (!stage) continue;
     const dedupeKey = assignmentReminderKey(
       candidate.assignmentId,
       candidate.studentId,
+      stage,
       candidate.dueDate,
     );
     if (seen.has(dedupeKey)) continue;
     seen.add(dedupeKey);
+    const lead = reminderStages.find((item) => item.id === stage)?.lead ?? stage;
     planned.push({
       recipient_id: candidate.studentId,
       kind: "assignment_due",
@@ -105,7 +130,7 @@ export function planAssignmentReminders(
       enrollment_id: candidate.enrollmentId,
       assignment_id: candidate.assignmentId,
       title: reminderTitle,
-      body: `${candidate.assignmentTitle} is due soon in ${candidate.courseTitle}.`,
+      body: `${candidate.assignmentTitle} is due in ${lead} in ${candidate.courseTitle}.`,
       dedupe_key: dedupeKey,
     });
   }

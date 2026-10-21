@@ -12,8 +12,15 @@ import { listCategories } from "@/features/categories/categories-api";
 import { CategorySelect } from "@/features/categories/category-select";
 import type { CourseCategory } from "@/features/categories/category-name";
 import { SaveNotice } from "@/features/instructor/save-notice";
-import { descriptionLimit } from "../../../supabase/functions/_shared/course-preview.ts";
+import {
+  descriptionLimit,
+  maxAssignments,
+  maxLessons,
+  preferenceLimit,
+} from "../../../supabase/functions/_shared/course-preview.ts";
 
+import { toDateTimeLocal } from "./assignment-draft";
+import { progressiveDueDates } from "./assignment-due-dates";
 import { generateCoursePreview, saveGeneratedCourse } from "./course-builder-api";
 import { courseLevels } from "./course-draft";
 
@@ -23,13 +30,22 @@ const levelLabels: Record<(typeof courseLevels)[number], string> = {
   advanced: "Advanced",
 };
 
+type SuggestedVideo = {
+  title: string;
+  channel: string;
+  description: string;
+  url: string;
+};
+
 type PreviewFields = {
   level: string;
   categoryId: string;
   title: string;
   description: string;
-  lessons: Array<{ title: string; content: string }>;
-  assignments: Array<{ title: string; description: string }>;
+  lessons: Array<{ title: string; content: string; videoUrl: string }>;
+  assignments: Array<{ title: string; description: string; dueDate: string }>;
+  videos: SuggestedVideo[];
+  videoMessage: string;
 };
 
 type CreatedDraft = {
@@ -41,6 +57,12 @@ type CreatedDraft = {
 export function CourseBuilderScreen({ instructorId }: { instructorId: string }) {
   const [brief, setBrief] = useState("");
   const [level, setLevel] = useState("");
+  const [lessonCount, setLessonCount] = useState("");
+  const [assignmentCount, setAssignmentCount] = useState("");
+  const [difficulty, setDifficulty] = useState("");
+  const [goals, setGoals] = useState("");
+  const [projects, setProjects] = useState("");
+  const [resources, setResources] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +98,16 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
     setPending("generate");
     setSaved(false);
     setMessage("");
-    const result = await generateCoursePreview(brief, level);
+    const result = await generateCoursePreview({
+      brief,
+      level,
+      lessonCount,
+      assignmentCount,
+      difficulty,
+      goals,
+      projects,
+      resources,
+    });
     setPending(null);
     if (!result.ok) {
       setMessage(result.message);
@@ -84,13 +115,28 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
     }
 
     if (created?.complete) setCreated(null);
+    const dueDates = progressiveDueDates(
+      result.preview.lessons.length,
+      result.preview.assignments.length,
+      new Date(),
+    );
     setPreview({
       level,
       categoryId,
       title: result.preview.title,
       description: result.preview.description,
-      lessons: result.preview.lessons,
-      assignments: result.preview.assignments,
+      lessons: result.preview.lessons.map((lesson) => ({
+        title: lesson.title,
+        content: lesson.content,
+        videoUrl: "",
+      })),
+      videos: result.videos,
+      videoMessage: result.videoMessage,
+      assignments: result.preview.assignments.map((assignment, index) => ({
+        title: assignment.title,
+        description: assignment.description,
+        dueDate: toDateTimeLocal(dueDates[index] ?? null),
+      })),
     });
   }
 
@@ -124,6 +170,12 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
     setPreview(null);
     setBrief("");
     setLevel("");
+    setLessonCount("");
+    setAssignmentCount("");
+    setDifficulty("");
+    setGoals("");
+    setProjects("");
+    setResources("");
     setCategoryId("");
   }
 
@@ -131,7 +183,7 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
     setPreview((current) => (current ? { ...current, ...changes } : current));
   }
 
-  function updateLesson(index: number, field: "title" | "content", value: string) {
+  function updateLesson(index: number, field: "title" | "content" | "videoUrl", value: string) {
     setPreview((current) => {
       if (!current) return current;
       return {
@@ -143,7 +195,11 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
     });
   }
 
-  function updateAssignment(index: number, field: "title" | "description", value: string) {
+  function updateAssignment(
+    index: number,
+    field: "title" | "description" | "dueDate",
+    value: string,
+  ) {
     setPreview((current) => {
       if (!current) return current;
       return {
@@ -206,7 +262,7 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
           >
             <select
               id="course-level"
-              className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-9 w-full min-w-0 max-w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               value={level}
               disabled={pending !== null || locked || preview !== null}
               onChange={(event) => setLevel(event.target.value)}
@@ -218,6 +274,94 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
                 </option>
               ))}
             </select>
+          </Field>
+          <Field
+            id="lesson-count"
+            label="Lessons"
+            hint="How many lessons to generate, from 1 to 6."
+          >
+            <Input
+              id="lesson-count"
+              type="number"
+              min={1}
+              max={maxLessons}
+              step={1}
+              value={lessonCount}
+              onChange={(event) => setLessonCount(event.target.value)}
+              disabled={pending !== null || locked || preview !== null}
+            />
+          </Field>
+          <Field
+            id="assignment-count"
+            label="Assignments"
+            hint="How many assignments to generate, from 0 to 4."
+          >
+            <Input
+              id="assignment-count"
+              type="number"
+              min={0}
+              max={maxAssignments}
+              step={1}
+              value={assignmentCount}
+              onChange={(event) => setAssignmentCount(event.target.value)}
+              disabled={pending !== null || locked || preview !== null}
+            />
+          </Field>
+          <Field
+            id="course-difficulty"
+            label="Difficulty"
+            hint="Optional. A note beyond the course level, such as a slower pace."
+            required={false}
+          >
+            <Input
+              id="course-difficulty"
+              value={difficulty}
+              maxLength={120}
+              onChange={(event) => setDifficulty(event.target.value)}
+              disabled={pending !== null || locked || preview !== null}
+            />
+          </Field>
+          <Field
+            id="learning-goals"
+            label="Learning goals"
+            hint="Optional. What a learner should be able to do by the end."
+            required={false}
+          >
+            <Textarea
+              id="learning-goals"
+              value={goals}
+              maxLength={preferenceLimit}
+              onChange={(event) => setGoals(event.target.value)}
+              disabled={pending !== null || locked || preview !== null}
+            />
+          </Field>
+          <Field
+            id="course-projects"
+            label="Projects"
+            hint="Optional. A project the lessons and assignments should build toward."
+            required={false}
+          >
+            <Textarea
+              id="course-projects"
+              value={projects}
+              maxLength={preferenceLimit}
+              onChange={(event) => setProjects(event.target.value)}
+              disabled={pending !== null || locked || preview !== null}
+            />
+          </Field>
+          <Field
+            id="resource-preferences"
+            label="Resource preferences"
+            hint="Optional. Topics or formats to prefer when suggesting videos."
+            required={false}
+          >
+            <Textarea
+              id="resource-preferences"
+              value={resources}
+              maxLength={preferenceLimit}
+              onChange={(event) => setResources(event.target.value)}
+              disabled={pending !== null || locked || preview !== null}
+            />
           </Field>
           <Field id="course-category" label="Category" hint="Optional." required={false}>
             <CategorySelect
@@ -264,42 +408,120 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
               </span>
             </div>
           </Field>
-          {preview.lessons.map((lesson, index) => (
-            <div key={`lesson-${index}`} className="space-y-3 border-t border-border pt-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="min-w-0 text-sm font-medium text-foreground">Lesson {index + 1}</h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={pending !== null || locked}
-                  onClick={() => removeLesson(index)}
-                >
-                  Remove lesson
-                </Button>
-              </div>
-              <Field id={`lesson-title-${index}`} label="Title" hint="Lesson title.">
-                <Input
-                  id={`lesson-title-${index}`}
-                  value={lesson.title}
-                  onChange={(event) => updateLesson(index, "title", event.target.value)}
-                  disabled={pending !== null || locked}
-                />
-              </Field>
-              <Field id={`lesson-content-${index}`} label="Content" hint="Lesson draft.">
-                <Textarea
+          <div className="space-y-3 border-t border-border pt-3">
+            <h3 className="text-sm font-medium text-foreground">Suggested videos</h3>
+            {preview.videoMessage ? (
+              <p className="text-sm text-muted-foreground">{preview.videoMessage}</p>
+            ) : null}
+            {preview.videos.length > 0 ? (
+              <ul className="space-y-3">
+                {preview.videos.map((video) => (
+                  <li key={video.url} className="space-y-1">
+                    <a
+                      href={video.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-foreground underline"
+                    >
+                      {video.title}
+                    </a>
+                    <p className="text-xs text-muted-foreground">{video.channel}</p>
+                    {video.description ? (
+                      <p className="text-sm text-muted-foreground">{video.description}</p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+          {preview.lessons.map((lesson, index) => {
+            const selectedVideo = preview.videos.find((video) => video.url === lesson.videoUrl);
+            return (
+              <div key={`lesson-${index}`} className="space-y-3 border-t border-border pt-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="min-w-0 text-sm font-medium text-foreground">
+                    Lesson {index + 1}
+                  </h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={pending !== null || locked}
+                    onClick={() => removeLesson(index)}
+                  >
+                    Remove lesson
+                  </Button>
+                </div>
+                <Field id={`lesson-title-${index}`} label="Title" hint="Lesson title.">
+                  <Input
+                    id={`lesson-title-${index}`}
+                    value={lesson.title}
+                    onChange={(event) => updateLesson(index, "title", event.target.value)}
+                    disabled={pending !== null || locked}
+                  />
+                </Field>
+                <Field
                   id={`lesson-content-${index}`}
-                  value={lesson.content}
-                  className="min-h-24"
-                  onChange={(event) => updateLesson(index, "content", event.target.value)}
-                  disabled={pending !== null || locked}
-                />
-              </Field>
-            </div>
-          ))}
+                  label="Content"
+                  hint="Learning objectives, explanation, example, practice, and further reading. Edit any of it."
+                >
+                  <Textarea
+                    id={`lesson-content-${index}`}
+                    value={lesson.content}
+                    className="min-h-40"
+                    onChange={(event) => updateLesson(index, "content", event.target.value)}
+                    disabled={pending !== null || locked}
+                  />
+                </Field>
+                <Field
+                  id={`lesson-video-${index}`}
+                  label="Video"
+                  hint="Choose a suggestion, paste a different URL, or clear it to remove the video."
+                  required={false}
+                >
+                  <select
+                    id={`lesson-video-${index}`}
+                    className="flex h-9 w-full min-w-0 max-w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    value={selectedVideo ? lesson.videoUrl : ""}
+                    onChange={(event) => updateLesson(index, "videoUrl", event.target.value)}
+                    disabled={pending !== null || locked}
+                  >
+                    <option value="">No video</option>
+                    {preview.videos.map((video) => (
+                      <option key={video.url} value={video.url}>
+                        {video.title}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field
+                  id={`lesson-video-url-${index}`}
+                  label="Video URL"
+                  hint="This is the URL saved on the lesson. A suggestion fills it in."
+                  required={false}
+                >
+                  <Input
+                    id={`lesson-video-url-${index}`}
+                    type="url"
+                    value={lesson.videoUrl}
+                    onChange={(event) => updateLesson(index, "videoUrl", event.target.value)}
+                    disabled={pending !== null || locked}
+                  />
+                </Field>
+                {selectedVideo ? (
+                  <p className="text-xs text-muted-foreground">
+                    {selectedVideo.channel}
+                    {selectedVideo.description ? `. ${selectedVideo.description}` : ""}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
           {preview.assignments.map((assignment, index) => (
             <div key={`assignment-${index}`} className="space-y-3 border-t border-border pt-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="min-w-0 text-sm font-medium text-foreground">Assignment {index + 1}</h3>
+                <h3 className="min-w-0 text-sm font-medium text-foreground">
+                  Assignment {index + 1}
+                </h3>
                 <Button
                   type="button"
                   variant="outline"
@@ -327,6 +549,19 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
                   value={assignment.description}
                   className="min-h-24"
                   onChange={(event) => updateAssignment(index, "description", event.target.value)}
+                  disabled={pending !== null || locked}
+                />
+              </Field>
+              <Field
+                id={`assignment-due-${index}`}
+                label="Due date"
+                hint="Set from the lesson order. A date you change is the one that is saved. Leave it blank to keep that default."
+              >
+                <Input
+                  id={`assignment-due-${index}`}
+                  type="datetime-local"
+                  value={assignment.dueDate}
+                  onChange={(event) => updateAssignment(index, "dueDate", event.target.value)}
                   disabled={pending !== null || locked}
                 />
               </Field>

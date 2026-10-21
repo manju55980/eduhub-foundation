@@ -6,6 +6,7 @@ export const assistantToolLimit = 3;
 export const unfinishedAgentMessage = "I could not finish that request.";
 export const questionRequiredMessage = "Enter a question.";
 export const studentOnlyAgentMessage = "Only a student can use the learning assistant.";
+export const catalogueCountErrorMessage = "The course count could not be loaded.";
 export const lessonTextUnavailable = "lesson text is unavailable";
 export const enrolledSentence = "You are enrolled in this course.";
 
@@ -18,6 +19,7 @@ export const agentTools = [
   "enrol_in_course",
   "fetch_my_grades",
   "suggest_next_course",
+  "count_published_courses",
 ] as const;
 
 export type AgentToolName = (typeof agentTools)[number];
@@ -131,6 +133,12 @@ export function filterAnswerCourses(courses: AgentCourseRef[], allowedIds: Reado
   });
 }
 
+export function publishedCourseCountMessage(count: number) {
+  if (count === 0) return "There are no published courses.";
+  if (count === 1) return "There is 1 published course.";
+  return `There are ${count} published courses.`;
+}
+
 export function agentEnrollmentInsert(studentId: string, courseId: string) {
   return {
     student_id: studentId,
@@ -189,9 +197,10 @@ export function agentSystemPrompt() {
     "Use only the tool results in this conversation. Do not invent courses, lessons, grades, or enrolment.",
     "Reply with JSON only.",
     'An answer is {"type":"answer","text":"...","courses":[{"id":"...","title":"..."}]}.',
-    'A tool call is {"type":"tool","name":"search_catalogue|describe_course|enrol_in_course|fetch_my_grades|suggest_next_course","arguments":{}}.',
+    'A tool call is {"type":"tool","name":"search_catalogue|describe_course|enrol_in_course|fetch_my_grades|suggest_next_course|count_published_courses","arguments":{}}.',
     "search_catalogue arguments: {query}. describe_course and enrol_in_course arguments: {courseId}.",
-    "fetch_my_grades and suggest_next_course arguments: {}.",
+    "fetch_my_grades, suggest_next_course, and count_published_courses arguments: {}.",
+    "Use count_published_courses when the student asks how many courses there are. Report that count. Do not count search_catalogue matches.",
     "Course ids in an answer must be ids returned by a tool in this conversation.",
     "Call enrol_in_course only when the student asks to enrol or join a course.",
   ].join(" ");

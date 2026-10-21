@@ -44,10 +44,11 @@ The server executes the tool and sends the tool result back to the model. It acc
 | `enrol_in_course` | `{ "courseId": string }` | Inserts one enrollment for the session user with `progress` 0, the same insert as Browse Courses. The existing `enrollments_insert_student` policy still requires a published course. |
 | `fetch_my_grades` | `{}` | Reads the caller’s graded submissions only: assignment title, course title, `grade`, and `feedback`, newest 20. |
 | `suggest_next_course` | `{}` | Reads the caller’s enrollments and published courses. Returns one published course the student has not joined. Prefer the same `category_id` as a completed enrollment, then the next `level` after the highest completed level (`beginner`, then `intermediate`, then `advanced`), then the newest published course. Returns no course when none is visible. |
+| `count_published_courses` | `{}` | Counts courses with `status = published` through the caller’s Supabase client. `courses_select` already limits a student to published courses and courses they have joined, so the status filter is the published catalogue that student can see. The query asks for an exact count and does not fetch rows. It does not call `match_knowledge` and does not use the suggestion list. A count of 0 says there are no published courses. A query error says “The course count could not be loaded.” and does not invent a number. |
 
 `enrol_in_course` runs only when the latest user message asks to enrol or join a course. A recommendation or a coverage question must not execute it. The insert does not send `id` or `created_at`. If that student is already enrolled, the tool returns the existing enrollment and does not insert. If the course is not published, the tool returns “This course is not available.” and does not insert. The tool cannot set `student_id` to anyone but the session user.
 
-`fetch_my_grades` cannot accept a student id. The result includes no other student’s grade, feedback, or submission. `suggest_next_course` does not insert an enrollment.
+`fetch_my_grades` cannot accept a student id. The result includes no other student’s grade, feedback, or submission. `suggest_next_course` does not insert an enrollment. `count_published_courses` cannot accept a student id or a status. A question such as “How many total courses are there?” uses this count.
 
 ## UI
 
@@ -75,6 +76,7 @@ Dismissing the page drops the transcript. Nothing is written except an enrollmen
 - Asking to enrol in a published course inserts one enrollment with progress 0. Asking only for a recommendation does not insert.
 - A second enrol for the same course does not insert another row.
 - `fetch_my_grades` returns only the caller’s graded rows.
+- “How many total courses are there?” is answered from `count_published_courses`. Zero published courses and a failed count each have their own message. The count is not the number of retrieved chunks.
 - An instructor or admin token cannot use `ai-agent`.
 - The function does not use the service-role client. Responses do not include the Gemini key.
 - A blank message does not call the function. The empty, sending, and error states are shown. The transcript is not stored.

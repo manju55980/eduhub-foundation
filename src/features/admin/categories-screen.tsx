@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 
+import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordList } from "@/components/app-shell/record-card";
+import { RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ export function CategoriesScreen() {
   const [loadError, setLoadError] = useState("");
   const [pending, setPending] = useState<Pending>(null);
   const [notice, setNotice] = useState<Notice>(emptyNotice);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -108,9 +110,10 @@ export function CategoriesScreen() {
   }
 
   const busy = pending !== null;
+  const visible = categories.filter((category) => matchesQuery(query, [category.name]));
 
   return (
-    <section className="max-w-6xl space-y-4">
+    <section className={pageFrameClass}>
       <PageHeader title="Manage Categories" />
       <SaveNotice
         tone="admin"
@@ -141,12 +144,23 @@ export function CategoriesScreen() {
           </Button>
         </form>
       ) : null}
+      {!loading && !loadError && categories.length > 0 ? (
+        <FilterToolbar
+          id="category-search"
+          value={query}
+          placeholder="Search categories by name..."
+          onChange={setQuery}
+        />
+      ) : null}
       {!loading && !loadError && categories.length === 0 ? (
         <EmptyState message="There are no categories yet." />
       ) : null}
-      {!loading && !loadError && categories.length > 0 ? (
-        <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
+      {!loading && !loadError && categories.length > 0 && visible.length === 0 ? (
+        <EmptyState message="No categories match this search." />
+      ) : null}
+      {!loading && !loadError && visible.length > 0 ? (
+        <RecordList className={recordGridClass}>
+          {visible.map((category) => (
             <CategoryCard
               key={category.id}
               category={category}

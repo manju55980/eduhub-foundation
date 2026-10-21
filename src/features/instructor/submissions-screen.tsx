@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Save } from "lucide-react";
 
+import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordList } from "@/components/app-shell/record-card";
+import { RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ export function SubmissionsScreen() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [notice, setNotice] = useState<Notice>(emptyNotice);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -41,9 +43,20 @@ export function SubmissionsScreen() {
     };
   }, []);
 
+  const visible = submissions.filter((submission) =>
+    matchesQuery(query, [
+      submission.assignmentTitle,
+      submission.courseTitle,
+      submission.studentName,
+    ]),
+  );
+
   return (
-    <section className="max-w-6xl space-y-4">
-      <PageHeader title="Submissions (grading)" />
+    <section className={pageFrameClass}>
+      <PageHeader
+        title="Submissions (grading)"
+        description="Review submitted work and record a grade."
+      />
       <SaveNotice
         tone="instructor"
         saved={notice.saved}
@@ -52,9 +65,20 @@ export function SubmissionsScreen() {
       />
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading submissions…" /> : null}
-      {!loading && !loadError ? (
+      {!loading && !loadError && submissions.length > 0 ? (
+        <FilterToolbar
+          id="submission-search"
+          value={query}
+          placeholder="Search by assignment, course, or student..."
+          onChange={setQuery}
+        />
+      ) : null}
+      {!loading && !loadError && submissions.length > 0 && visible.length === 0 ? (
+        <EmptyState message="No submissions match this search." />
+      ) : null}
+      {!loading && !loadError && !(submissions.length > 0 && visible.length === 0) ? (
         <SubmissionViews
-          submissions={submissions}
+          submissions={visible}
           onNotice={setNotice}
           onGraded={(submissionId, grade) =>
             setSubmissions((current) =>
@@ -97,7 +121,7 @@ function SubmissionViews({
     <div className="space-y-4">
       <div
         role="tablist"
-        className="inline-flex h-9 items-center justify-start gap-1 border-b border-border"
+        className="flex flex-wrap gap-2"
       >
         {tabs.map((item) => {
           const active = tab === item.value;
@@ -108,7 +132,7 @@ function SubmissionViews({
               role="tab"
               aria-selected={active}
               data-state={active ? "active" : "inactive"}
-              className="inline-flex items-center justify-center whitespace-nowrap border-b-2 border-transparent px-3 py-1.5 text-sm font-medium text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:border-primary data-[state=active]:text-foreground"
+              className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-sm border px-3 text-sm font-medium shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:border-input data-[state=inactive]:bg-background data-[state=inactive]:text-foreground"
               onMouseDown={() => setTab(item.value)}
               onClick={() => setTab(item.value)}
             >
@@ -145,7 +169,7 @@ function SubmissionList({
   }
 
   return (
-    <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
+    <RecordList className={recordGridClass}>
       {submissions.map((submission) => (
         <SubmissionCard
           key={submission.id}

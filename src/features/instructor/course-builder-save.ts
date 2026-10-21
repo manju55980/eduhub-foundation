@@ -38,8 +38,9 @@ export async function startGeneratedSave(
     level: string;
     categoryId: string;
     categoryIds: string[];
-    lessons: Array<{ title: string; content: string }>;
-    assignments: Array<{ title: string; description: string }>;
+    lessons: Array<{ title: string; content: string; videoUrl?: string }>;
+    assignments: Array<{ title: string; description: string; dueDate?: string }>;
+    now?: Date;
   },
   writer: CourseWriter,
 ): Promise<SaveGeneratedResult> {

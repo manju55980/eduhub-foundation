@@ -1,0 +1,20 @@
+---
+description: EduHub dashboard layout for student, instructor, and admin screens. Use the Manage Courses page as the reference.
+globs: src/**/*.tsx
+alwaysApply: true
+---
+
+# EduHub dashboard UI
+
+Follow Manage Courses (`src/features/admin/manage-courses-screen.tsx`) and `specs/guides/frontend.md`. Preserve each role’s actions, permissions, and empty-state sentences.
+
+- Frame a signed-in page with `PageSection` or `pageFrameClass`: full content width, `min-w-0`, `space-y-5`. Keep a form, chat, or profile narrower with `max-w-xl` or `max-w-3xl` on that page only.
+- Title and one-line description use `PageHeader`. Record titles stay `text-base font-medium`.
+- Lists of courses, users, enrollments, or submissions use `FilterToolbar` for search. Status or role choices use `ChoiceButton` (`aria-pressed`, outline until selected). Summary counts use `SummaryCounts` only when each count filters the loaded records. Do not add charts, pastel tiles, or sample rows.
+- Course and record grids use `recordGridClass` (`lg:grid-cols-2`). Cards use `panelClass` or `CourseListing`: 1px border, `rounded-sm`, no shadow, no card inside a card. Actions sit outside the title link.
+- Status uses `StatusBadge`. Primary `Button` for the main action, `outline` for a secondary action such as Archive.
+- Dense rows use `DataTable`. It stacks under `md` and shows each column name. Do not force a wide table.
+- Native selects and inputs use `shadow-none` and `rounded-sm`. A control has a visible `Label`.
+- The sidebar is the only navigation. Close the mobile sheet from the link click. Highlight the item whose path matches exactly. Profile editing opens from the header avatar, not a sidebar item.
+- The header theme control sets `light` or `dark` on `html` and stores that choice. Pages use the existing tokens.
+- Loading, empty, and error stay `LoadingState`, `EmptyState`, and `ErrorState`. A search with no matches says what was searched; it does not replace the empty list for zero records.

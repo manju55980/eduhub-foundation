@@ -1,5 +1,6 @@
 import { courseDraft, isCourseLevel, type CourseLevel } from "@/features/instructor/course-draft";
 import { assignmentDraft, type AssignmentText } from "@/features/instructor/assignment-draft";
+import { progressiveDueDates } from "@/features/instructor/assignment-due-dates";
 import { lessonDraft, type LessonText } from "@/features/instructor/lesson-draft";
 import {
   descriptionLimit,
@@ -22,8 +23,9 @@ export function validateGeneratedDraft(input: {
   level: string;
   categoryId: string;
   categoryIds: string[];
-  lessons: Array<{ title: string; content: string }>;
-  assignments: Array<{ title: string; description: string }>;
+  lessons: Array<{ title: string; content: string; videoUrl?: string }>;
+  assignments: Array<{ title: string; description: string; dueDate?: string }>;
+  now?: Date;
 }): { ok: true; draft: GeneratedDraft } | { ok: false; message: string } {
   const messages: string[] = [];
   const course = courseDraft(input.title, input.description, input.level);
@@ -47,16 +49,26 @@ export function validateGeneratedDraft(input: {
 
   const lessons: LessonText[] = [];
   input.lessons.forEach((lesson, index) => {
-    const draft = lessonDraft(lesson.title, lesson.content, "");
+    const draft = lessonDraft(lesson.title, lesson.content, lesson.videoUrl ?? "");
     if (!draft.ok) messages.push(`Lesson ${index + 1}: ${draft.message}`);
-    else lessons.push({ ...draft.lesson, videoUrl: null });
+    else lessons.push(draft.lesson);
   });
 
+  const dueDefaults = progressiveDueDates(
+    input.lessons.length,
+    input.assignments.length,
+    input.now ?? new Date(),
+  );
   const assignments: AssignmentText[] = [];
   input.assignments.forEach((assignment, index) => {
-    const draft = assignmentDraft(assignment.title, assignment.description, "");
+    const entered = assignment.dueDate?.trim() ?? "";
+    const draft = assignmentDraft(
+      assignment.title,
+      assignment.description,
+      entered || (dueDefaults[index] ?? ""),
+    );
     if (!draft.ok) messages.push(`Assignment ${index + 1}: ${draft.message}`);
-    else assignments.push({ ...draft.assignment, dueDate: null });
+    else assignments.push(draft.assignment);
   });
 
   if (!course.ok || !isCourseLevel(input.level) || messages.length > 0) {

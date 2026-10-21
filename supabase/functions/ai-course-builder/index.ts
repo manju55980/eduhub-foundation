@@ -14,6 +14,7 @@ Deno.serve((request) => {
     Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
   const authorization = request.headers.get("Authorization");
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  const youtubeKey = Deno.env.get("YOUTUBE_API_KEY");
   const token = authorization?.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length).trim()
     : "";
@@ -44,6 +45,7 @@ Deno.serve((request) => {
     supabaseUrl,
     publishableKey,
     geminiKey,
+    youtubeKey,
     authorization,
     fetchImpl: fetch,
     reader,

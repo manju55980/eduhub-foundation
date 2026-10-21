@@ -26,15 +26,19 @@ Authenticated users cannot insert, update, or delete `certificates`. Authenticat
 
 ## Assignment reminders
 
-A scheduled job inserts `assignment_due` for each enrolled student when all of these are true:
+A scheduled job inserts `assignment_due` for each enrolled student at three stages. The windows do not overlap, and each run chooses at most one stage for an assignment:
 
-- `assignments.due_date` is after the job’s current time and within 72 hours.
-- That student has no `submissions` row for that assignment.
-- The dedupe key `assignment_due:{assignment_id}:{student_id}:{due_date}` is not already stored.
+- **72h.** More than 24 hours remain, and at most 72 hours remain.
+- **24h.** More than 1 hour remains, and at most 24 hours remain.
+- **1h.** The due date is still ahead, and at most 1 hour remains.
 
-The title is “Assignment due soon”. The body names the assignment title and the course title. A null `due_date` creates no row. A changed `due_date` may create one new row because the key includes that timestamp.
+A due date that is null, already past, or more than 72 hours away creates no row. A student with a `submissions` row for that assignment is skipped, including a later stage after they submit. The dedupe key is `assignment_due:{assignment_id}:{student_id}:{stage}:{due_date}`. A stored key blocks only that stage. A changed `due_date` may create a new row because the key includes that timestamp.
 
-The job is `POST /api/assignment-reminders` on the app server. `authenticateCronRequest` allows it only when the `Authorization` bearer matches `LOVABLE_CRON_SECRET` or `LOVABLE_CRON_SECRET_PREVIOUS`. Any other caller receives 401, and a non-POST request from an authorized caller receives 405. The handler then uses the service-role client. The browser never calls it and never sees the service-role key. The job inserts only this kind of notification. It does not grade, enroll, or change progress. A second run inserts nothing for the same assignment, student, and due date because the planner skips a stored dedupe key and the insert uses `on conflict (dedupe_key) do nothing`.
+The hourly schedule can miss an hour. The next run still sends the stage whose window contains the remaining time, and it does not also insert a stage whose window has already closed. A second run in the same window inserts nothing for that key.
+
+The title is “Assignment due soon”. The body names the assignment title, the course title, and the stage lead time (72 hours, 24 hours, or 1 hour).
+
+The job is `POST /api/assignment-reminders` on the app server. `authenticateCronRequest` allows it only when the `Authorization` bearer matches `LOVABLE_CRON_SECRET` or `LOVABLE_CRON_SECRET_PREVIOUS`. Any other caller receives 401, and a non-POST request from an authorized caller receives 405. The handler then uses the service-role client. The browser never calls it and never sees the service-role key. The job inserts only this kind of notification. It does not grade, enroll, or change progress. A second run inserts nothing for the same assignment, student, stage, and due date because the planner skips a stored dedupe key and the insert uses `on conflict (dedupe_key) do nothing`.
 
 The endpoint is implemented. Hourly scheduling and deployment configuration are pending manual setup. The published Lovable worker and Vercel Cron cannot send that POST. Vercel Cron sends GET with `CRON_SECRET`. After publish, set `LOVABLE_CRON_SECRET`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY` on the app server runtime, then POST the published origin every hour (`0 * * * *` UTC) with `Authorization: Bearer <LOVABLE_CRON_SECRET>`. The exact command is in the README. This setup has not been called against the database.
 
@@ -79,6 +83,6 @@ The banner says “Notification marked read.” Dismissing it does not clear `re
 - The certificate sentence is visible only while enrollment `status` is `completed`.
 - My Certificates lists only those completed certificates. View Certificate opens the stored row. Print and Download PDF do not write a certificate.
 - A student reads and marks read only their own notifications. An instructor does not read the student’s `course_completed` row unless they are also that recipient.
-- An assignment with no due date creates no reminder. An assignment due in 72 hours creates one reminder per enrolled student who has not submitted. A second job run does not duplicate it.
-- A student who already submitted that assignment gets no reminder.
+- An assignment with no due date creates no reminder. One hourly run can insert the 72h, 24h, and 1h stages for different remaining times, one row per enrolled student who has not submitted. A second run does not duplicate a stored stage. A missed hour still sends the open stage and does not backfill a closed one.
+- A student who already submitted that assignment gets no reminder, including a later stage.
 - Existing policies on enrollments, lessons, assignments, and submissions are unchanged.

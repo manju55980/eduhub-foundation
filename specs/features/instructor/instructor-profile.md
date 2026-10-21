@@ -6,7 +6,7 @@ This feature does not add a table, column, policy, route, or migration.
 
 ## Route
 
-`/instructor/profile` is Profile. The heading is “Profile”. It is a sidebar item, so it has no back link. The existing file route stays in place. Do not add a profile-detail route.
+`/instructor/profile` is Profile. The heading is “Profile”. It is no longer a sidebar item. The header avatar opens the shared editor in a modal. A direct visit to the route still renders the page. The existing file route stays in place. Do not add a profile-detail route.
 
 The route renders the same `features/auth/` editor as My Profile. Do not copy the form into `features/instructor/`.
 

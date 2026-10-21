@@ -112,7 +112,7 @@ describe("AI security checks", () => {
       for (const role of ["student", "admin"]) {
         const calls: string[] = [];
         const response = await handleCourseBuilder(
-          post({ brief: "Teach plants.", level: "beginner" }),
+          post({ brief: "Teach plants.", level: "beginner", lessonCount: 1, assignmentCount: 1 }),
           {
             supabaseUrl: "http://localhost:54321",
             publishableKey: "sb_publishable_test",
@@ -382,6 +382,8 @@ describe("AI security checks", () => {
       expect(studyIndex).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
       expect(studyIndex).not.toContain("sk-");
       expect(builderIndex).toContain("GEMINI_API_KEY");
+      expect(builderIndex).toContain('Deno.env.get("YOUTUBE_API_KEY")');
+      expect(builderIndex).not.toMatch(/AIza/);
       expect(builderIndex).not.toContain("OPENAI_API_KEY");
       expect(builderIndex).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
       expect(builderIndex).not.toContain(".insert(");
@@ -393,6 +395,7 @@ describe("AI security checks", () => {
       expect(studyApi).not.toContain("VITE_");
       expect(builderApi).not.toContain("OPENAI");
       expect(builderApi).not.toContain("GEMINI");
+      expect(builderApi).not.toContain("YOUTUBE_API_KEY");
       expect(builderApi).not.toContain("VITE_");
       expect(sanitizePublicMessage(`failure sk-live-secret and ${"sb_secret_abc"}`)).toBe(
         "The AI request failed.",
@@ -431,7 +434,8 @@ describe("AI security checks", () => {
     it("inserts a draft and does not insert when the edited preview is invalid", async () => {
       const courseRows: unknown[] = [];
       const writer = fakeWriter(courseRows);
-      const saved = await startGeneratedSave(validInput, writer);
+      const now = new Date("2026-10-20T12:00:00.000Z");
+      const saved = await startGeneratedSave({ ...validInput, now }, writer);
       expect(saved.ok).toBe(true);
       expect(courseRows).toEqual([
         {
@@ -454,7 +458,7 @@ describe("AI security checks", () => {
         course_id: "course-1",
         title: "Quiz",
         description: "Name a leaf.",
-        due_date: null,
+        due_date: "2026-10-27T12:00:00.000Z",
       });
 
       const rejected = fakeWriter();
@@ -486,6 +490,96 @@ describe("AI security checks", () => {
       expect(writer.insertCourse).not.toHaveBeenCalled();
     });
 
+    it("keeps an instructor due date and fills a blank one from lesson order", async () => {
+      const now = new Date("2026-10-20T12:00:00.000Z");
+      const writer = fakeWriter();
+      const saved = await startGeneratedSave(
+        {
+          ...validInput,
+          now,
+          lessons: [
+            { title: "Leaves", content: "Leaves make food." },
+            { title: "Roots", content: "Roots take in water." },
+          ],
+          assignments: [
+            {
+              title: "Quiz",
+              description: "Name a leaf.",
+              dueDate: "2026-12-01T15:00:00.000Z",
+            },
+            { title: "Lab", description: "Sketch a root.", dueDate: "  " },
+          ],
+        },
+        writer,
+      );
+
+      expect(saved.ok).toBe(true);
+      expect(writer.insertAssignment).toHaveBeenNthCalledWith(1, {
+        course_id: "course-1",
+        title: "Quiz",
+        description: "Name a leaf.",
+        due_date: "2026-12-01T15:00:00.000Z",
+      });
+      expect(writer.insertAssignment).toHaveBeenNthCalledWith(2, {
+        course_id: "course-1",
+        title: "Lab",
+        description: "Sketch a root.",
+        due_date: "2026-11-03T12:00:00.000Z",
+      });
+
+      const invalidDate = fakeWriter();
+      const rejected = await startGeneratedSave(
+        {
+          ...validInput,
+          assignments: [{ title: "Quiz", description: "Name a leaf.", dueDate: "not-a-date" }],
+        },
+        invalidDate,
+      );
+      expect(rejected).toMatchObject({ ok: false, course: null, step: "validation" });
+      expect(invalidDate.insertCourse).not.toHaveBeenCalled();
+    });
+
+    it("saves a selected lesson video without replacing an edited due date", async () => {
+      const now = new Date("2026-10-20T12:00:00.000Z");
+      const writer = fakeWriter();
+      const saved = await startGeneratedSave(
+        {
+          ...validInput,
+          now,
+          lessons: [
+            {
+              title: "Leaves",
+              content: "Leaves make food.",
+              videoUrl: " https://www.youtube.com/watch?v=abc123XYZ_- ",
+            },
+          ],
+          assignments: [
+            {
+              title: "Quiz",
+              description: "Name a leaf.",
+              dueDate: "2026-12-01T15:00:00.000Z",
+            },
+          ],
+        },
+        writer,
+      );
+
+      expect(saved.ok).toBe(true);
+      expect(writer.insertLesson).toHaveBeenCalledWith({
+        course_id: "course-1",
+        title: "Leaves",
+        content: "Leaves make food.",
+        video_url: "https://www.youtube.com/watch?v=abc123XYZ_-",
+        order_index: 1,
+      });
+      expect(writer.insertAssignment).toHaveBeenCalledWith({
+        course_id: "course-1",
+        title: "Quiz",
+        description: "Name a leaf.",
+        due_date: "2026-12-01T15:00:00.000Z",
+      });
+    });
+
     it("returns the created course and stops when a later insert fails", async () => {
       const writer = fakeWriter();
       writer.insertLesson.mockResolvedValueOnce({ ok: false, message: "lesson insert failed" });
@@ -513,8 +607,10 @@ describe("AI security checks", () => {
     });
 
     it("drops status, due dates, and video URLs from the model preview", async () => {
-      const fetchImpl: typeof fetch = async () =>
-        new Response(
+      let calls = 0;
+      const fetchImpl: typeof fetch = async () => {
+        calls += 1;
+        return new Response(
           JSON.stringify({
             candidates: [
               {
@@ -549,8 +645,9 @@ describe("AI security checks", () => {
           }),
           { status: 200 },
         );
+      };
       const response = await handleCourseBuilder(
-        post({ brief: "Teach plants.", level: "beginner" }),
+        post({ brief: "Teach plants.", level: "beginner", lessonCount: 1, assignmentCount: 1 }),
         {
           supabaseUrl: "http://localhost:54321",
           publishableKey: "sb_publishable_test",
@@ -577,6 +674,144 @@ describe("AI security checks", () => {
       expect(JSON.stringify(body.preview)).not.toContain("published");
       expect(JSON.stringify(body.preview)).not.toContain("video_url");
       expect(JSON.stringify(body.preview)).not.toContain("2020-01-01");
+      expect(body.videos).toEqual([]);
+      expect(body.videoMessage).toBe("Video suggestions are not configured.");
+      expect(calls).toBe(1);
+    });
+
+    it("adds real video suggestions and still returns the preview when YouTube is unavailable", async () => {
+      const youtubeKey = "AIzaSyYoutubeKeyValue1234567890";
+      const calls: string[] = [];
+      const fetchImpl: typeof fetch = async (input) => {
+        const url = String(input);
+        calls.push(url);
+        if (url.includes("youtube/v3/search")) {
+          return new Response(
+            JSON.stringify({
+              items: [
+                {
+                  id: { videoId: "abc123XYZ_-" },
+                  snippet: {
+                    title: "Leaf &amp; Root",
+                    channelTitle: "Botany",
+                    description: "How leaves work",
+                  },
+                },
+                { id: { kind: "youtube#channel" }, snippet: { title: "Skip me" } },
+              ],
+            }),
+            { status: 200 },
+          );
+        }
+        return new Response(
+          JSON.stringify({
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      text: JSON.stringify({
+                        title: "Plants",
+                        description: "How plants grow",
+                        lessons: [
+                          { title: "Leaves", content: "Learning objectives\nLook closely." },
+                        ],
+                        assignments: [{ title: "Quiz", description: "Name a leaf" }],
+                      }),
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+          { status: 200 },
+        );
+      };
+      const response = await handleCourseBuilder(
+        post({
+          brief: "Teach plants.",
+          level: "beginner",
+          lessonCount: 1,
+          assignmentCount: 1,
+          resources: "short classroom clips",
+        }),
+        {
+          supabaseUrl: "http://localhost:54321",
+          publishableKey: "sb_publishable_test",
+          geminiKey: "AIzaSyTestKeyValue1234567890",
+          youtubeKey,
+          authorization: bearer(),
+          fetchImpl,
+          reader: {
+            async userId() {
+              return { ok: true, userId: "instructor-1" };
+            },
+            async role() {
+              return { ok: true, role: "instructor" };
+            },
+          },
+        },
+      );
+      const text = await response.text();
+      expect(text).not.toContain(youtubeKey);
+      const body = JSON.parse(text) as {
+        videos: Array<{ title: string; channel: string; url: string }>;
+        videoMessage: string;
+      };
+      expect(body.videos).toEqual([
+        {
+          title: "Leaf & Root",
+          channel: "Botany",
+          description: "How leaves work",
+          url: "https://www.youtube.com/watch?v=abc123XYZ_-",
+        },
+      ]);
+      expect(body.videoMessage).toBe("");
+      expect(calls.filter((url) => url.includes("youtube/v3/search"))).toHaveLength(1);
+
+      const quotaCalls: string[] = [];
+      const quotaFetch: typeof fetch = async (input) => {
+        const url = String(input);
+        quotaCalls.push(url);
+        if (url.includes("youtube/v3/search")) {
+          return new Response(JSON.stringify({ error: { message: "quota exceeded" } }), {
+            status: 403,
+          });
+        }
+        return fetchImpl("https://example.invalid/gemini");
+      };
+      const quota = await handleCourseBuilder(
+        post({ brief: "Teach plants.", level: "beginner", lessonCount: 1, assignmentCount: 1 }),
+        {
+          supabaseUrl: "http://localhost:54321",
+          publishableKey: "sb_publishable_test",
+          geminiKey: "AIzaSyTestKeyValue1234567890",
+          youtubeKey,
+          authorization: bearer(),
+          fetchImpl: quotaFetch,
+          reader: {
+            async userId() {
+              return { ok: true, userId: "instructor-1" };
+            },
+            async role() {
+              return { ok: true, role: "instructor" };
+            },
+          },
+        },
+      );
+      const quotaText = await quota.text();
+      expect(quotaText).not.toContain(youtubeKey);
+      const quotaBody = JSON.parse(quotaText) as {
+        ok: boolean;
+        preview: { title: string };
+        videos: unknown[];
+        videoMessage: string;
+      };
+      expect(quotaBody.ok).toBe(true);
+      expect(quotaBody.preview.title).toBe("Plants");
+      expect(quotaBody.videos).toEqual([]);
+      expect(quotaBody.videoMessage).toBe("Video suggestions are unavailable right now.");
+      expect(quotaCalls.filter((url) => url.includes("youtube/v3/search"))).toHaveLength(1);
     });
   });
 });

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
+import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, PageSection, RecordList } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordList, recordGridClass } from "@/components/app-shell/record-card";
 import { CourseListing } from "@/features/courses/course-listing";
 import { statusShownToStudent } from "@/features/courses/course-details";
 import { StatusBadge } from "@/components/app-shell/status-badge";
@@ -29,6 +30,7 @@ export function MyCoursesScreen({ studentId }: { studentId: string }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [certificateError, setCertificateError] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -47,9 +49,11 @@ export function MyCoursesScreen({ studentId }: { studentId: string }) {
     };
   }, [studentId]);
 
+  const visible = courses.filter((course) => matchesQuery(query, [course.title]));
+
   return (
     <PageSection>
-      <PageHeader title="My Courses" />
+      <PageHeader title="My Courses" description="Courses you have joined." />
       {loading ? <LoadingState message="Loading courses…" /> : null}
       {!loading && certificateError ? <ErrorState message={certificateError} /> : null}
       {!loading && loadError ? <ErrorState message={loadError} /> : null}
@@ -61,8 +65,19 @@ export function MyCoursesScreen({ studentId }: { studentId: string }) {
         </EmptyState>
       ) : null}
       {!loading && !loadError && courses.length > 0 ? (
-        <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => (
+        <FilterToolbar
+          id="my-course-search"
+          value={query}
+          placeholder="Search courses by title..."
+          onChange={setQuery}
+        />
+      ) : null}
+      {!loading && !loadError && courses.length > 0 && visible.length === 0 ? (
+        <EmptyState message="No courses match this search." />
+      ) : null}
+      {!loading && !loadError && visible.length > 0 ? (
+        <RecordList className={recordGridClass}>
+          {visible.map((course) => (
             <EnrolledCourseCard key={course.id} course={course} certificates={certificates} />
           ))}
         </RecordList>

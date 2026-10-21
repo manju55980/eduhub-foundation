@@ -3,12 +3,13 @@ import { Save } from "lucide-react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
+import { pageFrameClass } from "@/components/app-shell/record-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import { assignmentDraft, type AssignmentText } from "./assignment-draft";
+import { assignmentDraft, toDateTimeLocal, type AssignmentText } from "./assignment-draft";
 import { compareCoursesNewestFirst } from "./course-update";
 import {
   createAssignment,
@@ -70,7 +71,7 @@ export function CourseAssignmentsScreen({ courseId }: { courseId: string }) {
   const heading = course?.title ? course.title : "Assignments";
 
   return (
-    <section className="max-w-5xl space-y-4">
+    <section className={pageFrameClass}>
       <PageHeader
         title={heading}
         backTo="/instructor/courses"
@@ -392,10 +393,3 @@ function formatDueAt(value: string | null) {
   }).format(date);
 }
 
-function toDateTimeLocal(value: string | null) {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  const pad = (part: number) => String(part).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}

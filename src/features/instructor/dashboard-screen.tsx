@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BoardSection } from "@/components/app-shell/data-table";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, RecordCard, RecordList } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, RecordCard, RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { CourseListing } from "@/features/courses/course-listing";
 import { listInstructorCourses, type InstructorCourse } from "./my-courses-api";
@@ -45,7 +45,7 @@ export function InstructorDashboardScreen({ fullName }: { fullName: string }) {
   const name = fullName.trim() || "Instructor";
 
   return (
-    <section className="max-w-6xl space-y-5">
+    <section className={pageFrameClass}>
       <PageHeader
         title={`Welcome back, ${name}`}
         description="Submissions to grade, and your newest courses."
@@ -58,7 +58,7 @@ export function InstructorDashboardScreen({ fullName }: { fullName: string }) {
             <EmptyState message="No submissions to grade." />
           ) : null}
           {!submissionError && submissions.length > 0 ? (
-            <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
+            <RecordList className={recordGridClass}>
               {submissions.map((submission) => (
                 <RecordCard
                   key={submission.id}
@@ -84,7 +84,7 @@ export function InstructorDashboardScreen({ fullName }: { fullName: string }) {
             <EmptyState message="You have no courses yet." />
           ) : null}
           {!courseError && courses.length > 0 ? (
-            <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
+            <RecordList className={recordGridClass}>
               {courses.map((course) => (
                 <CourseListing
                   key={course.id}

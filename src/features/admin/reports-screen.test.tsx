@@ -65,6 +65,8 @@ describe("ReportsScreen", () => {
     expect(row).not.toBeNull();
     const view = within(row as HTMLElement);
     expect(view.getByText("Ada Lovelace")).toBeInTheDocument();
+    expect(view.getByText("Course")).toBeInTheDocument();
+    expect(view.getByText("Student")).toBeInTheDocument();
     expect(view.getByText("Archived")).toBeInTheDocument();
     expect(view.getByText("Active")).toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Progress" })).not.toBeInTheDocument();

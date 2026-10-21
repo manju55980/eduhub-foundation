@@ -1,10 +1,15 @@
-import { agentEnrollmentInsert, type SuggestCourse, type SuggestEnrollment } from "./agent.ts";
+import {
+  agentEnrollmentInsert,
+  catalogueCountErrorMessage,
+  type SuggestCourse,
+  type SuggestEnrollment,
+} from "./agent.ts";
 import type { AgentCourseDetail, AgentGrade, AgentMatch, AgentReader } from "./agent-tools.ts";
 import { failedAiMessage } from "./gemini.ts";
 import { notAvailableMessage } from "./study.ts";
 
 type QueryError = { message: string; code?: string } | null;
-type QueryResult = { data: unknown; error: QueryError };
+type QueryResult = { data: unknown; error: QueryError; count?: number | null };
 
 type AgentFilter = PromiseLike<QueryResult> & {
   eq: (column: string, value: string) => AgentFilter;
@@ -22,7 +27,10 @@ export type AgentDb = {
     }>;
   };
   from: (table: string) => {
-    select: (columns: string) => AgentFilter;
+    select: (
+      columns: string,
+      options?: { count?: "exact"; head?: boolean },
+    ) => AgentFilter;
     insert: (row: Record<string, unknown>) => Promise<QueryResult>;
   };
   rpc: (fn: string, args: Record<string, unknown>) => Promise<QueryResult>;
@@ -179,6 +187,16 @@ export function bindAgentReader(db: AgentDb, token: string): AgentReader {
           .map(publishedCourse)
           .filter((course): course is SuggestCourse => Boolean(course)),
       };
+    },
+    async publishedCount() {
+      const counted = await db
+        .from("courses")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "published");
+      if (counted.error || typeof counted.count !== "number" || counted.count < 0) {
+        return { ok: false, message: catalogueCountErrorMessage };
+      }
+      return { ok: true, count: counted.count };
     },
   };
 }

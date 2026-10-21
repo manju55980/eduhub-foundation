@@ -16,7 +16,6 @@ export const roleNavigation = {
     { label: "Assignments", to: "/student/assignments" },
     { label: "My Grades", to: "/student/grades" },
     { label: "My Certificates", to: "/student/certificates" },
-    { label: "My Profile", to: "/student/profile" },
   ],
   instructor: [
     { label: "Instructor Dashboard", to: "/instructor" },
@@ -24,11 +23,10 @@ export const roleNavigation = {
     { label: "AI Course Builder", to: "/instructor/courses/generate" },
     { label: "My Courses (including lessons)", to: "/instructor/courses" },
     { label: "Submissions (grading)", to: "/instructor/submissions" },
-    { label: "Profile", to: "/instructor/profile" },
   ],
   admin: [
     { label: "Admin Dashboard", to: "/admin" },
-    { label: "Approve Courses", to: "/admin/courses/approvals" },
+    { label: "Manage Courses", to: "/admin/courses" },
     { label: "Manage Users", to: "/admin/users" },
     { label: "Manage Categories", to: "/admin/categories" },
     { label: "All Enrollments", to: "/admin/enrollments" },
