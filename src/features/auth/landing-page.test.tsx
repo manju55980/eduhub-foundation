@@ -23,7 +23,12 @@ describe("LandingPage", () => {
     );
     expect(screen.queryByText(/next phase/i)).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Study Companion" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Learning Assistant" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "AI Course Builder" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Instructor creates a course" })).toBeInTheDocument();
+    expect(screen.getByText("My certificates")).toBeInTheDocument();
+    expect(screen.getByText("Archive courses")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Certificate and Completed" })).toBeInTheDocument();
   });
 
   it("hides sign-in while the session is still loading", () => {

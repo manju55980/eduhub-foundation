@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
+import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
 import {
@@ -9,6 +10,7 @@ import {
   PageSection,
   RecordCard,
   RecordList,
+  recordGridClass,
 } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,7 @@ export function GradesScreen({ studentId }: { studentId: string }) {
   const [grades, setGrades] = useState<StudentGrade[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -37,9 +40,13 @@ export function GradesScreen({ studentId }: { studentId: string }) {
     };
   }, [studentId]);
 
+  const visible = grades.filter((grade) =>
+    matchesQuery(query, [grade.assignmentTitle, grade.courseTitle]),
+  );
+
   return (
     <PageSection>
-      <PageHeader title="My Grades" />
+      <PageHeader title="My Grades" description="Grades and feedback for your own work." />
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading grades…" /> : null}
       {!loading && !loadError && grades.length === 0 ? (
@@ -50,8 +57,19 @@ export function GradesScreen({ studentId }: { studentId: string }) {
         </EmptyState>
       ) : null}
       {!loading && !loadError && grades.length > 0 ? (
-        <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
-          {grades.map((grade) => (
+        <FilterToolbar
+          id="grade-search"
+          value={query}
+          placeholder="Search by assignment or course..."
+          onChange={setQuery}
+        />
+      ) : null}
+      {!loading && !loadError && grades.length > 0 && visible.length === 0 ? (
+        <EmptyState message="No grades match this search." />
+      ) : null}
+      {!loading && !loadError && visible.length > 0 ? (
+        <RecordList className={recordGridClass}>
+          {visible.map((grade) => (
             <GradeCard key={grade.id} grade={grade} />
           ))}
         </RecordList>

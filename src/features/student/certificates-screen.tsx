@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
+import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
 import {
@@ -9,6 +10,7 @@ import {
   PageSection,
   RecordCard,
   RecordList,
+  recordGridClass,
 } from "@/components/app-shell/record-card";
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +21,7 @@ export function CertificatesScreen({ studentId }: { studentId: string }) {
   const [certificates, setCertificates] = useState<StudentCertificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -36,9 +39,13 @@ export function CertificatesScreen({ studentId }: { studentId: string }) {
     };
   }, [studentId]);
 
+  const visible = certificates.filter((certificate) =>
+    matchesQuery(query, [certificate.courseTitle]),
+  );
+
   return (
     <PageSection>
-      <PageHeader title="My Certificates" />
+      <PageHeader title="My Certificates" description="Certificates for courses you have finished." />
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading certificates…" /> : null}
       {!loading && !loadError && certificates.length === 0 ? (
@@ -49,8 +56,19 @@ export function CertificatesScreen({ studentId }: { studentId: string }) {
         </EmptyState>
       ) : null}
       {!loading && !loadError && certificates.length > 0 ? (
-        <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
-          {certificates.map((certificate) => (
+        <FilterToolbar
+          id="certificate-search"
+          value={query}
+          placeholder="Search certificates by course..."
+          onChange={setQuery}
+        />
+      ) : null}
+      {!loading && !loadError && certificates.length > 0 && visible.length === 0 ? (
+        <EmptyState message="No certificates match this search." />
+      ) : null}
+      {!loading && !loadError && visible.length > 0 ? (
+        <RecordList className={recordGridClass}>
+          {visible.map((certificate) => (
             <CertificateCard key={certificate.id} certificate={certificate} />
           ))}
         </RecordList>

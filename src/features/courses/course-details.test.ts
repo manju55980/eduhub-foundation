@@ -66,6 +66,7 @@ describe("course detail return paths", () => {
     expect(adminDetailReturn("dashboard").to).toBe("/admin");
     expect(adminDetailReturn("enrollments").label).toBe("All Enrollments");
     expect(adminDetailReturn("reports").label).toBe("Reports");
+    expect(adminDetailReturn("manage").to).toBe("/admin/courses");
     expect(adminDetailReturn("approvals").to).toBe("/admin/courses/approvals");
   });
 });

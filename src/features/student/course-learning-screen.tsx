@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
+import { pageFrameClass } from "@/components/app-shell/record-card";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "@/features/instructor/save-notice";
 import { CertificateIssued } from "@/features/notifications/notification-list";
@@ -135,7 +136,7 @@ export function CourseLearningScreen({
   const completedIds = new Set(completedLessonIds);
 
   return (
-    <section className="max-w-5xl space-y-4">
+    <section className={pageFrameClass}>
       <PageHeader title={heading} backTo="/student/courses" backLabel="Browse Courses" />
       {loadError ? <ErrorState message={loadError} /> : null}
       {notice ? (

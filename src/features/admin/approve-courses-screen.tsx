@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordList } from "@/components/app-shell/record-card";
+import { RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "@/features/instructor/save-notice";
@@ -45,8 +45,12 @@ export function ApproveCoursesScreen() {
   }, []);
 
   return (
-    <section className="max-w-6xl space-y-4">
-      <PageHeader title="Approve Courses" />
+    <section className={pageFrameClass}>
+      <PageHeader
+        title="Approve Courses"
+        backTo="/admin/courses"
+        backLabel="Manage Courses"
+      />
       <Link
         to="/admin/courses/archive"
         className="inline-flex text-sm text-muted-foreground hover:text-foreground"
@@ -65,7 +69,7 @@ export function ApproveCoursesScreen() {
         <EmptyState message="No courses are waiting for approval." />
       ) : null}
       {!loading && !loadError && courses.length > 0 ? (
-        <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
+        <RecordList className={recordGridClass}>
           {courses.map((course) => (
             <PendingCourseCard
               key={course.id}

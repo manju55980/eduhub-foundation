@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BoardSection } from "@/components/app-shell/data-table";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, RecordList } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { CourseListing } from "@/features/courses/course-listing";
 
@@ -40,7 +40,7 @@ export function AdminDashboardScreen({ fullName }: { fullName: string }) {
   const name = fullName.trim() || "Admin";
 
   return (
-    <section className="max-w-6xl space-y-5">
+    <section className={pageFrameClass}>
       <PageHeader
         title={`Welcome back, ${name}`}
         description="Courses waiting for approval, and the newest enrollments."
@@ -53,7 +53,7 @@ export function AdminDashboardScreen({ fullName }: { fullName: string }) {
             <EmptyState message="No courses are waiting for approval." />
           ) : null}
           {!courseError && courses.length > 0 ? (
-            <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
+            <RecordList className={recordGridClass}>
               {courses.map((course) => (
                 <CourseListing
                   key={course.id}
@@ -80,7 +80,7 @@ export function AdminDashboardScreen({ fullName }: { fullName: string }) {
             <EmptyState message="There are no enrollments yet." />
           ) : null}
           {!enrollmentError && enrollments.length > 0 ? (
-            <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
+            <RecordList className={recordGridClass}>
               {enrollments.map((enrollment) => (
                 <CourseListing
                   key={enrollment.id}

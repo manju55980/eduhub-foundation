@@ -67,7 +67,8 @@ describe("EnrollmentsScreen", () => {
     expect(screen.queryByText("Level")).not.toBeInTheDocument();
     expect(screen.queryByText("Created")).not.toBeInTheDocument();
     expect(screen.queryByText(/grade|feedback|lesson|email/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(view.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Search" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /unenroll|progress|delete|archive|approve/i }),
     ).not.toBeInTheDocument();

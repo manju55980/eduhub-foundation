@@ -52,7 +52,7 @@ Assignment reminders are the second workflow. `POST /api/assignment-reminders` i
 
 ### RAG
 
-Course, lesson, and FAQ text is stored in `rag_chunks`. Embeddings use `gemini-embedding-001` at 768 dimensions. `match_knowledge` ranks rows by cosine similarity and runs as the signed-in student, so the select policy applies. The database now has 572 embedded chunks: 6 course, 13 lesson, and 553 FAQ. A later 19 October seed kept 396 unchanged rows, wrote 176 more FAQ rows, and stopped again on the Gemini plan quota. The scored report still covers the earlier 300-chunk run and was not re-run. The 5,000 FAQ record requirement is not met.
+Course, lesson, and FAQ text is stored in `rag_chunks`. Embeddings use `gemini-embedding-001` at 768 dimensions. `match_knowledge` ranks rows by cosine similarity and runs as the signed-in student, so the select policy applies. The database now has 676 embedded chunks: 8 course, 25 lesson, and 643 FAQ. A 21 October resume kept 572 unchanged rows, embedded 104 more, and stopped on the Gemini plan quota. The retrieval report was scored that day against those 676 chunks. Seeding was not resumed. The 5,000 FAQ record requirement is not met.
 
 The retrieval report is [docs/assessment-2/rag-evaluation.md](docs/assessment-2/rag-evaluation.md):
 
@@ -60,7 +60,7 @@ The retrieval report is [docs/assessment-2/rag-evaluation.md](docs/assessment-2/
 | --- | ---: | ---: | ---: | ---: |
 | Matching | 30 | 1.000 | 1.000 | 0.844 |
 | Noisy | 30 | 1.000 | 1.000 | 0.807 |
-| Extreme, with an expected key | 15 | 1.000 | 0.649 | 0.738 |
+| Extreme, with an expected key | 15 | 0.800 | 0.586 | 0.738 |
 | Extreme, out of corpus | 15 | — | — | 0.537 |
 
 Extreme rejection at cosine 0.75 is 1.000: all 15 out-of-corpus queries had a top row below 0.75. That figure is not Hit@5. Noise delta (matching Hit@5 minus noisy Hit@5) is 0.000.
@@ -69,14 +69,14 @@ Extreme rejection at cosine 0.75 is 1.000: all 15 out-of-corpus queries had a to
 
 `scripts/level-accuracy.ts` predicts `beginner`, `intermediate`, or `advanced` with `gemini-3.5-flash-lite`. The labelled file uses a seed-42 split of 160 train rows and 40 test rows. The evidence is [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md).
 
-On 19 October 2026 the script resumed 16 saved predictions, then Gemini returned a plan quota error and stopped. Those 16 predictions are unchanged. Accuracy on the classified rows is 1.000. Coverage is 0.400. One call is an infrastructure error, and 23 held-out rows were not called. The 0.70 target is not met, because the classified count is not the full test count. The confusion matrix is 4 beginner, 8 intermediate, and 4 advanced, all on the diagonal.
+On 21 October 2026 the script resumed 16 saved predictions, classified 16 more, then Gemini returned a plan quota error and stopped. Those first 16 predictions are unchanged. Accuracy on the 32 classified rows is 1.000. Coverage is 0.800. One call is an infrastructure error, and 7 held-out rows were not called. The 0.70 target is not met, because the classified count is not the full test count. The confusion matrix is 13 beginner, 10 intermediate, and 9 advanced, all on the diagonal.
 
 ### Submission checklist
 
 | Item | Where it stands |
 | --- | --- |
 | Agent, both workflows, RAG design, and test commands | This section |
-| Retrieval quality | [docs/assessment-2/rag-evaluation.md](docs/assessment-2/rag-evaluation.md), scored on 300 chunks; 572 chunks are now stored |
+| Retrieval quality | [docs/assessment-2/rag-evaluation.md](docs/assessment-2/rag-evaluation.md), scored on the stored 676 chunks |
 | Accuracy evidence and model | [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md), `gemini-3.5-flash-lite`, partial coverage |
 | Unit and happy-path commands | `npm test` and `npm run test:e2e` |
 | Live URL | `https://eduhub-foundation.vercel.app/` returned HTTP 200 on 19 October 2026. The page title is the EduHub landing title. Role-by-role checks on that URL were not run. |

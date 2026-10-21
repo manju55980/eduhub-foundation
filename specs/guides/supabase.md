@@ -16,7 +16,7 @@ Specified for Assessment 2:
 
 - `supabase/migrations/20261016220000_lesson_completions.sql` matches the linked database. Its tables, policies, grants, and triggers were already present.
 - `supabase/migrations/20261016221000_certificates_and_notifications.sql` matches the linked database. The certificate trigger is `after update` with the completed-status condition, because `update of status` does not see the status assigned by `enrollments_sync_status`.
-- `supabase/migrations/20261016222000_rag_chunks.sql` is applied. RAG is partially completed at 572 embedded chunks: 6 course, 13 lesson, and 553 FAQ. The retrieval report still scores the earlier 300-chunk run. The 5,000 FAQ requirement is not met. See `assessment-2-gap.md`.
+- `supabase/migrations/20261016222000_rag_chunks.sql` is applied. RAG is partially completed at 676 embedded chunks: 8 course, 25 lesson, and 643 FAQ. The retrieval report scores those 676 chunks. The 5,000 FAQ requirement is not met. See `assessment-2-gap.md`.
 
 The first two files are applied on the remote project. The instructor submitter-name policy, the student-to-instructor promotion, and categories are local and have not been applied. Lesson completions, certificates, and notifications are on the linked database. The RAG corpus migration is applied. Do not apply further database changes without saying so first.
 

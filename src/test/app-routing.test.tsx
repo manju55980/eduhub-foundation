@@ -40,6 +40,7 @@ describe("App routing", () => {
       "/instructor/submissions",
       "/instructor/profile",
       "/admin",
+      "/admin/courses",
       "/admin/courses/course-1",
       "/admin/courses/approvals",
       "/admin/courses/archive",

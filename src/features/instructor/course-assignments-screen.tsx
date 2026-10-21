@@ -3,6 +3,7 @@ import { Save } from "lucide-react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
+import { pageFrameClass } from "@/components/app-shell/record-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,7 +71,7 @@ export function CourseAssignmentsScreen({ courseId }: { courseId: string }) {
   const heading = course?.title ? course.title : "Assignments";
 
   return (
-    <section className="max-w-5xl space-y-4">
+    <section className={pageFrameClass}>
       <PageHeader
         title={heading}
         backTo="/instructor/courses"

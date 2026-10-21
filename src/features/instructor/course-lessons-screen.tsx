@@ -3,7 +3,7 @@ import { Save } from "lucide-react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordList } from "@/components/app-shell/record-card";
+import { RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,7 +71,7 @@ export function CourseLessonsScreen({ courseId }: { courseId: string }) {
   const heading = course?.title ? course.title : "Lessons";
 
   return (
-    <section className="max-w-6xl space-y-4">
+    <section className={pageFrameClass}>
       <PageHeader
         title={heading}
         backTo="/instructor/courses"
@@ -98,7 +98,7 @@ export function CourseLessonsScreen({ courseId }: { courseId: string }) {
           {lessons.length === 0 ? (
             <EmptyState message="This course has no lessons yet." />
           ) : (
-            <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
+            <RecordList className={recordGridClass}>
               {lessons.map((lesson) => (
                 <LessonCard
                   key={lesson.id}

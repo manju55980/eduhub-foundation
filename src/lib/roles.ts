@@ -28,7 +28,7 @@ export const roleNavigation = {
   ],
   admin: [
     { label: "Admin Dashboard", to: "/admin" },
-    { label: "Approve Courses", to: "/admin/courses/approvals" },
+    { label: "Manage Courses", to: "/admin/courses" },
     { label: "Manage Users", to: "/admin/users" },
     { label: "Manage Categories", to: "/admin/categories" },
     { label: "All Enrollments", to: "/admin/enrollments" },

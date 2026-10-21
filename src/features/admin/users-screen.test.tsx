@@ -48,8 +48,13 @@ describe("UsersScreen", () => {
 
     expect(await screen.findByRole("heading", { name: "Alan Turing" })).toBeInTheDocument();
     expect(screen.getByText("alan@example.com")).toBeInTheDocument();
-    expect(screen.getByText("Student")).toBeInTheDocument();
+    expect(screen.getAllByText("Student").length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: "Promote" })).toHaveLength(1);
+    const emailCell = screen.getByText("alan@example.com").closest("td");
+    expect(emailCell).toHaveTextContent("Email");
+    const table = screen.getByRole("table");
+    expect(table).toHaveClass("md:table");
+    expect(table.className).not.toMatch(/(^|\s)min-w-\[40rem\]/);
     expect(screen.queryByText(/phone/i)).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /demote|delete|invite|edit/i }),
@@ -69,7 +74,7 @@ describe("UsersScreen", () => {
       "This user was promoted to instructor.",
     );
     expect(screen.getByRole("heading", { name: "Alan Turing" })).toBeInTheDocument();
-    expect(screen.getAllByText("Instructor")).toHaveLength(2);
+    expect(screen.getAllByText("Instructor").length).toBeGreaterThan(1);
     expect(screen.queryByRole("button", { name: "Promote" })).not.toBeInTheDocument();
   });
 
@@ -85,7 +90,7 @@ describe("UsersScreen", () => {
       "only an admin can promote a student",
     );
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    expect(screen.getByText("Student")).toBeInTheDocument();
+    expect(screen.getAllByText("Student").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Promote" })).toBeInTheDocument();
   });
 
@@ -100,7 +105,7 @@ describe("UsersScreen", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "this user is already an instructor",
     );
-    expect(screen.getByText("Student")).toBeInTheDocument();
+    expect(screen.getAllByText("Student").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Promote" })).toBeInTheDocument();
   });
 

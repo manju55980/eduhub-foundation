@@ -27,6 +27,7 @@ import { Route as StudentAssignmentsRouteImport } from './routes/student/assignm
 import { Route as StudentAssistantRouteImport } from './routes/student/assistant'
 import { Route as StudentGradesRouteImport } from './routes/student/grades'
 import { Route as StudentProfileRouteImport } from './routes/student/profile'
+import { Route as AdminCoursesIndexRouteImport } from './routes/admin/courses/index'
 import { Route as AdminCoursesCourseIdRouteImport } from './routes/admin/courses/$courseId'
 import { Route as AdminCoursesApprovalsRouteImport } from './routes/admin/courses/approvals'
 import { Route as AdminCoursesArchiveRouteImport } from './routes/admin/courses/archive'
@@ -132,6 +133,11 @@ const StudentProfileRoute = StudentProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => StudentRouteRoute,
+} as any)
+const AdminCoursesIndexRoute = AdminCoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCoursesCourseIdRoute = AdminCoursesCourseIdRouteImport.update({
   id: '/courses/$courseId',
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/student/certificates/$certificateId': typeof StudentCertificatesCertificateIdRoute
   '/student/courses/$courseId': typeof StudentCoursesCourseIdRoute
   '/student/my-courses/$courseId': typeof StudentMyCoursesCourseIdRoute
+  '/admin/courses/': typeof AdminCoursesIndexRoute
   '/instructor/courses/': typeof InstructorCoursesIndexRoute
   '/student/certificates/': typeof StudentCertificatesIndexRoute
   '/student/courses/': typeof StudentCoursesIndexRoute
@@ -275,6 +282,7 @@ export interface FileRoutesByTo {
   '/student/certificates/$certificateId': typeof StudentCertificatesCertificateIdRoute
   '/student/courses/$courseId': typeof StudentCoursesCourseIdRoute
   '/student/my-courses/$courseId': typeof StudentMyCoursesCourseIdRoute
+  '/admin/courses': typeof AdminCoursesIndexRoute
   '/instructor/courses': typeof InstructorCoursesIndexRoute
   '/student/certificates': typeof StudentCertificatesIndexRoute
   '/student/courses': typeof StudentCoursesIndexRoute
@@ -311,6 +319,7 @@ export interface FileRoutesById {
   '/student/certificates/$certificateId': typeof StudentCertificatesCertificateIdRoute
   '/student/courses/$courseId': typeof StudentCoursesCourseIdRoute
   '/student/my-courses/$courseId': typeof StudentMyCoursesCourseIdRoute
+  '/admin/courses/': typeof AdminCoursesIndexRoute
   '/instructor/courses/': typeof InstructorCoursesIndexRoute
   '/student/certificates/': typeof StudentCertificatesIndexRoute
   '/student/courses/': typeof StudentCoursesIndexRoute
@@ -348,6 +357,7 @@ export interface FileRouteTypes {
     | '/student/certificates/$certificateId'
     | '/student/courses/$courseId'
     | '/student/my-courses/$courseId'
+    | '/admin/courses/'
     | '/instructor/courses/'
     | '/student/certificates/'
     | '/student/courses/'
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/student/certificates/$certificateId'
     | '/student/courses/$courseId'
     | '/student/my-courses/$courseId'
+    | '/admin/courses'
     | '/instructor/courses'
     | '/student/certificates'
     | '/student/courses'
@@ -415,6 +426,7 @@ export interface FileRouteTypes {
     | '/student/certificates/$certificateId'
     | '/student/courses/$courseId'
     | '/student/my-courses/$courseId'
+    | '/admin/courses/'
     | '/instructor/courses/'
     | '/student/certificates/'
     | '/student/courses/'
@@ -560,6 +572,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentProfileRouteImport
       parentRoute: typeof StudentRouteRoute
     }
+    '/admin/courses/': {
+      id: '/admin/courses/'
+      path: '/courses'
+      fullPath: '/admin/courses/'
+      preLoaderRoute: typeof AdminCoursesIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/courses/$courseId': {
       id: '/admin/courses/$courseId'
       path: '/courses/$courseId'
@@ -677,6 +696,7 @@ interface AdminRouteRouteChildren {
   AdminCoursesCourseIdRoute: typeof AdminCoursesCourseIdRoute
   AdminCoursesApprovalsRoute: typeof AdminCoursesApprovalsRoute
   AdminCoursesArchiveRoute: typeof AdminCoursesArchiveRoute
+  AdminCoursesIndexRoute: typeof AdminCoursesIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
@@ -688,6 +708,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminCoursesCourseIdRoute: AdminCoursesCourseIdRoute,
   AdminCoursesApprovalsRoute: AdminCoursesApprovalsRoute,
   AdminCoursesArchiveRoute: AdminCoursesArchiveRoute,
+  AdminCoursesIndexRoute: AdminCoursesIndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(

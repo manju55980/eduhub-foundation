@@ -24,11 +24,11 @@ export function LogoutButton() {
   }
 
   return (
-    <div className="shrink-0 space-y-2">
+    <div className="flex min-w-0 max-w-full shrink flex-col items-stretch gap-2">
       <Button
         type="button"
         variant="outline"
-        className="px-2.5 sm:px-4"
+        className="shrink-0 px-2.5 sm:px-4"
         onClick={handleLogout}
         disabled={pending}
       >

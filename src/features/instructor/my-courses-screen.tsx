@@ -2,9 +2,10 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Save } from "lucide-react";
 
+import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordList } from "@/components/app-shell/record-card";
+import { RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,7 @@ export function MyCoursesScreen() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [notice, setNotice] = useState<Notice>(emptyNotice);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -68,9 +70,14 @@ export function MyCoursesScreen() {
     };
   }, []);
 
+  const visible = courses.filter((course) => matchesQuery(query, [course.title]));
+
   return (
-    <section className="max-w-6xl space-y-4">
-      <PageHeader title="My Courses (including lessons)" />
+    <section className={pageFrameClass}>
+      <PageHeader
+        title="My Courses (including lessons)"
+        description="Drafts you can edit, and courses you have submitted."
+      />
       <SaveNotice
         tone="instructor"
         saved={notice.saved}
@@ -87,8 +94,19 @@ export function MyCoursesScreen() {
         </EmptyState>
       ) : null}
       {!loading && !loadError && courses.length > 0 ? (
-        <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) =>
+        <FilterToolbar
+          id="instructor-course-search"
+          value={query}
+          placeholder="Search courses by title..."
+          onChange={setQuery}
+        />
+      ) : null}
+      {!loading && !loadError && courses.length > 0 && visible.length === 0 ? (
+        <EmptyState message="No courses match this search." />
+      ) : null}
+      {!loading && !loadError && visible.length > 0 ? (
+        <RecordList className={recordGridClass}>
+          {visible.map((course) =>
             course.status === "draft" ? (
               <DraftCourseCard
                 key={course.id}
@@ -228,7 +246,7 @@ function DraftCourseCard({
       >
         <select
           id={`level-${course.id}`}
-          className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 w-full min-w-0 max-w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           value={level}
           disabled={busy}
           onChange={(event) => setLevel(event.target.value)}

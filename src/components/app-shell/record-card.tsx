@@ -6,11 +6,13 @@ const metaValueClass =
   "whitespace-pre-wrap text-sm leading-relaxed text-foreground [overflow-wrap:anywhere]";
 
 export const panelClass = "min-w-0 rounded-sm border border-border bg-card shadow-none";
+export const pageFrameClass = "w-full min-w-0 space-y-5";
+export const recordGridClass = "lg:grid-cols-2";
+export const selectFieldClass =
+  "h-9 min-w-0 rounded-sm border border-input bg-transparent px-2 text-sm text-foreground shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
 
 export function PageSection({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <section className={cn("w-full min-w-0 max-w-6xl space-y-4", className)}>{children}</section>
-  );
+  return <section className={cn(pageFrameClass, className)}>{children}</section>;
 }
 
 export function RecordList({ children, className }: { children: ReactNode; className?: string }) {

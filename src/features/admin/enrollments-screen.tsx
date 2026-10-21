@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 
+import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, RecordList } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { CourseListing } from "@/features/courses/course-listing";
 
@@ -13,6 +14,7 @@ export function EnrollmentsScreen() {
   const [enrollments, setEnrollments] = useState<AdminEnrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -30,17 +32,35 @@ export function EnrollmentsScreen() {
     };
   }, []);
 
+  const visible = enrollments.filter((enrollment) =>
+    matchesQuery(query, [enrollment.title, enrollment.studentName]),
+  );
+
   return (
-    <section className="max-w-6xl space-y-4">
-      <PageHeader title="All Enrollments" />
+    <section className={pageFrameClass}>
+      <PageHeader
+        title="All Enrollments"
+        description="Every enrollment. Search by course or student."
+      />
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading enrollments…" /> : null}
+      {!loading && !loadError && enrollments.length > 0 ? (
+        <FilterToolbar
+          id="enrollment-search"
+          value={query}
+          placeholder="Search by course or student..."
+          onChange={setQuery}
+        />
+      ) : null}
       {!loading && !loadError && enrollments.length === 0 ? (
         <EmptyState message="There are no enrollments yet." />
       ) : null}
-      {!loading && !loadError && enrollments.length > 0 ? (
-        <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
-          {enrollments.map((enrollment) => (
+      {!loading && !loadError && enrollments.length > 0 && visible.length === 0 ? (
+        <EmptyState message="No enrollments match this search." />
+      ) : null}
+      {!loading && !loadError && visible.length > 0 ? (
+        <RecordList className={recordGridClass}>
+          {visible.map((enrollment) => (
             <EnrollmentCard key={enrollment.id} enrollment={enrollment} />
           ))}
         </RecordList>

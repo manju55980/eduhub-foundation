@@ -23,7 +23,7 @@ describe("roleNavigation", () => {
     ]);
     expect(roleNavigation.admin.map((item) => item.label)).toEqual([
       "Admin Dashboard",
-      "Approve Courses",
+      "Manage Courses",
       "Manage Users",
       "Manage Categories",
       "All Enrollments",

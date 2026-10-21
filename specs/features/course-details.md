@@ -10,7 +10,7 @@ This feature does not add a table, column, policy, or migration. It does not add
 | -------------------------------- | ---------- | ------------------------------------------------------------------------- |
 | `/student/courses/$courseId`     | Student    | Browse Courses, My Courses, or Learning Assistant, from `from`            |
 | `/instructor/courses/$courseId`  | Instructor | My Courses, Instructor Dashboard, or AI Course Builder, from `from`       |
-| `/admin/courses/$courseId`       | Admin      | Approve Courses, Archive Courses, Admin Dashboard, All Enrollments, or Reports, from `from` |
+| `/admin/courses/$courseId`       | Admin      | Manage Courses, Approve Courses, Archive Courses, Admin Dashboard, All Enrollments, or Reports, from `from` |
 
 `from` is a search param. An unknown value falls back to Browse Courses, My Courses, or Approve Courses for that role. These routes sit beside the existing learning, lessons, and assignments routes. They do not replace them.
 
@@ -41,6 +41,7 @@ The summary of the course is the link. Enroll, Open course, Approve, Archive, Sa
 | Instructor My Courses           | `courses`     |
 | AI Course Builder saved course  | `builder`     |
 | Admin Dashboard courses and enrollments | `dashboard` |
+| Manage Courses                  | `manage`      |
 | Approve Courses                 | `approvals`   |
 | Archive Courses                 | `archive`     |
 | All Enrollments                 | `enrollments` |

@@ -42,9 +42,9 @@ describe("ArchiveCoursesScreen", () => {
     expect(
       await screen.findByText("No published courses are available to archive."),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Approve Courses" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Manage Courses" })).toHaveAttribute(
       "href",
-      "/admin/courses/approvals",
+      "/admin/courses",
     );
     expect(screen.queryByRole("button", { name: "Archive" })).not.toBeInTheDocument();
   });

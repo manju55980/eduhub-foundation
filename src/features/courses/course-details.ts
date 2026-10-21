@@ -1,6 +1,7 @@
 export const studentDetailSources = ["browse", "my-courses", "assistant"] as const;
 export const instructorDetailSources = ["courses", "dashboard", "builder"] as const;
 export const adminDetailSources = [
+  "manage",
   "approvals",
   "archive",
   "dashboard",
@@ -88,6 +89,7 @@ export function instructorDetailReturn(source: InstructorDetailSource) {
 }
 
 export function adminDetailReturn(source: AdminDetailSource) {
+  if (source === "manage") return { to: "/admin/courses" as const, label: "Manage Courses" };
   if (source === "archive")
     return { to: "/admin/courses/archive" as const, label: "Archive Courses" };
   if (source === "dashboard") return { to: "/admin" as const, label: "Admin Dashboard" };

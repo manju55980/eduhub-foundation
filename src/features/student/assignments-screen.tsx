@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 
+import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
 import {
@@ -9,6 +10,7 @@ import {
   PageSection,
   RecordCard,
   RecordList,
+  recordGridClass,
 } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ export function AssignmentsScreen({ studentId }: { studentId: string }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [notice, setNotice] = useState<Notice>(emptyNotice);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -45,9 +48,13 @@ export function AssignmentsScreen({ studentId }: { studentId: string }) {
     };
   }, [studentId]);
 
+  const visible = assignments.filter((assignment) =>
+    matchesQuery(query, [assignment.title, assignment.courseTitle]),
+  );
+
   return (
     <PageSection>
-      <PageHeader title="Assignments" />
+      <PageHeader title="Assignments" description="Work for the courses you have joined." />
       <SaveNotice
         tone="student"
         saved={notice.saved}
@@ -64,8 +71,19 @@ export function AssignmentsScreen({ studentId }: { studentId: string }) {
         </EmptyState>
       ) : null}
       {!loading && !loadError && assignments.length > 0 ? (
-        <RecordList className="sm:grid-cols-2 lg:grid-cols-3">
-          {assignments.map((assignment) => (
+        <FilterToolbar
+          id="assignment-search"
+          value={query}
+          placeholder="Search by assignment or course..."
+          onChange={setQuery}
+        />
+      ) : null}
+      {!loading && !loadError && assignments.length > 0 && visible.length === 0 ? (
+        <EmptyState message="No assignments match this search." />
+      ) : null}
+      {!loading && !loadError && visible.length > 0 ? (
+        <RecordList className={recordGridClass}>
+          {visible.map((assignment) => (
             <AssignmentCard
               key={assignment.id}
               assignment={assignment}

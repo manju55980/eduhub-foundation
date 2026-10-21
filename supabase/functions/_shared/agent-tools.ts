@@ -2,6 +2,7 @@ import { notAvailableMessage } from "./study.ts";
 import {
   courseIdFromArgs,
   lessonTextUnavailable,
+  publishedCourseCountMessage,
   questionRequiredMessage,
   suggestNextCourse,
   type AgentCourseRef,
@@ -76,6 +77,7 @@ export type AgentReader = {
     | { ok: true; enrollments: SuggestEnrollment[]; published: SuggestCourse[] }
     | { ok: false; message: string }
   >;
+  publishedCount: () => Promise<{ ok: true; count: number } | { ok: false; message: string }>;
 };
 
 export type ToolRun = {
@@ -100,6 +102,7 @@ export async function runAgentTool(
   if (name === "describe_course") return describeCourse(args, context);
   if (name === "enrol_in_course") return enrolInCourse(args, context);
   if (name === "fetch_my_grades") return fetchGrades(context);
+  if (name === "count_published_courses") return countPublishedCourses(context);
   return suggestCourse(context);
 }
 
@@ -232,6 +235,22 @@ async function fetchGrades(context: {
   const grades = await context.reader.grades(context.userId);
   if (!grades.ok) return { ok: false, message: failedAiMessage };
   return { ok: true, run: toolRun("fetch_my_grades", { grades: grades.grades }, [], null) };
+}
+
+async function countPublishedCourses(context: {
+  reader: AgentReader;
+}): Promise<{ ok: true; run: ToolRun } | { ok: false; message: string }> {
+  const counted = await context.reader.publishedCount();
+  if (!counted.ok) return { ok: false, message: counted.message };
+  return {
+    ok: true,
+    run: toolRun(
+      "count_published_courses",
+      { count: counted.count, message: publishedCourseCountMessage(counted.count) },
+      [],
+      null,
+    ),
+  };
 }
 
 async function suggestCourse(context: {

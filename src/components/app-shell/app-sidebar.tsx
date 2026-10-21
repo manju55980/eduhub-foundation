@@ -49,7 +49,7 @@ const navIcon: Record<string, LucideIcon> = {
   "/instructor/submissions": ClipboardCheck,
   "/instructor/profile": User,
   "/admin": LayoutDashboard,
-  "/admin/courses/approvals": ClipboardCheck,
+  "/admin/courses": Library,
   "/admin/users": Users,
   "/admin/categories": FolderTree,
   "/admin/enrollments": ListChecks,
