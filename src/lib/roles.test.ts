@@ -11,7 +11,6 @@ describe("roleNavigation", () => {
       "Assignments",
       "My Grades",
       "My Certificates",
-      "My Profile",
     ]);
     expect(roleNavigation.instructor.map((item) => item.label)).toEqual([
       "Instructor Dashboard",
@@ -19,7 +18,6 @@ describe("roleNavigation", () => {
       "AI Course Builder",
       "My Courses (including lessons)",
       "Submissions (grading)",
-      "Profile",
     ]);
     expect(roleNavigation.admin.map((item) => item.label)).toEqual([
       "Admin Dashboard",

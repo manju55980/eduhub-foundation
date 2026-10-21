@@ -6,7 +6,7 @@ This feature does not add a table, column, policy, route, or migration.
 
 ## Route
 
-`/student/profile` is My Profile. The heading is “My Profile”. It is a sidebar item, so it has no back link. The existing file route stays in place. Do not add a profile-detail route.
+`/student/profile` is My Profile. The heading is “My Profile”. It is no longer a sidebar item. The signed-in header avatar opens a popover with the name, email, role, and Edit Profile. Edit Profile opens this same editor in a modal. A direct visit to the route still renders the page. The existing file route stays in place. Do not add a profile-detail route.
 
 ## Schema and RLS
 
@@ -15,7 +15,7 @@ No schema change and no RLS change. The applied rules already cover this screen:
 | Need                         | What already exists                                                                                                                                                                                                                                                                              |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Read their own profile       | `profiles_select_own` returns a row only when `id` is the session user. `getOwnProfile` already selects `id`, `email`, `full_name`, `phone`, and `role`.                                                                                                                                         |
-| Edit name, email, and phone  | `grant update (full_name, email, phone)` and `profiles_update_own` allow an update only when `id` is the session user. All three columns are nullable text. There is no format check and no length limit.                                                                                        |
+| Edit name, email, and phone  | `grant update (full_name, email, phone)` and `profiles_update_own` allow an update only when `id` is the session user. All three columns are nullable text. There is no database format check and no length limit. The editor rejects a non-blank email that is not an address.                                                                                        |
 | Role stays fixed             | `role` is not in the update grant. `prevent_profile_role_change` rejects a role change while `auth.uid()` is not null. A signed-in user does not edit `profiles.role`.                                                                                                                           |
 | Sign-in email stays separate | `profiles.email` is copied from the auth user at signup. Changing it does not change `auth.users`. This screen does not call `auth.updateUser`. The layout still shows `profiles.email`, and falls back to the sign-in email only when the profile email is blank. That fallback stays as it is. |
 
@@ -28,6 +28,8 @@ The student and instructor routes render one shared editor in `features/auth/`. 
 Load through the existing `getOwnProfile`. Show the stored `full_name`, `email`, and `phone`. A null value is an empty field. Do not fill a blank profile email with the sign-in email.
 
 The update sends only `full_name`, `email`, and `phone`. Trim each value. A blank value is stored as null, never `""`. Do not send `role`, `id`, or `created_at`.
+
+A blank email is allowed. A non-blank email must include a local part, `@`, and a domain. Name and phone have no format check and no length limit.
 
 Role is read-only text, “Student” on this screen. It is not an input.
 
@@ -54,16 +56,17 @@ RLS is the data boundary. A hidden control is not enough. Do not hand-edit `src/
 
 - Changing the sign-in email, password, or Google identity.
 - Changing `profiles.role`, including promotion to instructor.
-- Admin profile editing. The admin sidebar has no Profile item.
+- A profile sidebar item, an avatar column, or an admin profile route. An admin edits their own name, email, and phone in the shared header modal. `profiles_update_own` still limits that update to the session user.
 - Other users’ profiles.
 
 ## Acceptance criteria
 
-- A student can save a trimmed name, email, and phone on their own profile. A blank field is stored as null.
+- A student can save a trimmed name, email, and phone on their own profile. A blank field is stored as null. A non-blank email that is not an email address is not saved.
 - The update contains only `full_name`, `email`, and `phone`.
 - The form shows a blank profile email as blank. It does not copy in the sign-in email.
 - Role is shown as Student and is not an input. The save does not send `role`.
 - After a successful save, the saved values stay on the screen, the success banner is shown, and the layout session is refreshed. Dismissing the banner stays on this page.
 - A failed load shows the error and does not offer save. A failed save shows the error, keeps the entered values, and does not claim the profile was saved.
+- The header avatar is shared by student, instructor, and admin. Edit Profile opens the same editor in a modal. My Profile is not a sidebar item.
 - No table, column, policy, or migration is added.
-- An instructor or admin does not get this screen.
+- An instructor or admin does not get the `/student/profile` page.

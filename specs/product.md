@@ -63,7 +63,7 @@ Each role’s sidebar lists only that role’s pages. Paths below are the record
 | Student    | `/student/grades`                           | My Grades                                                       |
 | Student    | `/student/certificates`                     | My Certificates                                                 |
 | Student    | `/student/certificates/$certificateId`      | One certificate (no separate sidebar item)                      |
-| Student    | `/student/profile`                          | My Profile                                                      |
+| Student    | `/student/profile`                          | My Profile (no separate sidebar item)                           |
 | Instructor | `/instructor`                               | Instructor Dashboard                                            |
 | Instructor | `/instructor/courses/new`                   | Create Course                                                   |
 | Instructor | `/instructor/courses/generate`              | AI Course Builder                                               |
@@ -72,7 +72,7 @@ Each role’s sidebar lists only that role’s pages. Paths below are the record
 | Instructor | `/instructor/courses/$courseId/lessons`     | Lessons for one of their courses                                |
 | Instructor | `/instructor/courses/$courseId/assignments` | Assignments for one of their courses (no separate sidebar item) |
 | Instructor | `/instructor/submissions`                   | Submissions (grading)                                           |
-| Instructor | `/instructor/profile`                       | Profile                                                         |
+| Instructor | `/instructor/profile`                       | Profile (no separate sidebar item)                              |
 | Admin      | `/admin`                                    | Admin Dashboard                                                 |
 | Admin      | `/admin/courses`                            | Manage Courses                                                  |
 | Admin      | `/admin/courses/$courseId`                  | Course details (no separate sidebar item)                       |
@@ -131,7 +131,7 @@ Do not guess these:
 
 A Jira-inspired workspace: sharp panels, subtle borders, compact spacing, and a blue-and-neutral palette. Tokens and component rules are in `guides/frontend.md`. Future pages follow that guide.
 
-- **Shell.** White sidebar with the EduHub wordmark, a graduation-cap mark, a Menu group, and a short footer line: “Better learning builds brighter futures.” The active item uses the sidebar accent. The header shows the signed-in name, email, and role, with Log out on the right.
+- **Shell.** White sidebar with the EduHub wordmark, a graduation-cap mark, a Menu group, and a short footer line: “Better learning builds brighter futures.” The active item uses the sidebar accent. The header shows the signed-in name, email, and role. The avatar opens that name, email, role, and Edit Profile. A light/dark control sits beside the notification bell, and Log out is on the right.
 - **Page.** A clear title, an optional muted description, and an optional text back link. One main column. A second column only when the page has supporting content, as Create Course does.
 - **Records.** A card for a summary, a described record, or a form. A table for a dense list. Course, enrollment, submission, and role values use a badge. Editors stay forms. Do not nest a card inside a card.
 - **States.** Loading, empty, and error use one shared treatment. Empty copy stays the sentence already specified for that screen, with its existing link when the screen has one.

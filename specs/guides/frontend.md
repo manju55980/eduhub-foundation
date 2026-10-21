@@ -47,7 +47,7 @@ Put shared chrome in `src/components/`, including `app-shell/`. Use the existing
 
 Tokens live in `src/styles.css` (`oklch`, light and dark). The palette is professional blue and neutral: white surfaces, a cool gray page, a blue primary, and subtle borders. Role tints `--student-soft`, `--instructor-soft`, `--admin-soft`, and `--brand-soft` stay inside that palette. Status text uses `--lozenge-foreground`. The active sidebar item uses `--sidebar-accent`. Corner radii stay small (`--radius` is 3px). Body type is the system stack starting at SF Pro Display.
 
-Dark token values exist. No theme toggle is implemented, and dark mode is not a product requirement.
+Dark token values live on `.dark`. The signed-in header control, beside the notification bell, stores `light` or `dark` in `localStorage` under `eduhub-theme` and sets that class on `html`. The default is light. The same preference applies on every page after refresh and navigation.
 
 Shared chrome is `components/app-shell/`. Page titles use `PageHeader`. A signed-in page uses `PageSection` (`pageFrameClass`: full content width, `space-y-5`). A form, chat, or profile may add `max-w-xl` or `max-w-3xl`. Records with a description or an editor use `RecordCard`. Course and record grids use `recordGridClass`. Search and status choices use `FilterToolbar` and `ChoiceButton`. A count tile uses `SummaryCounts` only when choosing it filters the loaded records. Dense rows use `DataTable` inside a `BoardSection` when the page is a dashboard. Combine classes with `cn()`. Reuse `panelClass` for a sharp bordered surface. Do not introduce a second visual system, pastel card tints, or charts.
 

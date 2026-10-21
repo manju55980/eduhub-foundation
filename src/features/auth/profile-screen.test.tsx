@@ -127,4 +127,18 @@ describe("ProfileScreen", () => {
     expect(screen.queryByRole("button", { name: "Save profile" })).not.toBeInTheDocument();
     expect(screen.queryByText("Instructor")).not.toBeInTheDocument();
   });
+
+  it("does not save an email that fails validation", async () => {
+    loadProfile.mockResolvedValue(loaded);
+    render(<ProfileScreen userId="student-1" title="My Profile" role="student" />);
+
+    fireEvent.change(await screen.findByRole("textbox", { name: "Email" }), {
+      target: { value: "ada@example" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Enter a valid email.");
+    expect(saveProfile).not.toHaveBeenCalled();
+    expect(screen.getByRole("textbox", { name: "Email" })).toHaveValue("ada@example");
+  });
 });

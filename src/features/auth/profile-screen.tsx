@@ -13,7 +13,7 @@ import { SaveNotice } from "@/features/instructor/save-notice";
 import type { AppRole } from "@/lib/roles";
 
 import { getOwnProfile, updateOwnProfile } from "./auth-api";
-import { profileDraft, profileUpdate } from "./profile-draft";
+import { profileDraft, profileEmailError, profileUpdate } from "./profile-draft";
 
 type Notice = { saved: boolean; message: string };
 
@@ -28,6 +28,23 @@ export function ProfileScreen({
   title: string;
   role: AppRole;
 }) {
+  return (
+    <PageSection className="max-w-xl">
+      <PageHeader title={title} />
+      <ProfileEditor userId={userId} role={role} framed />
+    </PageSection>
+  );
+}
+
+export function ProfileEditor({
+  userId,
+  role,
+  framed,
+}: {
+  userId: string;
+  role: AppRole;
+  framed: boolean;
+}) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -36,6 +53,7 @@ export function ProfileScreen({
   const [loadError, setLoadError] = useState("");
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<Notice>(emptyNotice);
+  const [emailError, setEmailError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -59,6 +77,14 @@ export function ProfileScreen({
     event.preventDefault();
     if (pending) return;
 
+    const invalidEmail = profileEmailError(email);
+    if (invalidEmail) {
+      setEmailError(invalidEmail);
+      setNotice(emptyNotice);
+      return;
+    }
+    setEmailError("");
+
     const draft = profileDraft(fullName, email, phone);
     setPending(true);
     const result = await updateOwnProfile(userId, profileUpdate(draft));
@@ -77,8 +103,7 @@ export function ProfileScreen({
   }
 
   return (
-    <PageSection className="max-w-xl">
-      <PageHeader title={title} />
+    <>
       <SaveNotice
         tone={role}
         saved={notice.saved}
@@ -89,7 +114,7 @@ export function ProfileScreen({
       {loading ? <LoadingState message="Loading profile…" /> : null}
       {!loading && !loadError ? (
         <form
-          className="space-y-4 rounded-sm border border-border bg-card p-4 shadow-none"
+          className={framed ? "space-y-4 rounded-sm border border-border bg-card p-4 shadow-none" : "space-y-4"}
           onSubmit={handleSubmit}
         >
           <Field id="profile-name" label="Name">
@@ -104,9 +129,18 @@ export function ProfileScreen({
             <Input
               id="profile-email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              aria-invalid={emailError ? true : undefined}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setEmailError("");
+              }}
               disabled={pending}
             />
+            {emailError ? (
+              <p className="text-sm text-destructive" role="alert">
+                {emailError}
+              </p>
+            ) : null}
           </Field>
           <Field id="profile-phone" label="Phone">
             <Input
@@ -126,7 +160,7 @@ export function ProfileScreen({
           </Button>
         </form>
       ) : null}
-    </PageSection>
+    </>
   );
 }
 

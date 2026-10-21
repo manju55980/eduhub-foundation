@@ -15,5 +15,6 @@ Follow Manage Courses (`src/features/admin/manage-courses-screen.tsx`) and `spec
 - Status uses `StatusBadge`. Primary `Button` for the main action, `outline` for a secondary action such as Archive.
 - Dense rows use `DataTable`. It stacks under `md` and shows each column name. Do not force a wide table.
 - Native selects and inputs use `shadow-none` and `rounded-sm`. A control has a visible `Label`.
-- The sidebar is the only navigation. Close the mobile sheet from the link click. Highlight the item whose path matches exactly.
+- The sidebar is the only navigation. Close the mobile sheet from the link click. Highlight the item whose path matches exactly. Profile editing opens from the header avatar, not a sidebar item.
+- The header theme control sets `light` or `dark` on `html` and stores that choice. Pages use the existing tokens.
 - Loading, empty, and error stay `LoadingState`, `EmptyState`, and `ErrorState`. A search with no matches says what was searched; it does not replace the empty list for zero records.
