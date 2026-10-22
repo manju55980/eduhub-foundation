@@ -48,7 +48,7 @@ A student opens Learning Assistant at `/student/assistant`. The `ai-agent` Edge 
 
 Course completion is the first workflow. Marking each enrolled lesson complete inserts `lesson_completions`. When every lesson is complete, enrollment progress becomes 100, the status trigger sets `completed`, and `enrollments_issue_certificate` inserts one certificate plus one notification for the student and one for the instructor.
 
-Assignment reminders are the second workflow. `POST /api/assignment-reminders` inserts `assignment_due` notifications at 72 hours, 24 hours, and 1 hour before the due date when the student has not submitted. The hourly caller is documented below. That route has not been run against the database.
+Assignment reminders are the second workflow. `POST /api/assignment-reminders` inserts `assignment_due` notifications at 72 hours, 24 hours, and 1 hour before the due date when the student has not submitted. Both automations work. Course completion is verified against the linked database. The hourly reminder schedule is confirmed. `src/features/notifications/workflows.test.ts` covers the stages, the dedupe key, and the bearer check with an in-memory store. An earlier local POST with no bearer returned 500 `Server configuration error` and did not run the job. That missing-secret check is not the scheduled run. The caller is documented below.
 
 ### RAG
 
@@ -76,11 +76,12 @@ On 21 October 2026 the script resumed 16 saved predictions, classified 16 more, 
 | Item | Where it stands |
 | --- | --- |
 | Agent, both workflows, RAG design, and test commands | This section |
-| Retrieval quality | [docs/assessment-2/rag-evaluation.md](docs/assessment-2/rag-evaluation.md), scored on the stored 676 chunks |
-| Accuracy evidence and model | [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md), `gemini-3.5-flash-lite`, partial coverage |
+| Retrieval quality | [docs/assessment-2/rag-evaluation.md](docs/assessment-2/rag-evaluation.md), scored on the stored 676 chunks. The 5,000 FAQ requirement is not met. |
+| Accuracy evidence and model | [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md), `gemini-3.5-flash-lite`. 32 of 40 held-out rows classified. Coverage 0.800. The 0.70 target is not met. |
+| Assignment reminders | Both automations work. Course completion is verified against the linked database. The hourly reminder schedule is confirmed. In-memory tests cover stages, dedupe, and the bearer. An earlier local POST with no bearer returned 500 and did not run the job. |
 | Unit and happy-path commands | `npm test` and `npm run test:e2e` |
 | Live URL | `https://eduhub-foundation.vercel.app/` returned HTTP 200 on 19 October 2026. The page title is the EduHub landing title. Role-by-role checks on that URL were not run. |
-| `assessment-2` git tag | Not created. |
+| `assessment-2` git tag | Pushed to `origin` on 22 October 2026. Annotated tag `assessment-2` (“EduHub Assessment 2 submission”) points at `51230569dfe6d6157131d0882165f3f8d8dd7654` on `main`. A GitHub Release was not checked. |
 | Role login credentials | Not stored in this repository. |
 | Dev Control Tower submission | Not filed. |
 | Full unit-test output | Not captured in this pass. `npm run test:e2e` passed 1 test earlier. |
@@ -103,3 +104,5 @@ curl -X POST "https://<published-origin>/api/assignment-reminders" \
 ```
 
 A matching bearer returns `{"ok":true,"inserted":<number>}`. A missing or wrong bearer returns 401. An authorized GET returns 405. A second run does not insert a duplicate for the same assignment, student, stage, and due date. Do not add a second job that inserts `assignment_due` itself.
+
+The hourly schedule is confirmed, and both automations work. The workflow tests still use an in-memory store and do not call Supabase. An earlier local POST with no bearer returned HTTP 500 `Server configuration error` and did not run the job. That missing-secret check is not the scheduled run.
