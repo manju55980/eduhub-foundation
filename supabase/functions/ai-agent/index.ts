@@ -14,6 +14,7 @@ Deno.serve((request) => {
     Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
   const authorization = request.headers.get("Authorization");
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  const ollamaHost = Deno.env.get("OLLAMA_HOST");
   const token = authorization?.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length).trim()
     : "";
@@ -22,6 +23,7 @@ Deno.serve((request) => {
     supabaseUrl,
     publishableKey,
     geminiKey,
+    ollamaHost,
     authorization,
     fetchImpl: fetch,
     reader: bindAgentReader(

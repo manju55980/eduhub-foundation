@@ -1,6 +1,12 @@
-import { readFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 
+import {
+  embeddingCacheLine,
+  parseEmbeddingCache,
+} from "../supabase/functions/_shared/embedding-cache.ts";
 import { embeddingLiteral } from "../supabase/functions/_shared/embeddings.ts";
 import {
   loadStoredChunks,
@@ -93,11 +99,29 @@ const seedDb: RagSeedDb = {
   },
 };
 
+const cachePath = resolve(dirname(fileURLToPath(import.meta.url)), "fixtures/rag-embeddings.jsonl");
+mkdirSync(dirname(cachePath), { recursive: true });
+let cacheContents = "";
+try {
+  cacheContents = readFileSync(cachePath, "utf8");
+} catch {
+  cacheContents = "";
+}
+const cache = parseEmbeddingCache(cacheContents);
+let newlyCached = 0;
+const runOptions = readSeedRunOptions(process.env);
+
 const result = await runRagSeed({
-  geminiKey: env.gemini,
+  ollamaHost: env.ollamaHost,
   db: seedDb,
   fetchImpl: fetch,
-  ...readSeedRunOptions(process.env),
+  cache,
+  onCache(row) {
+    appendFileSync(cachePath, `${embeddingCacheLine(row)}\n`);
+    newlyCached += 1;
+    if (newlyCached % 100 === 0) console.log(`Cached ${newlyCached} new embeddings.`);
+  },
+  ...runOptions,
 });
 if (!result.ok) {
   console.error(result.message);
@@ -110,7 +134,7 @@ if (!result.ok) {
 }
 
 console.log(
-  `FAQ chunks: ${result.faqCount}. Catalogue chunks: ${result.catalogueCount}. Embedded this run: ${result.embedded}. Unchanged: ${result.unchanged}. Record target: ${readSeedRunOptions(process.env).recordLimit}.`,
+  `FAQ chunks: ${result.faqCount}. Catalogue chunks: ${result.catalogueCount}. Embedded this run: ${result.embedded}. Unchanged: ${result.unchanged}. Record target: ${runOptions.recordLimit}. Cached this run: ${newlyCached}. Write: ${runOptions.writeChunks}. Replace existing: ${runOptions.replaceExisting}.`,
 );
 
 function isRecord(value: unknown): value is Record<string, unknown> {

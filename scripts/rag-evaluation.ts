@@ -3,7 +3,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import { embeddingLiteral, embedTextsWithRetry } from "../supabase/functions/_shared/embeddings.ts";
+import {
+  embeddingLiteral,
+  embedTextsWithOllama,
+} from "../supabase/functions/_shared/embeddings.ts";
 import { failedAiMessage } from "../supabase/functions/_shared/gemini.ts";
 import {
   evaluationGroups,
@@ -52,14 +55,12 @@ const batchSize = 8;
 for (let index = 0; index < queries.length; index += batchSize) {
   if (index > 0) await delay(1000);
   const batch = queries.slice(index, index + batchSize);
-  const embedded = await embedTextsWithRetry(
+  const embedded = await embedTextsWithOllama(
     {
-      apiKey: env.gemini,
+      host: env.ollamaHost,
       texts: batch.map((query) => query.query),
       taskType: "RETRIEVAL_QUERY",
       maxAttempts: 1,
-      baseDelayMs: 1000,
-      sleep: delay,
     },
     fetch,
   );
@@ -87,19 +88,34 @@ for (let index = 0; index < queries.length; index += batchSize) {
   }
 }
 
-const report = renderRagReport(evaluationGroups(queries, hits), corpusSize.count);
+const faqCount = await countEmbeddedFaqs(env.url, env.key);
+if (!faqCount.ok) {
+  console.error(faqCount.message);
+  process.exit(1);
+}
+const report = renderRagReport(evaluationGroups(queries, hits), corpusSize.count, faqCount.count);
 mkdirSync(dirname(reportPath), { recursive: true });
 writeFileSync(reportPath, report, "utf8");
 console.log(`Wrote ${queries.length} queries to docs/assessment-2/rag-evaluation.md.`);
 
 async function countEmbeddedChunks(url: string, serviceKey: string) {
+  return countChunks(url, serviceKey, false);
+}
+
+async function countEmbeddedFaqs(url: string, serviceKey: string) {
+  return countChunks(url, serviceKey, true);
+}
+
+async function countChunks(url: string, serviceKey: string, faqsOnly: boolean) {
   const admin = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { count, error } = await admin
+  let query = admin
     .from("rag_chunks")
     .select("id", { count: "exact", head: true })
     .not("embedding", "is", null);
+  if (faqsOnly) query = query.eq("source_type", "faq");
+  const { count, error } = await query;
   if (error) return { ok: false as const, message: error.message };
   return { ok: true as const, count: count ?? 0 };
 }

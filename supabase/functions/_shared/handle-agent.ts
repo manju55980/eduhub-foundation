@@ -12,10 +12,12 @@ import {
   type AgentCourseRef,
 } from "./agent.ts";
 import { runAgentTool, type AgentReader } from "./agent-tools.ts";
-import { embeddingTimeoutMs, withGeminiTimeout } from "./embeddings.ts";
+import { defaultOllamaHost, withGeminiTimeout } from "./embeddings.ts";
 import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
 import { resolveUserClient } from "./user-client.ts";
+
+export const agentChatTimeoutMs = 45_000;
 
 export async function handleAgent(
   request: Request,
@@ -23,6 +25,7 @@ export async function handleAgent(
     supabaseUrl: string | undefined;
     publishableKey: string | undefined;
     geminiKey: string | undefined;
+    ollamaHost?: string;
     authorization: string | null;
     reader: AgentReader;
     fetchImpl: typeof fetch;
@@ -64,7 +67,7 @@ export async function handleAgent(
   const allowedIds = new Set<string>();
   const toolResults: unknown[] = [];
   let enrolled: AgentCourseRef | null = null;
-  const fetchImpl = withGeminiTimeout(deps.fetchImpl, embeddingTimeoutMs);
+  const fetchImpl = withGeminiTimeout(deps.fetchImpl, agentChatTimeoutMs);
 
   for (let round = 0; round <= assistantToolLimit; round += 1) {
     const completion = await completeJson(
@@ -98,6 +101,7 @@ export async function handleAgent(
       userId: user.userId,
       enrolRequested: enrolRequested(parsed.messages),
       apiKey: deps.geminiKey,
+      ollamaHost: deps.ollamaHost?.trim() || defaultOllamaHost,
       fetchImpl,
       reader: deps.reader,
     });

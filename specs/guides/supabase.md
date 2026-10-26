@@ -16,7 +16,7 @@ Specified for Assessment 2:
 
 - `supabase/migrations/20261016220000_lesson_completions.sql` matches the linked database. Its tables, policies, grants, and triggers were already present.
 - `supabase/migrations/20261016221000_certificates_and_notifications.sql` matches the linked database. The certificate trigger is `after update` with the completed-status condition, because `update of status` does not see the status assigned by `enrollments_sync_status`.
-- `supabase/migrations/20261016222000_rag_chunks.sql` is applied. RAG is partially completed at 676 embedded chunks: 8 course, 25 lesson, and 643 FAQ. The retrieval report scores those 676 chunks. The 5,000 FAQ requirement is not met. See `assessment-2-gap.md`.
+- `supabase/migrations/20261016222000_rag_chunks.sql` is applied. RAG stores 5,040 embedded chunks: 9 course, 31 lesson, and 5,000 FAQ. The retrieval report scores those chunks. The 5,000 FAQ requirement is met. `supabase/migrations/20261027004700_match_knowledge_exact_search.sql` was applied manually and does not change chunk rows or embeddings. See `assessment-2-gap.md`.
 
 The first two files are applied on the remote project. The instructor submitter-name policy, the student-to-instructor promotion, and categories are local and have not been applied. Lesson completions, certificates, and notifications are on the linked database. The RAG corpus migration is applied. Do not apply further database changes without saying so first.
 
@@ -60,7 +60,7 @@ The first Admin is configured manually in Supabase, outside the app. In-app prom
 
 `supabase/functions/ai-study`, `supabase/functions/ai-course-builder`, and `supabase/functions/ai-agent` are the AI entry points. `verify_jwt` is true for each of them in `supabase/config.toml`. Each function builds a Supabase client with `SUPABASE_URL` and `SUPABASE_ANON_KEY`, or `SUPABASE_PUBLISHABLE_KEY` when the anon key is not injected, plus the caller’s bearer token. It does not read `SUPABASE_SERVICE_ROLE_KEY`. Queries run as that user, so the existing RLS policies apply. The RAG seed script is the service-role path, and it is not a browser request.
 
-`GEMINI_API_KEY` is a Supabase function secret used only inside those functions. Do not put it in `.env` as a `VITE_` name, and do not send it to the browser. A missing key returns “AI is not configured.” The response does not include the secret or the upstream error body.
+`GEMINI_API_KEY` is a Supabase function secret used only inside those functions for chat. Do not put it in `.env` as a `VITE_` name, and do not send it to the browser. A missing key returns “AI is not configured.” The response does not include the secret or the upstream error body. `ai-agent` also reads `OLLAMA_HOST` for `nomic-embed-text` query embeddings. That host must be reachable from Supabase. Do not put it in a `VITE_` name. On 26 October 2026 the secret was an account-less Cloudflare quick tunnel to a local embed proxy. The URL is not in this repository, and Cloudflare does not guarantee the tunnel.
 
 `YOUTUBE_API_KEY` is a Supabase function secret used only by `ai-course-builder` for `search_learning_videos`. The function reads it with `Deno.env.get("YOUTUBE_API_KEY")` and sends it to YouTube Data API v3. Do not put it in a `VITE_` name, do not hardcode it, and do not return it to the browser. Set it with `supabase secrets set YOUTUBE_API_KEY`. A missing key or a YouTube quota error still returns the course preview, with no video suggestions.
 
@@ -68,7 +68,7 @@ The first Admin is configured manually in Supabase, outside the app. In-app prom
 
 `POST /api/assignment-reminders` is the scheduled assignment reminder. It is not an Edge Function and not a browser route. The cron bearer is checked before the service-role client inserts `assignment_due` notifications. Course completion stays on the `enrollments_issue_certificate` trigger. Both automations work. The hourly reminder schedule is confirmed. The caller is documented in the README. An earlier local POST with no bearer returned 500 and did not run the job. That missing-secret check is not the scheduled run.
 
-These functions do not add a table, column, or policy. Set the secret with `supabase secrets set GEMINI_API_KEY` before calling them. The chat model is `gemini-3.5-flash-lite`, which has free-tier input and output on the Gemini Developer API. The level-accuracy and RAG-evaluation scripts are not Edge Functions. They read that same secret from the environment when run locally, and they are not shipped to the browser.
+These functions do not add a table, column, or policy. Set the secrets with `supabase secrets set GEMINI_API_KEY` and `supabase secrets set OLLAMA_HOST` before calling `ai-agent`. The chat model is `gemini-3.5-flash-lite`, which has free-tier input and output on the Gemini Developer API. The level-accuracy script reads `GEMINI_API_KEY`. The RAG-evaluation script reads `OLLAMA_HOST`. Neither script is an Edge Function or a browser route.
 
 ## RLS and role permissions
 

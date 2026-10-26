@@ -42,7 +42,7 @@ That command runs `src/test/student-happy-path.test.tsx`. The test seeds an in-m
 
 ### Learning assistant
 
-A student opens Learning Assistant at `/student/assistant`. The `ai-agent` Edge Function calls `gemini-3.5-flash-lite` with that student’s session. It can search the catalogue, describe a visible course, enrol the signed-in student in a published course, read that student’s grades, and suggest a next course. Row policies still hide draft courses and lesson text for a course the student has not joined. The chat transcript is not stored.
+A student opens Learning Assistant at `/student/assistant`. The `ai-agent` Edge Function calls `gemini-3.5-flash-lite` with that student’s session. Each chat call in this repository waits up to 45 seconds. It can search the catalogue, describe a visible course, enrol the signed-in student in a published course, read that student’s grades, and suggest a next course. Catalogue search embeds the question with Ollama `nomic-embed-text`. Row policies still hide draft courses and lesson text for a course the student has not joined. The chat transcript is not stored. The deployed function was last updated on 26 October 2026, before the 45-second timeout, so the live function still stops a chat call at 20 seconds.
 
 ### Workflows
 
@@ -52,18 +52,20 @@ Assignment reminders are the second workflow. `POST /api/assignment-reminders` i
 
 ### RAG
 
-Course, lesson, and FAQ text is stored in `rag_chunks`. Embeddings use `gemini-embedding-001` at 768 dimensions. `match_knowledge` ranks rows by cosine similarity and runs as the signed-in student, so the select policy applies. The database now has 676 embedded chunks: 8 course, 25 lesson, and 643 FAQ. A 21 October resume kept 572 unchanged rows, embedded 104 more, and stopped on the Gemini plan quota. The retrieval report was scored that day against those 676 chunks. Seeding was not resumed. The 5,000 FAQ record requirement is not met.
+Course, lesson, and FAQ text is stored in `rag_chunks`. Embeddings use Ollama `nomic-embed-text` at 768 dimensions. `match_knowledge` runs as the signed-in student, so the select policy applies. The database now has 5,040 embedded chunks: 9 course, 31 lesson, and 5,000 FAQ. On 26 October the seed replaced the earlier Gemini vectors in place and added the remaining FAQ rows. The 5,000 FAQ record requirement is met. Deployed catalogue search reads `OLLAMA_HOST`. That secret is an account-less Cloudflare quick tunnel to local Ollama. The URL is not in this repository. Search stops if the tunnel, the local embed proxy, or Ollama stops.
+
+A signed-in check on 26 October, before the exact-search change, asked what the published course “Machine learing course” covers. That stored course chunk is the nearest row, at cosine 0.827, and the student can select it. The approximate HNSW scan returned FAQ rows near cosine 0.57. `supabase/migrations/20261027004700_match_knowledge_exact_search.sql` sorts the stored vectors by exact cosine distance and turns index scans off for that call. It does not change chunk rows or embeddings. That migration was applied manually on the linked database. Catalogue search was not repeated after that apply.
 
 The retrieval report is [docs/assessment-2/rag-evaluation.md](docs/assessment-2/rag-evaluation.md):
 
 | Set | Queries | Hit@5 | MRR@5 | Mean top-1 cosine |
 | --- | ---: | ---: | ---: | ---: |
-| Matching | 30 | 1.000 | 1.000 | 0.844 |
-| Noisy | 30 | 1.000 | 1.000 | 0.807 |
-| Extreme, with an expected key | 15 | 0.800 | 0.586 | 0.738 |
-| Extreme, out of corpus | 15 | — | — | 0.537 |
+| Matching | 30 | 1.000 | 0.950 | 0.888 |
+| Noisy | 30 | 0.867 | 0.291 | 0.841 |
+| Extreme, with an expected key | 15 | 0.133 | 0.080 | 0.820 |
+| Extreme, out of corpus | 15 | — | — | 0.493 |
 
-Extreme rejection at cosine 0.75 is 1.000: all 15 out-of-corpus queries had a top row below 0.75. That figure is not Hit@5. Noise delta (matching Hit@5 minus noisy Hit@5) is 0.000.
+Extreme rejection at cosine 0.75 is 1.000: all 15 out-of-corpus queries had a top row below 0.75. That figure is not Hit@5. Noise delta (matching Hit@5 minus noisy Hit@5) is 0.133.
 
 ### Level accuracy
 
@@ -76,12 +78,12 @@ On 21 October 2026 the script resumed 16 saved predictions, classified 16 more, 
 | Item | Where it stands |
 | --- | --- |
 | Agent, both workflows, RAG design, and test commands | This section |
-| Retrieval quality | [docs/assessment-2/rag-evaluation.md](docs/assessment-2/rag-evaluation.md), scored on the stored 676 chunks. The 5,000 FAQ requirement is not met. |
+| Retrieval quality | [docs/assessment-2/rag-evaluation.md](docs/assessment-2/rag-evaluation.md), scored on 5,040 chunks (5,000 FAQ) before exact ordering. Deployed search depends on a temporary Cloudflare tunnel. `supabase/migrations/20261027004700_match_knowledge_exact_search.sql` was applied manually. Catalogue search was not repeated after that apply. |
 | Accuracy evidence and model | [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md), `gemini-3.5-flash-lite`. 32 of 40 held-out rows classified. Coverage 0.800. The 0.70 target is not met. |
 | Assignment reminders | Both automations work. Course completion is verified against the linked database. The hourly reminder schedule is confirmed. In-memory tests cover stages, dedupe, and the bearer. An earlier local POST with no bearer returned 500 and did not run the job. |
 | Unit and happy-path commands | `npm test` and `npm run test:e2e` |
 | Live URL | `https://eduhub-foundation.vercel.app/` returned HTTP 200 on 19 October 2026. The page title is the EduHub landing title. Role-by-role checks on that URL were not run. |
-| `assessment-2` git tag | Pushed to `origin` on 22 October 2026. Annotated tag `assessment-2` (“EduHub Assessment 2 submission”) points at `51230569dfe6d6157131d0882165f3f8d8dd7654` on `main`. A GitHub Release was not checked. |
+| `assessment-2` git tag | Pushed to `origin` on 22 October 2026. Annotated tag `assessment-2` (“EduHub Assessment 2 submission”) points at `51230569dfe6d6157131d0882165f3f8d8dd7654` on `main`. That commit is older than the 26 October corpus. A GitHub Release was not checked. |
 | Role login credentials | Not stored in this repository. |
 | Dev Control Tower submission | Not filed. |
 | Full unit-test output | Not captured in this pass. `npm run test:e2e` passed 1 test earlier. |

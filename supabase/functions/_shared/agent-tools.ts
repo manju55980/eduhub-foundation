@@ -10,7 +10,12 @@ import {
   type SuggestCourse,
   type SuggestEnrollment,
 } from "./agent.ts";
-import { embedTexts, embeddingLiteral, type EmbeddingTask } from "./embeddings.ts";
+import {
+  defaultOllamaHost,
+  embedTextsWithOllama,
+  embeddingLiteral,
+  type EmbeddingTask,
+} from "./embeddings.ts";
 import { failedAiMessage } from "./gemini.ts";
 
 export type AgentMatch = {
@@ -94,6 +99,7 @@ export async function runAgentTool(
     userId: string;
     enrolRequested: boolean;
     apiKey: string | undefined;
+    ollamaHost?: string;
     fetchImpl: typeof fetch;
     reader: AgentReader;
   },
@@ -110,6 +116,7 @@ async function searchCatalogue(
   args: Record<string, unknown>,
   context: {
     apiKey: string | undefined;
+    ollamaHost?: string;
     fetchImpl: typeof fetch;
     reader: AgentReader;
   },
@@ -272,10 +279,15 @@ async function suggestCourse(context: {
 async function embedQuery(
   text: string,
   taskType: EmbeddingTask,
-  context: { apiKey: string | undefined; fetchImpl: typeof fetch },
+  context: { ollamaHost?: string; fetchImpl: typeof fetch },
 ) {
-  const embedded = await embedTexts(
-    { apiKey: context.apiKey, texts: [text], taskType },
+  const embedded = await embedTextsWithOllama(
+    {
+      host: context.ollamaHost ?? defaultOllamaHost,
+      texts: [text],
+      taskType,
+      maxAttempts: 1,
+    },
     context.fetchImpl,
   );
   if (!embedded.ok) return embedded;

@@ -36,3 +36,4 @@ dist-ssr
 !.env.example
 supabase/.temp/
 scripts/fixtures/level-progress.json
+scripts/fixtures/rag-embeddings.jsonl

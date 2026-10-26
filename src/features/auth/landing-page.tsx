@@ -116,7 +116,7 @@ const agents = [
     soft: { backgroundColor: "var(--student-soft, #d3efff)" },
     tone: "text-primary",
     detail:
-      "Ask about the catalogue, a recommendation, your grades, or the next course. It can enrol you in a published course. The chat is not stored.",
+      "Ask about a published course, a recommendation, your grades, or the next course. Course answers come from the stored catalogue. It can enrol you in a published course. The chat is not stored.",
   },
   {
     audience: "Instructor",

@@ -2,7 +2,7 @@
 
 Specifies the persistent course, lesson, and FAQ text used to ground later learner questions. Study Companion stays in `student-ai-study-companion.md` and still answers from the one enrolled course passed in its prompt. This feature does not replace that function and does not add a chat screen. Roles stay in `product.md`. Columns and the planned migration stay in `architecture.md`.
 
-This feature adds `rag_chunks` and `match_knowledge`. The migration `supabase/migrations/20261016222000_rag_chunks.sql` is applied on the linked project. The seed script is `scripts/seed-rag-chunks.ts`. It reads `GEMINI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` from the environment and does not print them. `RAG_EMBED_BATCH_SIZE` (default 8, maximum 32), `RAG_EMBED_DELAY_MS` (default 1000), and `RAG_EMBED_MAX_ATTEMPTS` (default 4) control each embedding batch. A 429 that names the plan or billing quota stops immediately. A rate-limit 429 or a 5xx response retries with bounded backoff. Rows already stored are left in place, and unchanged text is not embedded again. Course and lesson chunks are embedded before FAQ rows. Unchanged `source_key` values are skipped. `RAG_EMBED_RECORD_LIMIT` defaults to 300, and a quota error stops without retry. The 19 October resumes kept earlier rows, embedded 96 and then 176 more, and both stopped on the plan quota. A 21 October resume kept those 572 rows, embedded 104 more (2 course, 12 lesson, and 90 FAQ), and stopped on the plan quota. `rag_chunks` then held 676 rows: 8 course, 25 lesson, and 643 FAQ. The 5,000 FAQ requirement is not met. See `assessment-2-gap.md`.
+This feature adds `rag_chunks` and `match_knowledge`. The migration `supabase/migrations/20261016222000_rag_chunks.sql` is applied on the linked project. The seed script is `scripts/seed-rag-chunks.ts`. It reads `SUPABASE_SERVICE_ROLE_KEY` and `OLLAMA_HOST` from the environment and does not print them. `OLLAMA_HOST` defaults to `http://127.0.0.1:11434`. `RAG_EMBED_BATCH_SIZE` (default 8, maximum 32), `RAG_EMBED_DELAY_MS` (default 1000), and `RAG_EMBED_MAX_ATTEMPTS` (default 4) control each embedding batch. A rate-limit response or a 5xx response retries with bounded backoff. A 400 from Ollama is retried the same way. Rows already stored are left in place. Unchanged text is not embedded again unless `RAG_EMBED_REPLACE_ALL` is `true`, which upserts every chunk so a model change can replace vectors without deleting rows. `RAG_EMBED_WRITE=false` fills the local cache and does not upsert. Course and lesson chunks are written before FAQ rows. `RAG_EMBED_RECORD_LIMIT` defaults to 300. Earlier Gemini resumes stopped on the plan quota at 676 rows. On 26 October 2026 a replace run upserted the cached Nomic vectors in place. `rag_chunks` now holds 5,040 embedded rows: 9 course, 31 lesson, and 5,000 FAQ. The 5,000 FAQ requirement is met. See `assessment-2-gap.md`.
 
 ## What is stored
 
@@ -18,13 +18,13 @@ Each chunk is one row:
 
 `body` is required. `embedding` is `vector(768)` and stays null until the embedding call succeeds. A row counts toward the 5,000-record bar only when `embedding` is not null. The seed must leave at least 5,000 FAQ rows embedded. Course and lesson chunks are additional. They are rebuilt when that course title, description, lesson title, or lesson content changes. A lesson edit does not change `lesson_completions`.
 
-The embedding model is `gemini-embedding-001`, called at `models/gemini-embedding-001:embedContent`. `text-embedding-004` was shut down on 14 January 2026. The request sets `outputDimensionality` to `768`. The API default is 3072, and a 3072-dimension vector must not be stored. For this model, a size other than 3072 is not normalized by the API. Divide the returned vector by its L2 norm before insert and before a query, so the stored length is 1. Skip a zero vector. Course, lesson, and FAQ chunks use task type `RETRIEVAL_DOCUMENT`. Search and evaluation queries use `RETRIEVAL_QUERY`.
+The embedding model is Ollama `nomic-embed-text`, called at `POST /api/embed`. Document text is prefixed with `search_document:` and query text with `search_query:`. The vector is 768 dimensions. Divide it by its L2 norm before insert and before a query, so the stored length is 1. Skip a zero vector. Successful vectors are appended to `scripts/fixtures/rag-embeddings.jsonl`, which is gitignored. Each line stores `source_key`, the SHA-256 of `body`, and the normalized vector. A later run reuses a line when the key and body hash match and does not call Ollama again. Chat stays on `gemini-3.5-flash-lite`.
 
-The column, the HNSW index, and `match_knowledge` all use `vector(768)` and cosine distance (`vector_cosine_ops`). A query embedding uses the same model, 768 dimensions, and L2 normalization, with task type `RETRIEVAL_QUERY`. The API key is the existing Edge Function secret `GEMINI_API_KEY`. Do not put it in a `VITE_` variable and do not send it to the browser.
+The column and the HNSW index use `vector(768)` and cosine distance (`vector_cosine_ops`). `match_knowledge` sorts those stored vectors by exact cosine distance and turns index scans off for that call, so the HNSW index does not choose the rows. A query embedding uses the same model, the same 768 dimensions, the same L2 normalization, and the `search_query:` prefix. `ai-agent` reads `OLLAMA_HOST`. Do not put that host in a `VITE_` variable. The deployed function cannot use `localhost`. On 26 October 2026 `OLLAMA_HOST` was an account-less Cloudflare quick tunnel to a local proxy that accepts only `POST /api/embed` for `nomic-embed-text`. The tunnel URL is not stored in this repository. Cloudflare does not guarantee it. If Ollama, the proxy, or the tunnel stops, `search_catalogue` cannot embed a query.
 
 ## Who can read a chunk
 
-`match_knowledge(query_embedding vector(768), match_count integer)` is security invoker. It returns `id`, `source_type`, `title`, `body`, `course_id`, and the cosine similarity, ordered by similarity, at most 10 rows. A larger `match_count` still stops at 10. Rows with a null embedding are excluded. Execute is granted to `authenticated` only.
+`match_knowledge(query_embedding vector(768), match_count integer)` is security invoker. It returns `id`, `source_type`, `title`, `body`, `course_id`, and the cosine similarity. The order is an exact sort of the stored vectors, at most 10 rows. A larger `match_count` still stops at 10. Rows with a null embedding are excluded. Execute is granted to `authenticated` only. The migration `supabase/migrations/20261027004700_match_knowledge_exact_search.sql` replaces the function. It does not change chunk rows or embeddings. It was applied manually on the linked database. Catalogue search was not repeated after that apply.
 
 Select policies match the text those roles can already read. They do not widen lesson visibility.
 
@@ -40,7 +40,7 @@ There is no insert, update, or delete grant for `authenticated`. The seed and th
 
 ## Seed
 
-The seed is an idempotent script, run with the service-role client. It is not a screen and not a browser request. FAQ text is generated for this corpus and stored in `rag_chunks`. Re-running the script updates the same `source_key` values. The script does not print the service-role key or `GEMINI_API_KEY`.
+The seed is an idempotent script, run with the service-role client. It is not a screen and not a browser request. FAQ text is generated for this corpus and stored in `rag_chunks`. Re-running the script updates the same `source_key` values. The script does not print the service-role key or `OLLAMA_HOST`.
 
 Retrieval quality is specified in `student-rag-evaluation.md`. It is not part of this migration.
 
@@ -56,7 +56,7 @@ Retrieval quality is specified in `student-rag-evaluation.md`. It is not part of
 - `rag_chunks` persists in Postgres with the `vector` extension and an HNSW cosine index.
 - At least 5,000 FAQ rows have a non-null 768-dimension embedding. A second seed run does not duplicate `source_key`.
 - Course and lesson chunks exist for stored course and lesson text and are updated when that text changes.
-- `match_knowledge` returns at most 10 rows, skips null embeddings, and uses the caller’s RLS.
+- `match_knowledge` returns at most 10 rows in exact cosine order, skips null embeddings, does not use the HNSW index scan, and uses the caller’s RLS.
 - A student who is not enrolled cannot retrieve a draft course chunk or any lesson chunk for a course they have not joined.
 - The browser cannot insert a chunk and cannot read the Gemini or service-role secret.
 - Existing policies on `courses` and `lessons` are unchanged.

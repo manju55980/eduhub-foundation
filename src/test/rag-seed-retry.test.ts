@@ -85,7 +85,7 @@ describe("embedding retry", () => {
     const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const responses = [
       new Response(rateLimitBody, { status: 429, headers: { "retry-after": "2" } }),
-      embedResponse(1),
+      geminiEmbedResponse(1),
     ];
     const fetchImpl = vi.fn(async () => responses.shift() ?? new Response("no", { status: 500 }));
     const sleep = vi.fn(async () => undefined);
@@ -162,6 +162,8 @@ describe("resumable rag seed", () => {
       delayMs: 1000,
       maxAttempts: 4,
       recordLimit: 300,
+      replaceExisting: false,
+      writeChunks: true,
     });
     expect(
       readSeedRunOptions({ RAG_EMBED_BATCH_SIZE: "100", RAG_EMBED_DELAY_MS: "0" }),
@@ -298,9 +300,47 @@ describe("resumable rag seed", () => {
       "faq:0002",
     ]);
   });
+
+  it("rewrites unchanged rows when replacing the embedding model and can cache without writing", async () => {
+    const faqs = faqChunks();
+    const upsert = vi.fn(async () => ({ ok: true as const }));
+    const cached: string[] = [];
+    const result = await runRagSeed({
+      ollamaHost: "http://127.0.0.1:11434",
+      batchSize: 10,
+      delayMs: 0,
+      maxAttempts: 1,
+      recordLimit: 3,
+      replaceExisting: true,
+      writeChunks: false,
+      sleep: async () => undefined,
+      fetchImpl: async () => embedResponse(3),
+      onCache: (row) => cached.push(row.sourceKey),
+      db: {
+        courses: async () => ({
+          ok: true,
+          rows: [{ id: "course-1", title: "Algebra", description: "Numbers" }],
+        }),
+        lessons: async () => ({ ok: true, rows: [] }),
+        chunks: async () => ({
+          ok: true,
+          rows: faqs.map((chunk) => ({
+            sourceKey: chunk.sourceKey,
+            title: chunk.title,
+            body: chunk.body,
+          })),
+        }),
+        upsert,
+      },
+    });
+
+    expect(result).toMatchObject({ ok: true, embedded: 3, unchanged: 0 });
+    expect(upsert).not.toHaveBeenCalled();
+    expect(cached).toEqual(["course:course-1", "faq:0001", "faq:0002"]);
+  });
 });
 
-function embedResponse(count: number) {
+function geminiEmbedResponse(count: number) {
   return new Response(
     JSON.stringify({
       embeddings: Array.from({ length: count }, () => ({
@@ -309,4 +349,12 @@ function embedResponse(count: number) {
     }),
     { status: 200, headers: { "Content-Type": "application/json" } },
   );
+}
+
+function embedResponse(count: number) {
+  const vector = Array.from({ length: embeddingDimensions }, () => 0.25);
+  return new Response(JSON.stringify({ embeddings: Array.from({ length: count }, () => vector) }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

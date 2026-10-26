@@ -83,3 +83,34 @@ describe("rag chunks migration", () => {
     expect(migration).not.toMatch(/create policy lessons_/);
   });
 });
+
+describe("match_knowledge exact search", () => {
+  const exact = readFileSync(
+    resolve(process.cwd(), "supabase/migrations/20261027004700_match_knowledge_exact_search.sql"),
+    "utf8",
+  ).replace(/\r\n/g, "\n");
+
+  it("sorts stored vectors exactly and does not scan the hnsw index", () => {
+    expect(exact).toContain(
+      "match_knowledge(\n  query_embedding extensions.vector(768),\n  match_count integer\n)",
+    );
+    expect(exact).toMatch(/language plpgsql/);
+    expect(exact).toMatch(/security invoker/);
+    expect(exact).not.toMatch(/security definer/);
+    expect(exact).toContain("perform set_config('enable_indexscan', 'off', true);");
+    expect(exact).toContain("perform set_config('enable_bitmapscan', 'off', true);");
+    expect(exact).toContain("where chunk.embedding is not null");
+    expect(exact).toContain("1 - (chunk.embedding <=> query_embedding) as similarity");
+    expect(exact).toContain("order by chunk.embedding <=> query_embedding");
+    expect(exact).toContain("limit least(greatest(coalesce(match_count, 0), 0), 10)");
+    expect(exact).toContain(
+      "grant execute on function public.match_knowledge(extensions.vector, integer) to authenticated",
+    );
+    expect(exact).not.toContain(
+      "grant execute on function public.match_knowledge(extensions.vector, integer) to anon",
+    );
+    expect(exact).not.toMatch(/using hnsw/i);
+    expect(exact).not.toMatch(/drop index/i);
+    expect(exact).not.toMatch(/\b(update|delete|insert)\s+.*rag_chunks/i);
+  });
+});

@@ -98,7 +98,7 @@ describe("RAG retrieval metrics", () => {
       ]),
     );
     const report = renderRagReport(evaluationGroups(queries, hitsById), 208);
-    expect(report).toContain("gemini-embedding-001");
+    expect(report).toContain("nomic-embed-text");
     expect(report).toContain("768");
     expect(report).toContain("cosine");
     expect(report).toContain("| Extreme, out of corpus | 15 | — | — | 0.000 |");

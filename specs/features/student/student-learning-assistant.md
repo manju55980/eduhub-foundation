@@ -22,7 +22,7 @@ The body is `{ messages }`. Each message is `{ role, content }` where `role` is 
 
 The function reads `profiles.role` first. Only `student` continues. An instructor or admin token is rejected before any course, grade, or embedding call. A missing key returns “AI is not configured.” Logs follow the existing Gemini failure log: status and error type only, with no prompt, grade, or secret.
 
-The chat model is `gemini-3.5-flash-lite`, through the same JSON completion path as `ai-study`. Each Gemini call times out after 20 seconds. Query embeddings use `gemini-embedding-001` at 768 dimensions, with the same normalization and `RETRIEVAL_QUERY` task type as `rag_chunks`.
+The chat model is `gemini-3.5-flash-lite`, through the same JSON completion path as `ai-study`. Each learning-assistant chat call times out after 45 seconds. Query embeddings use Ollama `nomic-embed-text` at 768 dimensions, with the same normalization and `search_query:` prefix as `rag_chunks`. `OLLAMA_HOST` is the Edge Function setting for that call. On 26 October 2026 it was an account-less Cloudflare quick tunnel, not a named production tunnel. The URL is not stored in this repository. Catalogue search fails while that tunnel, the local embed proxy, or Ollama is down. The earlier Chrome pass did not re-check `search_catalogue` after the embedding change.
 
 ## Tools
 

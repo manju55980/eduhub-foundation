@@ -2,7 +2,7 @@ import { faqChunks } from "./rag-corpus.ts";
 
 export const retrievalCutoff = 5;
 export const extremeRejectionThreshold = 0.75;
-export const embeddingModelName = "gemini-embedding-001";
+export const embeddingModelName = "nomic-embed-text";
 export const embeddingDimensionCount = 768;
 
 export type RagQuerySet = "matching" | "noisy" | "extreme";
@@ -172,14 +172,14 @@ export function evaluationGroups(
   ];
 }
 
-export function renderRagReport(groups: RagEvalGroup[], corpusSize?: number) {
+export function renderRagReport(groups: RagEvalGroup[], corpusSize?: number, faqCount?: number) {
   const matching = groups.find((group) => group.label === "Matching");
   const noisy = groups.find((group) => group.label === "Noisy");
   const delta = noiseDelta(matching?.hitAt5 ?? 0, noisy?.hitAt5 ?? 0);
   const lines = [
     "# RAG evaluation",
     "",
-    `Retrieval used \`${embeddingModelName}\` at ${embeddingDimensionCount} dimensions with cosine distance. Each query used task type \`RETRIEVAL_QUERY\`. \`match_knowledge\` ran as an authenticated student, so the existing select policy kept draft chunks and unenrolled lesson chunks out of the scored rows. Metrics use the first ${retrievalCutoff} rows.`,
+    `Retrieval used \`${embeddingModelName}\` at ${embeddingDimensionCount} dimensions with cosine distance. Documents are prefixed with \`search_document:\` and queries with \`search_query:\`. \`match_knowledge\` ran as an authenticated student, so the existing select policy kept draft chunks and unenrolled lesson chunks out of the scored rows. Metrics use the first ${retrievalCutoff} rows.`,
     "",
     "| Set | Queries | Hit@5 | MRR@5 | Mean top-1 cosine |",
     "| --- | ---: | ---: | ---: | ---: |",
@@ -197,7 +197,7 @@ export function renderRagReport(groups: RagEvalGroup[], corpusSize?: number) {
     ...(corpusSize === undefined
       ? []
       : [
-          `The scored corpus has ${corpusSize} embedded chunks. The 5,000 FAQ record requirement is not met.`,
+          `The scored corpus has ${corpusSize} embedded chunks. The 5,000 FAQ record requirement is ${(faqCount ?? 0) >= 5000 ? "met" : "not met"}.`,
           "",
         ]),
   ];

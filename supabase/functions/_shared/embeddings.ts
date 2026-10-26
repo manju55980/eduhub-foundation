@@ -1,7 +1,12 @@
 import { failedAiMessage, invalidAiMessage, missingAiMessage, sanitizeAiDetail } from "./gemini.ts";
 
 export const embeddingModel = "gemini-embedding-001";
+export const ollamaEmbeddingModel = "nomic-embed-text";
+export const defaultOllamaHost = "http://127.0.0.1:11434";
+export const documentEmbedPrefix = "search_document: ";
+export const queryEmbedPrefix = "search_query: ";
 export const embeddingDimensions = 768;
+export const ollamaEmbedTimeoutMs = 120_000;
 export const embeddingTimeoutMs = 20_000;
 export const embeddingQuotaMessage = "The embedding quota is exhausted.";
 export const embeddingRetryLimit = 6;
@@ -228,4 +233,141 @@ function retryDelayFromBody(body: string) {
 function clampInteger(value: number, min: number, max: number, fallback: number) {
   if (!Number.isFinite(value)) return fallback;
   return Math.min(max, Math.max(min, Math.trunc(value)));
+}
+
+export function ollamaHostFromEnv(env: Record<string, string | undefined>) {
+  const host = env.OLLAMA_HOST?.trim() || defaultOllamaHost;
+  return host.replace(/\/$/, "");
+}
+
+export function prefixedEmbedText(text: string, taskType: EmbeddingTask) {
+  const prefix = taskType === "RETRIEVAL_QUERY" ? queryEmbedPrefix : documentEmbedPrefix;
+  return `${prefix}${text}`;
+}
+
+export function ollamaEmbedUrl(host: string) {
+  return `${host.replace(/\/$/, "")}/api/embed`;
+}
+
+export function parseOllamaEmbedResponse(
+  payload: unknown,
+  expected: number,
+): { ok: true; vectors: number[][] } | { ok: false; message: string } {
+  if (!payload || typeof payload !== "object" || !("embeddings" in payload)) {
+    return { ok: false, message: invalidAiMessage };
+  }
+  const embeddings = payload.embeddings;
+  if (!Array.isArray(embeddings) || embeddings.length !== expected) {
+    return { ok: false, message: invalidAiMessage };
+  }
+  const vectors: number[][] = [];
+  for (const embedding of embeddings) {
+    if (!Array.isArray(embedding) || embedding.some((value) => typeof value !== "number")) {
+      return { ok: false, message: invalidAiMessage };
+    }
+    const normalized = l2Normalize(embedding);
+    if (!normalized.ok) return normalized;
+    vectors.push(normalized.values);
+  }
+  return { ok: true, vectors };
+}
+
+export async function embedTextsWithOllama(
+  options: {
+    host: string | undefined;
+    texts: string[];
+    taskType: EmbeddingTask;
+    maxAttempts?: number;
+    baseDelayMs?: number;
+    sleep?: (ms: number) => Promise<void>;
+  },
+  fetchImpl: typeof fetch,
+) {
+  if (options.texts.length === 0) return { ok: true as const, vectors: [] as number[][] };
+  const host = (options.host?.trim() || defaultOllamaHost).replace(/\/$/, "");
+  const maxAttempts = clampInteger(options.maxAttempts ?? 1, 1, embeddingRetryLimit, 1);
+  const sleep =
+    options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  let latest: Awaited<ReturnType<typeof embedOllamaOnce>> = {
+    ok: false,
+    message: failedAiMessage,
+    kind: "fatal",
+    retryAfterMs: null,
+  };
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    latest = await embedOllamaOnce(host, options.texts, options.taskType, fetchImpl);
+    if (latest.ok) return latest;
+    const retryable = latest.kind === "rate_limit" || latest.kind === "server";
+    if (!retryable || attempt + 1 >= maxAttempts) return latest;
+    await sleep(embedBackoffMs(attempt, options.baseDelayMs ?? 0, latest.retryAfterMs));
+  }
+  return latest;
+}
+
+async function embedOllamaOnce(
+  host: string,
+  texts: string[],
+  taskType: EmbeddingTask,
+  fetchImpl: typeof fetch,
+) {
+  const timeout = startTimeout(ollamaEmbedTimeoutMs);
+  let response: Response;
+  try {
+    response = await fetchImpl(ollamaEmbedUrl(host), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: ollamaEmbeddingModel,
+        input: texts.map((text) => prefixedEmbedText(text, taskType)),
+      }),
+      signal: timeout.signal,
+    });
+  } catch {
+    return {
+      ok: false as const,
+      message: failedAiMessage,
+      kind: "fatal" as const,
+      retryAfterMs: null,
+    };
+  } finally {
+    timeout.cancel();
+  }
+
+  if (!response.ok) {
+    const body = await response.text();
+    const failure = classifyEmbedFailure(response.status, body);
+    const kind = response.status === 400 ? "server" : failure.kind;
+    const headerDelay = retryAfterHeaderMs(response.headers.get("retry-after"));
+    const retryAfterMs =
+      headerDelay === null
+        ? failure.retryAfterMs
+        : Math.max(headerDelay, failure.retryAfterMs ?? 0);
+    console.error(
+      JSON.stringify({
+        source: "ollama-embed",
+        status: response.status,
+        kind,
+        detail: body.slice(0, 180),
+      }),
+    );
+    return {
+      ok: false as const,
+      message: embedFailureMessage(kind),
+      kind,
+      retryAfterMs,
+    };
+  }
+
+  try {
+    const parsed = parseOllamaEmbedResponse(await response.json(), texts.length);
+    if (!parsed.ok) return { ...parsed, kind: "fatal" as const, retryAfterMs: null };
+    return parsed;
+  } catch {
+    return {
+      ok: false as const,
+      message: invalidAiMessage,
+      kind: "fatal" as const,
+      retryAfterMs: null,
+    };
+  }
 }

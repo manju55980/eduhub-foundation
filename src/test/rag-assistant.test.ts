@@ -16,9 +16,13 @@ import {
   embedRequestBody,
   embeddingDimensions,
   embeddingModel,
+  embeddingTimeoutMs,
   l2Normalize,
+  parseOllamaEmbedResponse,
+  prefixedEmbedText,
 } from "../../supabase/functions/_shared/embeddings.ts";
-import { handleAgent } from "../../supabase/functions/_shared/handle-agent.ts";
+import { agentChatTimeoutMs, handleAgent } from "../../supabase/functions/_shared/handle-agent.ts";
+import { failedAiMessage } from "../../supabase/functions/_shared/gemini.ts";
 import {
   courseChunk,
   faqChunkCount,
@@ -153,6 +157,16 @@ describe("rag corpus", () => {
     expect(l2Normalize(Array.from({ length: embeddingDimensions }, () => 0)).ok).toBe(false);
     expect(l2Normalize(Array.from({ length: 3072 }, () => 1)).ok).toBe(false);
 
+    expect(prefixedEmbedText("lesson text", "RETRIEVAL_DOCUMENT")).toBe(
+      "search_document: lesson text",
+    );
+    expect(prefixedEmbedText("lesson text", "RETRIEVAL_QUERY")).toBe("search_query: lesson text");
+    const parsed = parseOllamaEmbedResponse(
+      { embeddings: [Array.from({ length: embeddingDimensions }, () => 0.5)] },
+      1,
+    );
+    expect(parsed.ok).toBe(true);
+
     const body = embedRequestBody(["lesson text"], "RETRIEVAL_DOCUMENT");
     expect(body.requests[0]).toMatchObject({
       model: `models/${embeddingModel}`,
@@ -163,9 +177,10 @@ describe("rag corpus", () => {
 
   it("requires a service-role key and does not echo secrets", () => {
     const secret = "sb_secret_example";
-    expect(readSeedEnv({ GEMINI_API_KEY: "", SUPABASE_SERVICE_ROLE_KEY: secret }).message).toBe(
-      "AI is not configured.",
-    );
+    expect(
+      readSeedEnv({ SUPABASE_SERVICE_ROLE_KEY: secret, OLLAMA_HOST: "http://127.0.0.1:11434" })
+        .message,
+    ).toBe("The service role key is required.");
     const anon = readSeedEnv({
       SUPABASE_URL: "https://example.supabase.co",
       SUPABASE_SERVICE_ROLE_KEY: publishableKey,
@@ -329,10 +344,10 @@ describe("learning assistant", () => {
       post({ messages: [{ role: "user", content: "Find algebra" }] }),
       deps(searchReader, async (input, init) => {
         const url = String(input);
-        if (url.includes("batchEmbedContents")) {
+        if (url.includes("/api/embed")) {
           embedBodies.push(JSON.parse(String(init?.body)));
           return new Response(
-            JSON.stringify({ embeddings: [{ values: Array.from({ length: 768 }, () => 0.5) }] }),
+            JSON.stringify({ embeddings: [Array.from({ length: 768 }, () => 0.5)] }),
             { status: 200 },
           );
         }
@@ -344,7 +359,8 @@ describe("learning assistant", () => {
     const body = await response.json();
     expect(body.courses).toEqual([{ id: courseId, title: "Algebra" }]);
     expect(embedBodies[0]).toMatchObject({
-      requests: [{ taskType: "RETRIEVAL_QUERY", outputDimensionality: 768 }],
+      model: "nomic-embed-text",
+      input: ["search_query: algebra"],
     });
     expect(searchReader.calls).toContain("match");
     expect(searchReader.calls).not.toContain("lessons");
@@ -441,10 +457,159 @@ describe("learning assistant", () => {
     expect(await response.json()).toMatchObject({ ok: false, message: "AI is not configured." });
     expect(reader.calls).toEqual(["user", "role"]);
   });
+
+  it("accepts a chat reply after 20 seconds and still searches the catalogue", async () => {
+    vi.useFakeTimers();
+    try {
+      const searchReader = catalogueReader();
+      let chats = 0;
+      const response = handleAgent(
+        post({ messages: [{ role: "user", content: "Find algebra" }] }),
+        deps(searchReader, async (input, init) => {
+          if (String(input).includes("/api/embed")) return embedResponse();
+          chats += 1;
+          if (chats === 1) await wait(embeddingTimeoutMs + 1_000, init?.signal);
+          return chats === 1 ? searchReply() : answerReply();
+        }),
+      );
+      await vi.advanceTimersByTimeAsync(embeddingTimeoutMs + 1_000);
+      expect(await (await response).json()).toMatchObject({
+        ok: true,
+        text: "Algebra matches.",
+        courses: [{ id: courseId, title: "Algebra" }],
+      });
+      expect(searchReader.calls).toContain("match");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("returns the AI failure when a chat reply exceeds 45 seconds", async () => {
+    vi.useFakeTimers();
+    try {
+      const reader = baseReader();
+      const response = handleAgent(
+        post({ messages: [{ role: "user", content: "Find algebra" }] }),
+        deps(reader, (_input, init) => waitForAbort(init?.signal)),
+      );
+      await vi.advanceTimersByTimeAsync(agentChatTimeoutMs);
+      expect(await (await response).json()).toMatchObject({
+        ok: false,
+        message: failedAiMessage,
+      });
+      expect(reader.calls).toEqual(["user", "role"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not apply the chat timeout to an embed request that already has a signal", async () => {
+    vi.useFakeTimers();
+    try {
+      const searchReader = catalogueReader();
+      let embedSignal: AbortSignal | undefined;
+      let chats = 0;
+      const response = handleAgent(
+        post({ messages: [{ role: "user", content: "Find algebra" }] }),
+        deps(searchReader, async (input, init) => {
+          if (!String(input).includes("/api/embed")) {
+            chats += 1;
+            return chats === 1 ? searchReply() : answerReply();
+          }
+          embedSignal = init?.signal;
+          await wait(agentChatTimeoutMs + 1_000, init?.signal);
+          return embedResponse();
+        }),
+      );
+      await vi.advanceTimersByTimeAsync(agentChatTimeoutMs + 1_000);
+      expect(await (await response).json()).toMatchObject({
+        ok: true,
+        text: "Algebra matches.",
+      });
+      expect(embedSignal?.aborted).toBe(false);
+      expect(searchReader.calls).toContain("match");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 function course(id: string, level: string, categoryId: string, createdAt: string) {
   return { id, title: id, level, categoryId, createdAt };
+}
+
+function catalogueReader() {
+  const reader = baseReader();
+  reader.matchKnowledge = async (literal) => {
+    reader.calls.push("match");
+    expect(literal.split(",")).toHaveLength(768);
+    return {
+      ok: true,
+      matches: [
+        {
+          id: "chunk-1",
+          sourceType: "course",
+          title: "Algebra",
+          body: "Numbers",
+          courseId,
+          similarity: 0.9,
+        },
+      ],
+    };
+  };
+  return reader;
+}
+
+function searchReply() {
+  return modelReply({ type: "tool", name: "search_catalogue", arguments: { query: "algebra" } });
+}
+
+function answerReply() {
+  return modelReply({
+    type: "answer",
+    text: "Algebra matches.",
+    courses: [{ id: courseId, title: "Algebra" }],
+  });
+}
+
+function embedResponse() {
+  return new Response(JSON.stringify({ embeddings: [Array.from({ length: 768 }, () => 0.5)] }), {
+    status: 200,
+  });
+}
+
+function wait(ms: number, signal?: AbortSignal | null) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(abortError());
+      return;
+    }
+    const timer = setTimeout(resolve, ms);
+    signal?.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        reject(abortError());
+      },
+      { once: true },
+    );
+  });
+}
+
+function waitForAbort(signal?: AbortSignal | null): Promise<Response> {
+  return new Promise((_resolve, reject) => {
+    if (signal?.aborted) {
+      reject(abortError());
+      return;
+    }
+    signal?.addEventListener("abort", () => reject(abortError()), { once: true });
+  });
+}
+
+function abortError() {
+  const error = new Error("The operation was aborted.");
+  error.name = "AbortError";
+  return error;
 }
 
 function sequential(responses: Response[]): typeof fetch {

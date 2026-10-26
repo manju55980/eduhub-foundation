@@ -2,7 +2,7 @@
 
 Specifies the matching, extreme, and noisy retrieval report for `rag_chunks`. The corpus, embeddings, and `match_knowledge` stay in `student-rag-corpus.md`. This report is the Assessment 2 retrieval evidence. It is not the admin Reports screen, and it does not add dashboard counts or charts.
 
-This feature adds no table, column, policy, screen, or migration. `scripts/fixtures/rag-queries.json` and `scripts/rag-evaluation.ts` wrote `docs/assessment-2/rag-evaluation.md` for the 676 embedded chunks stored on 21 October 2026. That corpus does not meet the 5,000 FAQ requirement. See `assessment-2-gap.md`.
+This feature adds no table, column, policy, screen, or migration. `scripts/fixtures/rag-queries.json` and `scripts/rag-evaluation.ts` wrote `docs/assessment-2/rag-evaluation.md` for the 5,040 embedded chunks stored on 26 October 2026. That corpus meets the 5,000 FAQ requirement. See `assessment-2-gap.md`.
 
 ## Query sets
 
@@ -18,7 +18,7 @@ Every noisy row pairs with one matching row. Expected keys for matching and nois
 
 ## How retrieval is scored
 
-The script `scripts/rag-evaluation.ts` embeds each query with `gemini-embedding-001` at 768 dimensions, L2-normalized, task type `RETRIEVAL_QUERY`, as specified in `student-rag-corpus.md`, and calls `match_knowledge`. It uses the catalogue visibility from `student-rag-corpus.md`: FAQ chunks and published course chunks. It does not score draft chunks or lesson chunks. It does not use the service-role client to bypass RLS. `GEMINI_API_KEY` comes from the environment, not from a `VITE_` name, and is not printed.
+The script `scripts/rag-evaluation.ts` embeds each query with `nomic-embed-text` at 768 dimensions, L2-normalized, with the `search_query:` prefix, as specified in `student-rag-corpus.md`, and calls `match_knowledge`. It uses the catalogue visibility from `student-rag-corpus.md`: FAQ chunks and published course chunks. It does not score draft chunks or lesson chunks. It does not use the service-role client to bypass RLS. `OLLAMA_HOST` comes from the environment, not from a `VITE_` name, and is not printed.
 
 `match_knowledge` may return up to 10 rows. The metrics use the first 5.
 
@@ -45,7 +45,7 @@ The script writes `docs/assessment-2/rag-evaluation.md`. The report has one tabl
 
 Hit@5 and MRR@5 stay blank for the out-of-corpus row. The report states the extreme rejection rate under the table, at cosine 0.75, with that set’s mean top-1 cosine. The report also states the noise delta as a fraction. A positive delta means the clean set hit more often than the noisy set.
 
-The report names `gemini-embedding-001`, 768 dimensions, and cosine distance. It does not include chunk bodies or the API key. The Dev Control Tower screenshot is taken from this table.
+The report names `nomic-embed-text`, 768 dimensions, and cosine distance. It does not include chunk bodies or the Ollama host. The 26 October scores are matching Hit@5 1.000, noisy Hit@5 0.867, extreme keyed Hit@5 0.133, and extreme rejection at cosine 0.75 of 1.000. The 0.75 cutoff stays because the out-of-corpus mean top-1 cosine is 0.493. The scored corpus is 5,040 chunks: 5,000 FAQ, 9 course, and 31 lesson. Those queries were embedded locally. Deployed `search_catalogue` depends on the temporary Cloudflare tunnel recorded in `student-rag-corpus.md`. A Dev Control Tower screenshot of this table has not been filed.
 
 ## Tests
 

@@ -1,5 +1,11 @@
-import { embedTextsWithRetry } from "./embeddings.ts";
-import { failedAiMessage, missingAiMessage } from "./gemini.ts";
+import { hashBody, type CachedEmbedding } from "./embedding-cache.ts";
+import {
+  defaultOllamaHost,
+  embedTextsWithOllama,
+  l2Normalize,
+  ollamaHostFromEnv,
+} from "./embeddings.ts";
+import { failedAiMessage } from "./gemini.ts";
 import {
   courseChunk,
   faqChunks,
@@ -53,12 +59,11 @@ export type SeedRunOptions = {
 export function readSeedEnv(env: Record<string, string | undefined>) {
   const url = env.SUPABASE_URL?.trim() || env.VITE_SUPABASE_URL?.trim() || "";
   const key = env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
-  const gemini = env.GEMINI_API_KEY?.trim() ?? "";
-  if (!gemini) return { ok: false as const, message: missingAiMessage };
+  const ollamaHost = ollamaHostFromEnv(env);
   if (!url || !isServiceRoleKey(key)) {
     return { ok: false as const, message: "The service role key is required." };
   }
-  return { ok: true as const, url, key, gemini };
+  return { ok: true as const, url, key, ollamaHost };
 }
 
 export function readSeedRunOptions(env: Record<string, string | undefined>) {
@@ -67,6 +72,8 @@ export function readSeedRunOptions(env: Record<string, string | undefined>) {
     delayMs: boundedInt(env.RAG_EMBED_DELAY_MS, defaultDelayMs, 0, seedDelayLimitMs),
     maxAttempts: boundedInt(env.RAG_EMBED_MAX_ATTEMPTS, defaultMaxAttempts, 1, 6),
     recordLimit: boundedInt(env.RAG_EMBED_RECORD_LIMIT, defaultRecordLimit, 1, recordLimitMax),
+    replaceExisting: env.RAG_EMBED_REPLACE_ALL === "true" || env.RAG_EMBED_REPLACE_ALL === "1",
+    writeChunks: env.RAG_EMBED_WRITE !== "false",
   };
 }
 
@@ -89,13 +96,18 @@ export async function loadStoredChunks(
 }
 
 export async function runRagSeed(options: {
-  geminiKey: string | undefined;
+  geminiKey?: string | undefined;
+  ollamaHost?: string;
   db: RagSeedDb;
   fetchImpl: typeof fetch;
   batchSize?: number;
   delayMs?: number;
   maxAttempts?: number;
   recordLimit?: number;
+  replaceExisting?: boolean;
+  writeChunks?: boolean;
+  cache?: Map<string, CachedEmbedding>;
+  onCache?: (row: CachedEmbedding) => void;
   sleep?: (ms: number) => Promise<void>;
 }) {
   const courses = await options.db.courses();
@@ -106,53 +118,53 @@ export async function runRagSeed(options: {
   if (!stored.ok) return stored;
 
   const next = [...courses.rows.map(courseChunk), ...lessons.rows.map(lessonChunk), ...faqChunks()];
-  const pending = planChunkWrites(
-    stored.rows.map((row) => ({
-      sourceType: "faq" as const,
-      sourceKey: row.sourceKey,
-      courseId: null,
-      lessonId: null,
-      title: row.title ?? "",
-      body: row.body,
-    })),
-    next,
-  );
+  const pending = options.replaceExisting
+    ? next
+    : planChunkWrites(
+        stored.rows.map((row) => ({
+          sourceType: "faq" as const,
+          sourceKey: row.sourceKey,
+          courseId: null,
+          lessonId: null,
+          title: row.title ?? "",
+          body: row.body,
+        })),
+        next,
+      );
   const batchSize = boundedInt(options.batchSize, defaultBatchSize, 1, seedBatchLimit);
   const delayMs = boundedInt(options.delayMs, 0, 0, seedDelayLimitMs);
   const maxAttempts = boundedInt(options.maxAttempts, defaultMaxAttempts, 1, 6);
   const sleep = options.sleep ?? delay;
+  const writeChunks = options.writeChunks !== false;
+  const cache = options.cache;
 
   let embedded = 0;
   const unchanged = next.length - pending.length;
   const queue = selectSeedQueue(pending, unchanged, options.recordLimit);
+  const hashes = new Map<string, string>();
+  for (const chunk of queue) hashes.set(chunk.sourceKey, await hashBody(chunk.body));
+  let previousFetched = false;
   for (let index = 0; index < queue.length; index += batchSize) {
-    if (index > 0 && delayMs > 0) await sleep(delayMs);
+    if (index > 0 && delayMs > 0 && previousFetched) await sleep(delayMs);
     const batch = queue.slice(index, index + batchSize);
-    const vectors = await embedTextsWithRetry(
-      {
-        apiKey: options.geminiKey,
-        texts: batch.map((chunk) => chunk.body),
-        taskType: "RETRIEVAL_DOCUMENT",
-        maxAttempts,
-        baseDelayMs: delayMs,
-        sleep,
-      },
-      options.fetchImpl,
-    );
-    if (!vectors.ok) {
-      return { ok: false as const, message: vectors.message, embedded, unchanged };
-    }
-    const rows = batch.map((chunk, offset) => {
-      const embedding = vectors.vectors[offset];
-      if (!embedding) return null;
-      return { ...chunk, embedding };
+    const resolved = await resolveBatch(batch, hashes, {
+      cache,
+      onCache: options.onCache,
+      ollamaHost: options.ollamaHost ?? defaultOllamaHost,
+      maxAttempts,
+      delayMs,
+      sleep,
+      fetchImpl: options.fetchImpl,
     });
-    if (rows.some((row) => !row)) {
-      return { ok: false as const, message: failedAiMessage, embedded, unchanged };
+    previousFetched = resolved.fetched;
+    if (!resolved.ok) {
+      return { ok: false as const, message: resolved.message, embedded, unchanged };
     }
-    const written = await options.db.upsert(
-      rows.filter((row): row is RagChunkDraft & { embedding: number[] } => Boolean(row)),
-    );
+    if (!writeChunks) {
+      embedded += batch.length;
+      continue;
+    }
+    const written = await options.db.upsert(resolved.rows);
     if (!written.ok) return { ...written, embedded, unchanged };
     embedded += batch.length;
   }
@@ -164,6 +176,83 @@ export async function runRagSeed(options: {
     embedded,
     unchanged,
   };
+}
+
+async function resolveBatch(
+  batch: RagChunkDraft[],
+  hashes: Map<string, string>,
+  options: {
+    cache: Map<string, CachedEmbedding> | undefined;
+    onCache: ((row: CachedEmbedding) => void) | undefined;
+    ollamaHost: string;
+    maxAttempts: number;
+    delayMs: number;
+    sleep: (ms: number) => Promise<void>;
+    fetchImpl: typeof fetch;
+  },
+): Promise<
+  | { ok: true; rows: Array<RagChunkDraft & { embedding: number[] }>; fetched: boolean }
+  | { ok: false; message: string; fetched: boolean }
+> {
+  const resolved: Array<number[] | null> = batch.map(() => null);
+  const missing: RagChunkDraft[] = [];
+  const missingAt: number[] = [];
+  for (let offset = 0; offset < batch.length; offset += 1) {
+    const chunk = batch[offset];
+    if (!chunk) continue;
+    const bodyHash = hashes.get(chunk.sourceKey) ?? "";
+    const cached = options.cache?.get(chunk.sourceKey);
+    if (cached && cached.bodyHash === bodyHash) {
+      const normalized = l2Normalize(cached.embedding);
+      if (normalized.ok) {
+        resolved[offset] = normalized.values;
+        continue;
+      }
+    }
+    missing.push(chunk);
+    missingAt.push(offset);
+  }
+
+  if (missing.length > 0) {
+    const vectors = await embedTextsWithOllama(
+      {
+        host: options.ollamaHost,
+        texts: missing.map((chunk) => chunk.body),
+        taskType: "RETRIEVAL_DOCUMENT",
+        maxAttempts: options.maxAttempts,
+        baseDelayMs: options.delayMs,
+        sleep: options.sleep,
+      },
+      options.fetchImpl,
+    );
+    if (!vectors.ok) return { ok: false, message: vectors.message, fetched: true };
+    for (let index = 0; index < missing.length; index += 1) {
+      const chunk = missing[index];
+      const embedding = vectors.vectors[index];
+      const at = missingAt[index];
+      if (!chunk || !embedding || at === undefined) {
+        return { ok: false, message: failedAiMessage, fetched: true };
+      }
+      resolved[at] = embedding;
+      const row = {
+        sourceKey: chunk.sourceKey,
+        bodyHash: hashes.get(chunk.sourceKey) ?? "",
+        embedding,
+      };
+      options.cache?.set(chunk.sourceKey, row);
+      options.onCache?.(row);
+    }
+  }
+
+  const rows: Array<RagChunkDraft & { embedding: number[] }> = [];
+  for (let offset = 0; offset < batch.length; offset += 1) {
+    const chunk = batch[offset];
+    const embedding = resolved[offset];
+    if (!chunk || !embedding)
+      return { ok: false, message: failedAiMessage, fetched: missing.length > 0 };
+    rows.push({ ...chunk, embedding });
+  }
+  return { ok: true, rows, fetched: missing.length > 0 };
 }
 
 function selectSeedQueue<T extends { sourceType: string }>(
