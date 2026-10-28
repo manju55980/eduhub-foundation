@@ -71,7 +71,7 @@ Extreme rejection at cosine 0.75 is 1.000: all 15 out-of-corpus queries had a to
 
 `scripts/level-accuracy.ts` predicts `beginner`, `intermediate`, or `advanced` with `gemini-3.5-flash-lite`. The labelled file uses a seed-42 split of 160 train rows and 40 test rows. The evidence is [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md).
 
-On 21 October 2026 the script resumed 16 saved predictions, classified 16 more, then Gemini returned a plan quota error and stopped. Those first 16 predictions are unchanged. Accuracy on the 32 classified rows is 1.000. Coverage is 0.800. One call is an infrastructure error, and 7 held-out rows were not called. The 0.70 target is not met, because the classified count is not the full test count. The confusion matrix is 13 beginner, 10 intermediate, and 9 advanced, all on the diagonal.
+On 28 October 2026 the script resumed the saved predictions and classified the rows left uncalled by the 21 October plan-quota stop. The earlier predictions are unchanged. Accuracy on all 40 held-out rows is 1.000. Coverage is 1.000. Classification errors, infrastructure errors, rows not attempted, and invalid replies are 0. The confusion matrix is 16 beginner, 12 intermediate, and 12 advanced, all on the diagonal.
 
 ### Submission checklist
 
@@ -79,7 +79,7 @@ On 21 October 2026 the script resumed 16 saved predictions, classified 16 more, 
 | --- | --- |
 | Agent, both workflows, RAG design, and test commands | This section |
 | Retrieval quality | [docs/assessment-2/rag-evaluation.md](docs/assessment-2/rag-evaluation.md), scored on 5,040 chunks (5,000 FAQ) before exact ordering. Deployed search depends on a temporary Cloudflare tunnel. `supabase/migrations/20261027004700_match_knowledge_exact_search.sql` was applied manually. Catalogue search was not repeated after that apply. |
-| Accuracy evidence and model | [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md), `gemini-3.5-flash-lite`. 32 of 40 held-out rows classified. Coverage 0.800. The 0.70 target is not met. |
+| Accuracy evidence and model | [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md), `gemini-3.5-flash-lite`. 40 of 40 held-out rows classified. Coverage 1.000. Accuracy 1.000. A metrics screenshot is not in this repository. |
 | Assignment reminders | Both automations work. Course completion is verified against the linked database. The hourly reminder schedule is confirmed. In-memory tests cover stages, dedupe, and the bearer. An earlier local POST with no bearer returned 500 and did not run the job. |
 | Unit and happy-path commands | `npm test` and `npm run test:e2e` |
 | Live URL | `https://eduhub-foundation.vercel.app/` returned HTTP 200 on 19 October 2026. The page title is the EduHub landing title. Role-by-role checks on that URL were not run. |
