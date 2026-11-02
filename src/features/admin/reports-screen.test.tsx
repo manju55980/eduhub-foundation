@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { listAllEnrollments } from "./enrollments-api";
@@ -6,6 +7,21 @@ import { ReportsScreen } from "./reports-screen";
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
+  Link: ({
+    children,
+    to,
+    params,
+    search,
+  }: {
+    children?: ReactNode;
+    to: string;
+    params?: { courseId?: string };
+    search?: { from?: string };
+  }) => (
+    <a href={`${to.replace("$courseId", params?.courseId ?? "")}${search?.from ? `?from=${search.from}` : ""}`}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock("./enrollments-api", () => ({
@@ -69,11 +85,14 @@ describe("ReportsScreen", () => {
     expect(view.getByText("Student")).toBeInTheDocument();
     expect(view.getByText("Archived")).toBeInTheDocument();
     expect(view.getByText("Active")).toBeInTheDocument();
-    expect(screen.queryByRole("columnheader", { name: "Progress" })).not.toBeInTheDocument();
-    expect(view.queryByText("40%")).not.toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Enrolled" })).toBeInTheDocument();
+    expect(view.getByText("40%")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Progress" })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Enrolled" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Older" })).toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(view.getByRole("link", { name: "Newest" })).toHaveAttribute(
+      "href",
+      "/admin/courses/course-1?from=reports",
+    );
   });
 
   it("shows a blank course title when the title is missing", async () => {

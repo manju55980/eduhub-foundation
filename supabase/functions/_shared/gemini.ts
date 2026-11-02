@@ -1,3 +1,5 @@
+import { redactPii } from "./guardrails.ts";
+
 export const geminiModel = "gemini-3.5-flash-lite";
 export const missingAiMessage = "AI is not configured.";
 export const failedAiMessage = "The AI request failed.";
@@ -24,6 +26,7 @@ export function sanitizeAiDetail(value: string, redactions: string[] = []) {
     .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
     .replace(/([?&]key=)[^&\s]+/gi, "$1[redacted]")
     .replace(/sb_secret_[A-Za-z0-9_-]+/g, "[redacted]");
+  detail = redactPii(detail);
   return detail.replace(/\s+/g, " ").trim().slice(0, detailLimit);
 }
 

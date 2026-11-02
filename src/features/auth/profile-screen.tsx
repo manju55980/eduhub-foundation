@@ -114,7 +114,11 @@ export function ProfileEditor({
       {loading ? <LoadingState message="Loading profile…" /> : null}
       {!loading && !loadError ? (
         <form
-          className={framed ? "space-y-4 rounded-sm border border-border bg-card p-4 shadow-none" : "space-y-4"}
+          className={
+            framed
+              ? "space-y-4 rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none"
+              : "space-y-4"
+          }
           onSubmit={handleSubmit}
         >
           <Field id="profile-name" label="Name">

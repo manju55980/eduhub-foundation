@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { pageFrameClass } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordList, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "@/features/instructor/save-notice";
-import { CourseListing } from "@/features/courses/course-listing";
+import { CourseCard } from "@/features/courses/course-card";
 
 import { archiveCourse, listPublishedCourses, type PublishedCourse } from "./archive-courses-api";
 
@@ -43,7 +43,7 @@ export function ArchiveCoursesScreen() {
   }, []);
 
   return (
-    <section className={pageFrameClass}>
+    <PageSection>
       <PageHeader
         title="Archive Courses"
         backTo="/admin/courses"
@@ -60,8 +60,9 @@ export function ArchiveCoursesScreen() {
       {!loading && !loadError && courses.length === 0 ? (
         <EmptyState message="No published courses are available to archive." />
       ) : null}
-      {!loading && !loadError
-        ? courses.map((course) => (
+      {!loading && !loadError && courses.length > 0 ? (
+        <RecordList className={recordGridClass}>
+          {courses.map((course) => (
             <PublishedCourseCard
               key={course.id}
               course={course}
@@ -70,9 +71,10 @@ export function ArchiveCoursesScreen() {
                 setCourses((current) => current.filter((item) => item.id !== course.id))
               }
             />
-          ))
-        : null}
-    </section>
+          ))}
+        </RecordList>
+      ) : null}
+    </PageSection>
   );
 }
 
@@ -102,35 +104,33 @@ function PublishedCourseCard({
     onNotice({ saved: true, message: "This course was archived." });
   }
 
+  function archiveAction() {
+    return (
+      <Button type="button" disabled={pending} onClick={handleArchive}>
+        {pending ? "Archiving…" : "Archive"}
+      </Button>
+    );
+  }
+
   return (
-    <CourseListing
+    <CourseCard
       role="admin"
       from="archive"
       courseId={course.id}
       title={course.title ?? ""}
       badge={<StatusBadge value="published" />}
-      actions={
-        <Button type="button" disabled={pending} onClick={handleArchive}>
-          {pending ? "Archiving…" : "Archive"}
-        </Button>
-      }
+      description={course.description}
+      level={course.level}
+      instructorName={course.instructorName}
+      actions={archiveAction()}
+      previewActions={archiveAction()}
     >
-      <p className="line-clamp-2 text-sm text-muted-foreground">{course.description ?? ""}</p>
-      <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      <MetaList stacked>
         <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
         <MetaItem label="Instructor" value={course.instructorName ?? ""} />
         <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
-      </dl>
-    </CourseListing>
-  );
-}
-
-function MetaItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-      <dd className="whitespace-pre-wrap text-foreground">{value}</dd>
-    </div>
+      </MetaList>
+    </CourseCard>
   );
 }
 

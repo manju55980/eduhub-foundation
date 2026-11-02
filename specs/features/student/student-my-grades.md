@@ -31,7 +31,7 @@ Read with the signed-in browser client from `@/integrations/supabase/client`. Th
 
 List this student’s submissions whose `status` is `graded`. Then read each submission’s assignment `title`, `description`, and `due_date`, and that assignment’s course `title`.
 
-Order by the submission `created_at` descending. Do not add search, filters, pagination, or another student’s submission. Do not add a second view for ungraded work.
+Order by the submission `created_at` descending. A client-side search matches the loaded assignment title or course title. It does not add a query. Do not add other filters, pagination, or another student’s submission. Do not add a second view for ungraded work.
 
 If the submission query, assignment query, or course query fails, show that error and do not show cards. An empty graded list is an empty state, not sample grades. Link that empty state to `/student/assignments`. The link label is “Assignments”.
 
@@ -49,7 +49,7 @@ This screen does not insert, update, or delete a submission, assignment, course,
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader` and white bordered cards. Do not add a form.
+Follow the visual direction in `product.md`. Use `PageHeader` and the shared card surface. Do not add a form.
 
 - **Loading.** The list is not shown yet. Do not show sample grades.
 - **Ready.** The list shows the loaded graded submissions, or the empty state.
@@ -70,7 +70,7 @@ RLS is the data boundary. A hidden control is not enough. Do not hand-edit `src/
 - Listing a `submitted` row that has no grade yet.
 - Enrollment, lessons, and course status changes.
 - Instructor and admin screens, including an admin grade list.
-- Categories, dashboards, reports, and the animated progress tracker.
+- Categories, dashboards, and reports. The learning-page progress summary is specified in `student-lesson-completion.md`.
 
 ## Acceptance criteria
 

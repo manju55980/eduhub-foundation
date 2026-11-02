@@ -40,7 +40,7 @@ export function ProfileMenu({
             type="button"
             variant="outline"
             size="icon"
-            className="size-8 shrink-0 rounded-sm shadow-none"
+            className="size-8 shrink-0"
             aria-label="Open profile"
           >
             {initials ? (
@@ -50,7 +50,7 @@ export function ProfileMenu({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-64 space-y-2 rounded-sm p-3 shadow-none">
+        <PopoverContent align="start" className="w-64 space-y-2 p-3">
           <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{name}</p>
           {email ? (
             <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">{email}</p>
@@ -70,7 +70,7 @@ export function ProfileMenu({
         </PopoverContent>
       </Popover>
       <Dialog open={editing} onOpenChange={setEditing}>
-        <DialogContent className="max-h-[calc(100vh-2rem)] max-w-md overflow-y-auto rounded-sm shadow-none sm:rounded-sm">
+        <DialogContent className="max-h-[calc(100vh-2rem)] max-w-md overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit profile</DialogTitle>
             <DialogDescription>Update your name, email, and phone.</DialogDescription>

@@ -36,14 +36,17 @@ describe("CourseLessonsScreen", () => {
 
     expect(await screen.findByText("This course is not available.")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "My Courses (including lessons)" }),
+      screen.getByRole("link", { name: "My Courses" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save lesson" })).not.toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
   });
 
   it("requires title and content and does not collect lesson order", async () => {
-    getCourse.mockResolvedValue({ ok: true, course: { id: "course-1", title: "Intro to React" } });
+    getCourse.mockResolvedValue({
+      ok: true,
+      course: { id: "course-1", title: "Intro to React", status: "draft" },
+    });
     listLessons.mockResolvedValue({
       ok: true,
       lessons: [
@@ -64,6 +67,10 @@ describe("CourseLessonsScreen", () => {
     expect(screen.getByRole("heading", { name: "Welcome" })).toBeInTheDocument();
     expect(screen.getByText("Start here.")).toBeInTheDocument();
     expect(screen.getByText("Order 1")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Welcome" }).closest("article")?.parentElement).toHaveClass(
+      "grid",
+      "lg:grid-cols-2",
+    );
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
 
@@ -78,5 +85,33 @@ describe("CourseLessonsScreen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+  });
+
+  it("lists a submitted course without a lesson form", async () => {
+    getCourse.mockResolvedValue({
+      ok: true,
+      course: { id: "course-1", title: "Intro to React", status: "pending" },
+    });
+    listLessons.mockResolvedValue({
+      ok: true,
+      lessons: [
+        {
+          id: "lesson-1",
+          title: "Welcome",
+          content: "Start here.",
+          videoUrl: null,
+          orderIndex: 1,
+          createdAt: "2026-10-10T00:00:00.000Z",
+        },
+      ],
+    });
+
+    render(<CourseLessonsScreen courseId="course-1" />);
+
+    expect(await screen.findByRole("heading", { name: "Welcome" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save lesson" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    expect(create).not.toHaveBeenCalled();
+    expect(update).not.toHaveBeenCalled();
   });
 });

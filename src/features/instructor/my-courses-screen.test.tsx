@@ -65,7 +65,7 @@ describe("MyCoursesScreen", () => {
     render(<MyCoursesScreen />);
 
     expect(
-      await screen.findByRole("heading", { name: "My Courses (including lessons)" }),
+      await screen.findByRole("heading", { name: "My Courses" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Create Course" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Submit for approval" })).not.toBeInTheDocument();
@@ -86,6 +86,10 @@ describe("MyCoursesScreen", () => {
     expect(screen.getByRole("link", { name: "Assignments" })).toHaveAttribute(
       "href",
       "/instructor/courses/course-1/assignments",
+    );
+    expect(screen.getByRole("link", { name: "Materials" })).toHaveAttribute(
+      "href",
+      "/instructor/courses/course-1/materials",
     );
     expect(screen.queryByRole("button", { name: "Submit for approval" })).not.toBeInTheDocument();
     expect(submitCourse).not.toHaveBeenCalled();
@@ -174,6 +178,7 @@ describe("MyCoursesScreen", () => {
     render(<MyCoursesScreen />);
 
     expect(await screen.findByRole("heading", { name: "Intro to React" })).toBeInTheDocument();
+    expect(screen.getByText("Basics")).toHaveClass("line-clamp-2");
     expect(screen.getByText("Published")).toBeInTheDocument();
     expect(screen.getByText("Science")).toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: "Category" })).not.toBeInTheDocument();
@@ -184,6 +189,10 @@ describe("MyCoursesScreen", () => {
     expect(screen.getByRole("link", { name: "Assignments" })).toHaveAttribute(
       "href",
       "/instructor/courses/course-1/assignments",
+    );
+    expect(screen.getByRole("link", { name: "Materials" })).toHaveAttribute(
+      "href",
+      "/instructor/courses/course-1/materials",
     );
   });
 });

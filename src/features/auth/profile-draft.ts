@@ -37,7 +37,7 @@ export function profileInitials(fullName: string, email: string) {
   if (parts.length > 1) {
     return `${parts[0]?.[0] ?? ""}${parts[parts.length - 1]?.[0] ?? ""}`.toUpperCase();
   }
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  if (parts.length === 1) return (parts[0] ?? "").slice(0, 2).toUpperCase();
   const mail = email.trim();
   return mail ? mail.slice(0, 2).toUpperCase() : "";
 }

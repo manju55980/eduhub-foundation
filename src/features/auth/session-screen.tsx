@@ -37,7 +37,7 @@ export function ProfileError({ message }: { message: string }) {
 function SessionFrame({ title, children }: { title: string; children: ReactNode }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <section className="w-full max-w-md space-y-4 rounded-sm border bg-card p-4 text-card-foreground shadow-none">
+      <section className="w-full max-w-md space-y-4 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none">
         <h1 className="text-xl font-semibold text-foreground">{title}</h1>
         {children}
       </section>

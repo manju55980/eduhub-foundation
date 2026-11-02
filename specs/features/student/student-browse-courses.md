@@ -21,11 +21,11 @@ A signed-in student sees published courses. `courses_select` also returns a cour
 
 Read courses and the student’s own enrollments with the signed-in browser client from `@/integrations/supabase/client`. The route stays thin. The query lives in `features/student/`. Do not use the service-role client.
 
-Order courses by `created_at` descending. A category filter is specified in `../admin/admin-manage-categories.md`. Do not add text search, other filters, pagination, or a count of other students.
+Order courses by `created_at` descending. A category filter is specified in `../admin/admin-manage-categories.md`. A client-side search matches the loaded course title. It does not add a query. Do not add other filters, pagination, or a count of other students.
 
 If the course query or the enrollment query fails, show that error and do not offer Enroll or Open course. An empty catalogue is an empty state, not sample courses.
 
-A course the student has not joined has Enroll and does not have Open course. A course the student has already joined has Open course and does not have Enroll. Open course goes to `/student/my-courses/$courseId`.
+A course the student has not joined has Enroll and does not have Open course. A course the student has already joined has Open course and does not have Enroll. Open course goes to `/student/my-courses/$courseId` with `from=browse`.
 
 ## Enrollment
 
@@ -48,7 +48,15 @@ Enroll does not create a lesson, assignment, or submission, and it does not chan
 
 ## Learning view
 
-`/student/my-courses/$courseId` loads that course with the signed-in client. The heading is the course title when one is stored, otherwise “Lessons”. The back link goes to `/student/courses` and its label is “Browse Courses”.
+`/student/my-courses/$courseId` loads that course with the signed-in client. The heading is the course title when one is stored, otherwise “Lessons”. The back link follows the `from` search param:
+
+| `from` | Label | Path |
+| --- | --- | --- |
+| `browse`, missing, or any other value | Browse Courses | `/student/courses` |
+| `my-courses` | My Courses | `/student/my-courses` |
+| `assistant` | Learning Assistant | `/student/assistant` |
+
+Browse Courses sets `from=browse`. My Courses sets `from=my-courses`. Course details copies its own `from`, and sends `browse` when that page has none. The progress summary is specified in `student-lesson-completion.md`.
 
 If the course row is not returned, show that it is not available. Do not list lessons.
 
@@ -57,11 +65,13 @@ If the course row is not returned, show that it is not available. Do not list le
 - **Not enrolled.** Do not read or show lessons, including when the course is published. Do not offer Enroll here. Enrollment stays on Browse Courses.
 - **Enrolled.** List that course’s lessons with no sample rows. Order by `order_index` ascending, nulls last, then `created_at` ascending. Show each lesson’s stored `title` and `content`. A null title or content is shown blank. Show `video_url` only when the stored value is an absolute `http` or `https` URL, as a plain-text link that opens in a new tab. A blank or other value is omitted. An enrolled course with no lessons is an empty lesson list, not sample lessons.
 
-The learning view does not create, edit, delete, or reorder lessons, and it does not change course status. Students who already enrolled can open an archived course here, because `courses_select` still returns it and lesson select still allows an enrolled student. The catalogue does not list that archived course. Marking a lesson complete is specified in `student-lesson-completion.md`. This screen does not write `enrollments.progress` itself.
+The learning view lists that course’s materials under the lessons: stored file name, MIME type, and size, with Download. Download uses the signed URL in `../instructor/instructor-course-materials.md`. A student who is not enrolled does not see the files. There is no upload. The catalogue details page before enrollment does not list files.
+
+The learning view does not create, edit, delete, or reorder lessons, and it does not change course status. Students who already enrolled can open an archived course here, because `courses_select` still returns it and lesson select still allows an enrolled student. Materials follow that same enrolled read. The catalogue does not list that archived course. Marking a lesson complete is specified in `student-lesson-completion.md`. This screen does not write `enrollments.progress` itself.
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader`, white bordered cards, and the existing button primitives.
+Follow the visual direction in `product.md`. Use `PageHeader`, the shared card surface, and the existing button primitives.
 
 - **Ready.** The catalogue shows the loaded published courses, or the empty state. A course the student has not joined has Enroll. A course the student has joined has Open course. The learning view shows the enrolled course’s lessons, or an empty lesson list.
 - **Submitting.** The Enroll control that was used does not send a second insert.
@@ -93,9 +103,9 @@ RLS is the data boundary. A hidden control is not enough. Do not hand-edit `src/
 - The empty catalogue has no sample courses and no Enroll or Open course control.
 - Enroll inserts one row for the signed-in student and that course, with progress `0` and status `active`. It does not send `id` or `created_at`.
 - A course the student has not joined offers Enroll and does not offer Open course.
-- A course the student has already joined offers Open course and does not offer Enroll. Open course goes to `/student/my-courses/$courseId`.
+- A course the student has already joined offers Open course and does not offer Enroll. Open course goes to `/student/my-courses/$courseId` with `from=browse`. The learning view’s back link then returns to Browse Courses.
 - After a successful enroll, the screen stays on Browse Courses, the banner can be dismissed, and that card offers Open course.
-- The learning view lists lessons only when the student is enrolled, in `order_index` order with nulls last, then `created_at`. It does not show lessons before enrollment. A valid `http` or `https` video URL is a plain-text link opened in a new tab. Any other video URL is omitted. Lesson content stays text.
+- The learning view lists lessons only when the student is enrolled, in `order_index` order with nulls last, then `created_at`. It does not show lessons before enrollment. A valid `http` or `https` video URL is a plain-text link opened in a new tab. Any other video URL is omitted. Lesson content stays text. Enrolled students can download that course’s materials. The list before enrollment does not show those files.
 - A missing course, or a course the student has not joined, shows no lesson list. An enrolled course with no lessons shows an empty list and no sample lessons.
 - There is no unenroll control and no lesson editing. Enroll does not create a lesson, assignment, or submission.
 - An instructor or admin does not get these screens.

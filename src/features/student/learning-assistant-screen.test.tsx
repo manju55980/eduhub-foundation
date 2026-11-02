@@ -6,7 +6,19 @@ import { LearningAssistantScreen } from "./learning-assistant-screen";
 import { askLearningAssistant } from "./learning-assistant-api";
 
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children }: { children?: ReactNode }) => <a href="#">{children}</a>,
+  Link: ({
+    children,
+    search,
+    className,
+  }: {
+    children?: ReactNode;
+    search?: { from?: string };
+    className?: string;
+  }) => (
+    <a href={search?.from ? `?from=${search.from}` : "#"} className={className}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock("./learning-assistant-api", () => ({
@@ -46,7 +58,8 @@ describe("LearningAssistantScreen", () => {
 
     expect(await screen.findByText(/Algebra is a fit./)).toBeInTheDocument();
     expect(screen.getByText(/You are enrolled in this course\./)).toBeInTheDocument();
-    expect(screen.getByText("Algebra")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Algebra" })).toHaveAttribute("href", "?from=assistant");
+    expect(screen.getByRole("link", { name: "Algebra" }).className).toContain("hover:underline");
     expect(
       screen.queryByText(
         "Ask about a course, a recommendation, your grades, or the next course to take.",
@@ -66,7 +79,8 @@ describe("LearningAssistantScreen", () => {
     fireEvent.change(screen.getByLabelText(/Question/), { target: { value: "My grades" } });
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
 
-    expect(await screen.findByRole("button", { name: "Sending…" })).toBeDisabled();
+    expect(await screen.findByText("Sending…")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Send" })).not.toBeInTheDocument();
 
     finish({ ok: false, message: "The AI request failed." });
 

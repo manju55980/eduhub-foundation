@@ -35,7 +35,7 @@ Role is read-only text, “Student” on this screen. It is not an input.
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader` and one white bordered card. Do not add a second column. Reuse `SaveNotice`.
+Follow the visual direction in `product.md`. Use `PageHeader` and one shared card surface. Do not add a second column. Reuse `SaveNotice`.
 
 Name, email, and phone are not marked required. The schema does not require them.
 

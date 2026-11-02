@@ -4,7 +4,7 @@ import { DataCell, DataRow, DataTable } from "@/components/app-shell/data-table"
 import { ChoiceButton, FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { pageFrameClass } from "@/components/app-shell/record-card";
+import { PageSection } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "@/features/instructor/save-notice";
@@ -65,7 +65,7 @@ export function UsersScreen({ adminId }: { adminId: string }) {
   );
 
   return (
-    <section className={pageFrameClass}>
+    <PageSection>
       <PageHeader
         title="Manage Users"
         description="Search accounts and promote a student to instructor."
@@ -112,7 +112,7 @@ export function UsersScreen({ adminId }: { adminId: string }) {
           ))}
         </DataTable>
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 
@@ -139,7 +139,7 @@ function UserRow({
       <DataCell label="Created">{formatCreatedAt(user.createdAt)}</DataCell>
       <DataCell label="Action">
         {canPromote(adminId, user) ? (
-          <Button type="button" size="sm" disabled={pending} onClick={() => onPromote(user.id)}>
+          <Button type="button" disabled={pending} onClick={() => onPromote(user.id)}>
             {pending ? "Promoting…" : "Promote"}
           </Button>
         ) : null}

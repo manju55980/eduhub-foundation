@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 import { DataCell, DataRow, DataTable } from "@/components/app-shell/data-table";
 import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { pageFrameClass } from "@/components/app-shell/record-card";
+import { PageSection } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 
 import { listAllEnrollments } from "./enrollments-api";
 import type { AdminEnrollment } from "./enrollments";
 
-const columns = ["Course", "Student", "Status", "Enrollment", "Enrolled"];
+const columns = ["Course", "Student", "Progress", "Status"];
 
 export function ReportsScreen() {
   const [enrollments, setEnrollments] = useState<AdminEnrollment[]>([]);
@@ -41,7 +41,7 @@ export function ReportsScreen() {
   );
 
   return (
-    <section className={pageFrameClass}>
+    <PageSection>
       <PageHeader title="Reports" description="Every enrollment, newest first." />
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading reports…" /> : null}
@@ -66,7 +66,7 @@ export function ReportsScreen() {
           ))}
         </DataTable>
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 
@@ -90,28 +90,23 @@ function EnrollmentReportRow({ enrollment }: { enrollment: AdminEnrollment }) {
       }}
     >
       <DataCell label="Course" heading>
-        <button type="button" className="text-left font-medium" onClick={openCourse}>
+        <Link
+          to="/admin/courses/$courseId"
+          params={{ courseId: enrollment.courseId }}
+          search={{ from: "reports" }}
+          className="rounded-md font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
           {enrollment.title ?? ""}
-        </button>
+        </Link>
       </DataCell>
       <DataCell label="Student">{enrollment.studentName ?? ""}</DataCell>
+      <DataCell label="Progress">{`${enrollment.progress}%`}</DataCell>
       <DataCell label="Status">
-        {enrollment.courseStatus ? <StatusBadge value={enrollment.courseStatus} /> : null}
+        <span className="flex flex-wrap gap-1">
+          {enrollment.courseStatus ? <StatusBadge value={enrollment.courseStatus} /> : null}
+          <StatusBadge value={enrollment.enrollmentStatus} />
+        </span>
       </DataCell>
-      <DataCell label="Enrollment">
-        <StatusBadge value={enrollment.enrollmentStatus} />
-      </DataCell>
-      <DataCell label="Enrolled">{formatCreatedAt(enrollment.enrolledAt)}</DataCell>
     </DataRow>
   );
-}
-
-function formatCreatedAt(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date);
 }

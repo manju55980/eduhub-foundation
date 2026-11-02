@@ -27,8 +27,8 @@ export function AppHeader({
   const detail = [email, roleLabel[role]].filter(Boolean).join(" · ");
 
   return (
-    <header className="flex min-w-0 items-center gap-2 border-b bg-background px-3 py-3 print:hidden sm:gap-3 sm:px-4 md:px-6">
-      <SidebarTrigger className="md:hidden" />
+    <header className="flex min-w-0 items-center gap-2 border-b bg-background px-4 py-3 print:hidden sm:gap-3 md:px-6">
+      <SidebarTrigger variant="outline" className="size-9 md:hidden" />
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <ProfileMenu role={role} email={email} fullName={fullName} userId={userId} />
         <div className="min-w-0">

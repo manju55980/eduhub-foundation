@@ -7,6 +7,8 @@ import { SaveNotice } from "@/features/instructor/save-notice";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/app-shell/page-header";
+import { formColumnsClass, PageSection, panelClass, selectFieldClass } from "@/components/app-shell/record-card";
+import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 
 import { listCategories } from "@/features/categories/categories-api";
@@ -89,22 +91,27 @@ export function CreateCourseScreen({ instructorId }: { instructorId: string }) {
   }
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,42rem)_16rem]">
-      <div className="space-y-4">
-        <PageHeader
-          title="Create Course"
-          description="Share your knowledge and help learners grow. Save your course as a draft and continue editing later."
-          backTo="/instructor"
-          backLabel="Instructor Dashboard"
-        />
-
-        {loadError ? <ErrorState message={loadError} /> : null}
-        {loading ? <LoadingState message="Loading categories…" /> : null}
-        {!loading && !loadError ? (
-          <form
-            className="space-y-4 rounded-sm border border-border bg-card p-4 shadow-none"
-            onSubmit={handleSubmit}
-          >
+    <PageSection>
+      <PageHeader
+        title="Create Course"
+        description="Share your knowledge and help learners grow. Save your course as a draft and continue editing later."
+        backTo="/instructor"
+        backLabel="Instructor Dashboard"
+      />
+      <SaveNotice
+        tone="instructor"
+        saved={saved}
+        message={message}
+        onDismiss={() => {
+          setSaved(false);
+          setMessage("");
+        }}
+      />
+      {loadError ? <ErrorState message={loadError} /> : null}
+      {loading ? <LoadingState message="Loading categories…" /> : null}
+      {!loading && !loadError ? (
+        <div className={formColumnsClass}>
+          <form className={cn(panelClass, "space-y-4 p-4")} onSubmit={handleSubmit}>
             <Field id="course-title" label="Title" hint="This will be the name of your course.">
               <Input
                 id="course-title"
@@ -137,7 +144,7 @@ export function CreateCourseScreen({ instructorId }: { instructorId: string }) {
             >
               <select
                 id="course-level"
-                className="flex h-9 w-full min-w-0 max-w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className={selectFieldClass}
                 value={level}
                 disabled={pending}
                 onChange={(event) => setLevel(event.target.value)}
@@ -164,36 +171,31 @@ export function CreateCourseScreen({ instructorId }: { instructorId: string }) {
               {pending ? "Saving…" : "Save course"}
             </Button>
           </form>
-        ) : null}
-
-        <SaveNotice
-          tone="instructor"
-          saved={saved}
-          message={message}
-          onDismiss={() => {
-            setSaved(false);
-            setMessage("");
-          }}
-        />
-      </div>
-
-      <aside className="hidden lg:block">
-        <div className="space-y-3 rounded-sm border border-border bg-card p-4">
-          <div className="flex items-center gap-2 text-primary">
-            <BookOpen className="size-4" />
-            <GraduationCap className="size-4" />
-            <Sprout className="size-4" />
-          </div>
-          <h2 className="text-sm font-semibold text-foreground">
-            Create engaging learning experiences
-          </h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Your expertise can make a real difference. Create a course, share your knowledge, and
-            help learners reach their goals.
-          </p>
+          <CourseNote />
         </div>
-      </aside>
-    </div>
+      ) : (
+        <CourseNote />
+      )}
+    </PageSection>
+  );
+}
+
+function CourseNote() {
+  return (
+    <aside className={cn(panelClass, "space-y-3 p-4")}>
+      <div className="flex items-center gap-2 text-primary">
+        <BookOpen className="size-4" />
+        <GraduationCap className="size-4" />
+        <Sprout className="size-4" />
+      </div>
+      <h2 className="text-base font-medium text-foreground">
+        Create engaging learning experiences
+      </h2>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        Your expertise can make a real difference. Create a course, share your knowledge, and help
+        learners reach their goals.
+      </p>
+    </aside>
   );
 }
 

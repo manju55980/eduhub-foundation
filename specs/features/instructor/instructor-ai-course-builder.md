@@ -20,7 +20,7 @@ Generate calls `supabase.functions.invoke("ai-course-builder")` with the brief, 
 
 The instructor must choose a lesson count from 1 to 6 and an assignment count from 0 to 4 before Generate. Difficulty, learning goals, projects, and resource preferences are optional text. Difficulty is at most 120 characters. The other three are at most 500 characters. They are sent only as prompt guidance. They are not stored as columns.
 
-The Edge Function checks the caller’s JWT and `profiles.role`. Only `instructor` is allowed. It does not read other instructors’ courses, lessons, assignments, grades, or submissions, and it does not insert rows. The model is `gemini-3.5-flash-lite`.
+The Edge Function checks the caller’s JWT and `profiles.role`. Only `instructor` is allowed. It does not read other instructors’ courses, lessons, assignments, grades, or submissions, and it does not insert rows. The brief and the optional notes are redacted and wrapped before the prompt is sent, as specified in `../ai/ai-guardrails.md`. The tool allowlist is empty. The reply does not include a confidence field. The model is `gemini-3.5-flash-lite`.
 
 The model is asked for exactly that many lessons and assignments. Lessons are in teaching order, and each lesson’s content uses the headings Learning objectives, Explanation, Example, Practice, and Further reading. The preview has a title, a description of at most 2,000 characters, those lessons (`title`, `content`), and those assignments (`title`, `description`). Each lesson content is kept to at most 8,000 characters. The function drops any status, owner, due date, video URL, id, or `created_at` in the model reply. A model due date or video URL is ignored. If the reply has fewer valid lessons or assignments than requested, Generate fails and does not search for videos. Extra items beyond the requested counts are dropped.
 
@@ -70,7 +70,7 @@ Save does not set `pending`, publish, archive, enroll anyone, or grade anything.
 - The saved lesson count and assignment count match the edited preview. A reply with fewer lessons or assignments than requested does not insert and does not call YouTube.
 - A selected or pasted video URL is stored on `lessons.video_url`. A cleared video stores null. A model video URL is not stored.
 - Save creates one `draft` owned by that instructor, then its lessons and assignments, and does not set `pending`.
-- Each saved assignment has a `due_date` before the instructor submits the course. A date changed in the preview is the inserted value. A model due date is not stored. Saving does not update an assignment that already exists, so a date later edited on the assignments screen stays as the instructor saved it.
+- Each saved assignment has a `due_date` before the instructor submits the course. A date changed in the preview is the inserted value. A model due date is not stored. Saving does not update an assignment that already exists. While the course is still `draft`, a date later edited on the assignments screen stays as the instructor saved it. After submit, that date is frozen.
 - If a lesson or assignment insert fails, the screen shows the database error and that draft, with links to its lessons and assignments, and does not start another course insert.
 - Discard preview does not insert or delete.
 - A student or admin does not get this screen, and their token cannot use `ai-course-builder`.

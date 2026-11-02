@@ -2,10 +2,20 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { ollamaHostFromEnv } from "../supabase/functions/_shared/embeddings.ts";
 import {
   classifyHeldOut,
   formatAccuracy,
+  formatMetric,
+  heldOutIsComplete,
+  levelAccuracyReportPath,
+  levelModelFor,
+  levelProviderFromArgs,
+  mergeSavedPredictions,
+  ollamaEvaluationPassed,
+  replaceGeminiReportRequested,
   reportMeetsBar,
+  savedLevelPredictionsFromUnknown,
   shouldWriteReport,
   splitLabelledRows,
   type LabelledCourse,
@@ -17,40 +27,68 @@ loadLocalEnv();
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fixturePath = resolve(root, "scripts/fixtures/level-labelled.json");
 const progressPath = resolve(root, "scripts/fixtures/level-progress.json");
-const reportPath = resolve(root, "docs/assessment-2/level-accuracy.md");
+const providerChoice = levelProviderFromArgs(process.argv.slice(2), process.env);
+if (!providerChoice.ok) {
+  console.error(providerChoice.message);
+  process.exit(1);
+}
+const provider = providerChoice.provider;
+const model = levelModelFor(
+  provider,
+  provider === "ollama" ? process.env.OLLAMA_LEVEL_MODEL : undefined,
+);
+const reportPath = resolve(root, levelAccuracyReportPath(provider));
 
 const rows = labelledRowsFromFile(fixturePath);
 const testIds = new Set(splitLabelledRows(rows).test.map((row) => row.id));
-const collected = readProgress(progressPath).filter((item) => testIds.has(item.id));
-writeProgress(collected);
+const stored = savedLevelPredictionsFromUnknown(readProgress(progressPath)).filter(
+  (item) => testIds.has(item.id) || item.provider !== provider || item.model !== model,
+);
+let progress = stored;
+writeProgress(progress);
 const result = await classifyHeldOut(rows, {
+  provider,
+  model,
   apiKey: process.env.GEMINI_API_KEY,
+  ollamaHost: ollamaHostFromEnv(process.env),
   fetchImpl: fetch,
-  saved: collected,
+  saved: progress,
   onCompleted(prediction) {
-    const index = collected.findIndex((item) => item.id === prediction.id);
-    if (index >= 0) collected[index] = prediction;
-    else collected.push(prediction);
-    writeProgress(collected);
+    progress = mergeSavedPredictions(progress, prediction);
+    writeProgress(progress);
   },
 });
 const { summary } = result;
 const accuracyText = summary.accuracy === null ? "not available" : formatAccuracy(summary.accuracy);
 console.log(
-  `Train count: ${result.split.train.length}. Test count: ${summary.testCount}. Classified: ${summary.classified}. Coverage: ${formatAccuracy(summary.coverage)}. Accuracy: ${accuracyText}. Classification errors: ${summary.classificationErrors}. Infrastructure errors: ${summary.infrastructureErrors}.`,
+  `Provider: ${provider}. Model: ${model}. Train count: ${result.split.train.length}. Test count: ${summary.testCount}. Classified: ${summary.classified}. Coverage: ${formatAccuracy(summary.coverage)}. Accuracy: ${accuracyText}. Precision (macro): ${formatMetric(summary.metrics.macro.precision)}. Recall (macro): ${formatMetric(summary.metrics.macro.recall)}. F1 (macro): ${formatMetric(summary.metrics.macro.f1)}. Classification errors: ${summary.classificationErrors}. Infrastructure errors: ${summary.infrastructureErrors}.`,
 );
 
-if (!shouldWriteReport(summary)) {
+if (provider === "ollama") {
+  if (!heldOutIsComplete(summary)) {
+    console.error("The held-out set is incomplete. The Ollama report was not written.");
+    process.exit(1);
+  }
+  mkdirSync(dirname(reportPath), { recursive: true });
+  writeFileSync(reportPath, result.report);
+  console.log(`Wrote ${levelAccuracyReportPath(provider)}`);
+  if (!ollamaEvaluationPassed(summary)) {
+    console.error("The Ollama precision, recall, and F1 target is not met.");
+    process.exit(1);
+  }
+} else if (!shouldWriteReport(summary)) {
   console.error("The 0.70 target is not met.");
   if (existsSync(reportPath) && reportMeetsBar(readFileSync(reportPath, "utf8"))) {
     console.error("The existing passing report was kept.");
   }
   process.exit(1);
+} else if (!replaceGeminiReportRequested(process.argv.slice(2))) {
+  console.log(`The Gemini baseline at ${levelAccuracyReportPath(provider)} was kept.`);
+} else {
+  mkdirSync(dirname(reportPath), { recursive: true });
+  writeFileSync(reportPath, result.report);
+  console.log(`Wrote ${levelAccuracyReportPath(provider)}`);
 }
-
-mkdirSync(dirname(reportPath), { recursive: true });
-writeFileSync(reportPath, result.report);
-console.log("Wrote docs/assessment-2/level-accuracy.md");
 
 function labelledRowsFromFile(path: string): LabelledCourse[] {
   const parsed: unknown = JSON.parse(readFileSync(path, "utf8"));
@@ -77,30 +115,14 @@ function text(row: object, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function readProgress(path: string): SavedLevelPrediction[] {
+function readProgress(path: string): unknown {
   if (!existsSync(path)) return [];
-  const parsed: unknown = JSON.parse(readFileSync(path, "utf8"));
-  if (!Array.isArray(parsed)) return [];
-  return parsed.filter(isSavedPrediction);
+  return JSON.parse(readFileSync(path, "utf8")) as unknown;
 }
 
 function writeProgress(predictions: SavedLevelPrediction[]) {
   mkdirSync(dirname(progressPath), { recursive: true });
   writeFileSync(progressPath, `${JSON.stringify(predictions, null, 2)}\n`);
-}
-
-function isSavedPrediction(value: unknown): value is SavedLevelPrediction {
-  if (!value || typeof value !== "object" || !("id" in value) || !("predicted" in value))
-    return false;
-  const id = value.id;
-  const predicted = value.predicted;
-  if (typeof id !== "string" || !id) return false;
-  return (
-    predicted === null ||
-    predicted === "beginner" ||
-    predicted === "intermediate" ||
-    predicted === "advanced"
-  );
 }
 
 function loadLocalEnv() {

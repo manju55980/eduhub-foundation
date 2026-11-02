@@ -38,7 +38,7 @@ describe("narrow instructor and admin navigation", () => {
       </SidebarProvider>,
     );
 
-    const courses = screen.getByRole("link", { name: "My Courses (including lessons)" });
+    const courses = screen.getByRole("link", { name: "My Courses" });
     expect(courses.className).toContain("whitespace-normal");
     expect(courses.className).not.toContain("truncate");
     for (const item of roleNavigation.instructor) {

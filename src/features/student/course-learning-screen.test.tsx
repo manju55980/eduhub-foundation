@@ -7,11 +7,18 @@ import { loadCourseLearning } from "./course-learning-api";
 import { loadLessonProgress, markLessonComplete } from "@/features/notifications/notifications-api";
 
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children }: { children?: ReactNode }) => <a>{children}</a>,
+  Link: ({ children, to }: { children?: ReactNode; to?: string }) => (
+    <a href={to ?? "#"}>{children}</a>
+  ),
 }));
 
 vi.mock("./course-learning-api", () => ({
   loadCourseLearning: vi.fn(),
+}));
+
+vi.mock("@/features/instructor/course-materials-api", () => ({
+  listCourseMaterials: vi.fn(async () => ({ ok: true, materials: [] })),
+  createMaterialDownloadUrl: vi.fn(),
 }));
 
 vi.mock("@/features/notifications/notifications-api", async () => {
@@ -45,6 +52,7 @@ describe("CourseLearningScreen study companion", () => {
       ok: true,
       enrolled: true,
       enrollmentStatus: "active",
+      progress: 0,
       completedLessonIds: [],
       certificateIssuedAt: null,
     });
@@ -61,6 +69,7 @@ describe("CourseLearningScreen study companion", () => {
 
     expect(await screen.findByText("Lessons are hidden until you enroll.")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Study Companion" })).not.toBeInTheDocument();
+    expect(screen.queryByText("This course has no files yet.")).not.toBeInTheDocument();
   });
 
   it("shows the companion for an enrolled course and explains when there is no lesson content", async () => {
@@ -74,6 +83,11 @@ describe("CourseLearningScreen study companion", () => {
     render(<CourseLearningScreen courseId="course-1" studentId="student-1" />);
 
     expect(await screen.findByRole("heading", { name: "Study Companion" })).toBeInTheDocument();
+    expect(screen.getByText("This course has no lessons yet.")).toBeInTheDocument();
+    expect(await screen.findByText("This course has no files yet.")).toBeInTheDocument();
+    expect(screen.queryByLabelText("File")).not.toBeInTheDocument();
+    expect(screen.queryByText(/lessons complete/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     expect(screen.getByText("This course has no lesson content yet.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ask" })).not.toBeInTheDocument();
   });
@@ -106,6 +120,7 @@ describe("CourseLearningScreen study companion", () => {
         ok: true,
         enrolled: true,
         enrollmentStatus: "active",
+        progress: 0,
         completedLessonIds: [],
         certificateIssuedAt: "2026-10-01T00:00:00.000Z",
       })
@@ -113,6 +128,7 @@ describe("CourseLearningScreen study companion", () => {
         ok: true,
         enrolled: true,
         enrollmentStatus: "completed",
+        progress: 100,
         completedLessonIds: ["lesson-1"],
         certificateIssuedAt: "2026-10-18T15:00:00.000Z",
       });
@@ -137,5 +153,88 @@ describe("CourseLearningScreen study companion", () => {
     expect(screen.getByText(/Certificate issued/)).toHaveTextContent("Algebra");
     expect(screen.queryByRole("button", { name: "Mark complete" })).not.toBeInTheDocument();
     expect(markComplete).toHaveBeenCalledWith("student-1", "lesson-1");
+    expect(screen.getByText("1 of 1 lessons complete")).toBeInTheDocument();
+    expect(screen.getByText("100%")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "1 of 1 lessons complete" })).toHaveAttribute(
+      "aria-valuenow",
+      "100",
+    );
+  });
+
+  it("shows stored progress without a width transition and follows from", async () => {
+    loadProgress.mockResolvedValue({
+      ok: true,
+      enrolled: true,
+      enrollmentStatus: "active",
+      progress: 40,
+      completedLessonIds: [],
+      certificateIssuedAt: null,
+    });
+    loadLearning.mockResolvedValue({
+      ok: true,
+      course: { id: "course-1", title: "Algebra" },
+      enrolled: true,
+      lessons: [lesson, { ...lesson, id: "lesson-2", title: "Products" }],
+    });
+
+    render(<CourseLearningScreen courseId="course-1" studentId="student-1" from="assistant" />);
+
+    expect(await screen.findByText("0 of 2 lessons complete")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Learning Assistant" })).toHaveAttribute(
+      "href",
+      "/student/assistant",
+    );
+    const meter = screen.getByRole("progressbar", { name: "0 of 2 lessons complete" });
+    expect(meter).toHaveAttribute("aria-valuenow", "40");
+    expect(meter).toHaveAttribute("aria-valuetext", "0 of 2 lessons complete, 40%");
+    const fill = meter.firstElementChild;
+    expect(fill).toHaveStyle({ width: "40%" });
+    expect(fill?.className).not.toContain("transition");
+    expect(fill?.className).toContain("bg-positive");
+    expect(meter.className).toContain("bg-muted");
+  });
+
+  it("keeps the previous percentage when progress cannot be re-read", async () => {
+    let resolveSave: (value: { ok: true }) => void = () => {};
+    markComplete.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+    loadProgress
+      .mockResolvedValueOnce({
+        ok: true,
+        enrolled: true,
+        enrollmentStatus: "active",
+        progress: 40,
+        completedLessonIds: [],
+        certificateIssuedAt: null,
+      })
+      .mockResolvedValueOnce({ ok: false, message: "Could not read progress." });
+    loadLearning.mockResolvedValue({
+      ok: true,
+      course: { id: "course-1", title: "Algebra" },
+      enrolled: true,
+      lessons: [lesson],
+    });
+
+    render(<CourseLearningScreen courseId="course-1" studentId="student-1" from="my-courses" />);
+
+    expect(await screen.findByRole("link", { name: "My Courses" })).toHaveAttribute(
+      "href",
+      "/student/my-courses",
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Mark complete" }));
+    resolveSave({ ok: true });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not read progress.");
+    expect(screen.getByText("1 of 1 lessons complete")).toBeInTheDocument();
+    expect(screen.getByText("40%")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "1 of 1 lessons complete" })).toHaveAttribute(
+      "aria-valuenow",
+      "40",
+    );
+    expect(screen.getByText("Completed")).toHaveClass("text-sm");
   });
 });

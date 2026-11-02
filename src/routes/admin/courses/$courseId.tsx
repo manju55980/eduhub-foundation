@@ -7,7 +7,7 @@ const adminRoute = getRouteApi("/admin");
 
 export const Route = createFileRoute("/admin/courses/$courseId")({
   validateSearch: (search: Record<string, unknown>) => ({
-    from: isAdminDetailSource(search.from) ? search.from : "approvals",
+    from: isAdminDetailSource(search["from"]) ? search["from"] : "approvals",
   }),
   component: AdminCourseDetailsPage,
 });

@@ -70,7 +70,7 @@ export function bindAgentReader(db: AgentDb, token: string): AgentReader {
         .eq("id", courseId)
         .maybeSingle();
       if (error) return { ok: false, message: failedAiMessage };
-      if (!isRecord(data) || typeof data.id !== "string") return { ok: true, course: null };
+      if (!isRecord(data) || typeof data["id"] !== "string") return { ok: true, course: null };
       return { ok: true, course: courseDetail(data) };
     },
     async enrolled(courseId, userId) {
@@ -202,9 +202,9 @@ export function bindAgentReader(db: AgentDb, token: string): AgentReader {
 }
 
 function matchRow(row: Record<string, unknown>): AgentMatch {
-  const similarity = row.similarity;
+  const similarity = row["similarity"];
   return {
-    id: typeof row.id === "string" ? row.id : "",
+    id: typeof row["id"] === "string" ? row["id"] : "",
     sourceType: rowText(row, "source_type"),
     title: rowText(row, "title"),
     body: rowText(row, "body"),
@@ -215,7 +215,7 @@ function matchRow(row: Record<string, unknown>): AgentMatch {
 
 function courseDetail(row: Record<string, unknown>): AgentCourseDetail {
   return {
-    id: String(row.id),
+    id: String(row["id"]),
     title: rowText(row, "title"),
     description: rowText(row, "description"),
     level: rowText(row, "level"),

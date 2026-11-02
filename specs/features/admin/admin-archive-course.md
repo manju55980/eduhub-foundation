@@ -42,7 +42,7 @@ Archiving does not create or delete a lesson, enrollment, assignment, or submiss
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader`, white bordered cards, and the existing button primitives. Reuse `SaveNotice`.
+Follow the visual direction in `product.md`. Use `PageHeader`, the shared card surface, and the existing button primitives. Reuse `SaveNotice`.
 
 - **Loading.** The published list is not shown yet. Do not offer Archive and do not show sample courses.
 - **Ready.** The list shows the loaded published courses, or the empty state. Each published course has Archive.

@@ -62,7 +62,7 @@ export function NotificationBell({ userId, role }: { userId: string; role: AppRo
           type="button"
           variant="outline"
           size="icon"
-          className="relative shrink-0 rounded-sm shadow-none"
+          className="relative shrink-0"
           aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
         >
           <Bell />
@@ -76,7 +76,7 @@ export function NotificationBell({ userId, role }: { userId: string; role: AppRo
       <PopoverContent
         align="end"
         collisionPadding={12}
-        className="w-[min(20rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] rounded-sm p-3 shadow-none"
+        className="w-[min(20rem,calc(100vw-1.5rem))] max-w-[calc(100vw-1.5rem)] p-3"
       >
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground">Notifications</p>

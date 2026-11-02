@@ -13,7 +13,7 @@ export function BoardSection({ title, children }: { title: string; children: Rea
 
 export function DataTable({ columns, children }: { columns: string[]; children: ReactNode }) {
   return (
-    <div className="min-w-0 rounded-sm border border-border bg-card md:overflow-x-auto">
+    <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none md:overflow-x-auto">
       <table className="block w-full border-collapse text-left text-sm md:table md:min-w-[40rem]">
         <thead className="hidden bg-muted/80 md:table-header-group">
           <tr className="border-b border-border">
@@ -45,8 +45,8 @@ export function DataRow({
     <tr
       className={
         onClick
-          ? "block cursor-pointer border-b border-border last:border-b-0 md:table-row"
-          : "block border-b border-border last:border-b-0 md:table-row"
+          ? "block cursor-pointer border-b border-border transition-colors duration-150 ease-standard last:border-b-0 hover:bg-sage hover:text-foreground motion-reduce:transition-none md:table-row"
+          : "block border-b border-border transition-colors duration-150 ease-standard last:border-b-0 hover:bg-sage hover:text-foreground motion-reduce:transition-none md:table-row"
       }
       onClick={onClick}
     >

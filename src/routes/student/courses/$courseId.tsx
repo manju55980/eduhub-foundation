@@ -10,7 +10,7 @@ const studentRoute = getRouteApi("/student");
 
 export const Route = createFileRoute("/student/courses/$courseId")({
   validateSearch: (search: Record<string, unknown>) => ({
-    from: isStudentDetailSource(search.from) ? search.from : "browse",
+    from: isStudentDetailSource(search["from"]) ? search["from"] : "browse",
   }),
   component: StudentCourseDetailsPage,
 });
@@ -28,6 +28,7 @@ function StudentCourseDetailsPage() {
       backLabel={back.label}
       audience="student"
       studentId={session.userId}
+      learningFrom={from}
     />
   );
 }

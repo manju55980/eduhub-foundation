@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,11 +54,12 @@ export function ChoiceButton({
   pressed,
   children,
   onClick,
+  ...props
 }: {
   pressed: boolean;
   children: ReactNode;
   onClick: () => void;
-}) {
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick" | "children">) {
   return (
     <Button
       type="button"
@@ -66,6 +67,7 @@ export function ChoiceButton({
       variant={pressed ? "default" : "outline"}
       aria-pressed={pressed}
       onClick={onClick}
+      {...props}
     >
       {children}
     </Button>
@@ -90,7 +92,7 @@ export function SummaryCounts({
           aria-pressed={value === item.value}
           className={cn(
             panelClass,
-            "space-y-1 p-3 text-left transition-colors hover:bg-accent",
+            "space-y-1 p-3 text-left hover:bg-sage hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             value === item.value && "border-primary",
           )}
           onClick={() => onChange(item.value)}

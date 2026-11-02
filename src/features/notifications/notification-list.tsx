@@ -40,12 +40,13 @@ export function NotificationList({
             <p className="whitespace-pre-wrap text-foreground [overflow-wrap:anywhere]">
               {notification.body}
             </p>
-            <p className="text-muted-foreground">{formatStamp(notification.createdAt)}</p>
+            <p className="text-xs text-muted-foreground">{formatStamp(notification.createdAt)}</p>
             {notification.readAt ? (
               <p className="text-muted-foreground">Read</p>
             ) : (
               <Button
                 type="button"
+                variant="outline"
                 disabled={pendingId === notification.id}
                 onClick={() => onMarkRead(notification.id)}
               >

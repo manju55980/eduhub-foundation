@@ -18,7 +18,7 @@ The Edge Function checks the caller’s JWT and `profiles.role`. Only `student` 
 
 If every lesson `content` is empty, including when the course has no lessons, the function does not call Gemini. The card says “This course has no lesson content yet.”
 
-The model prompt includes only that course’s title, description, and lesson title and content. It does not include grades, submissions, other students, or other courses. The model is `gemini-3.5-flash-lite`. The reply is `{ explanation, example, practiceQuestions }` and is shown on the card only.
+The model prompt includes only that course’s title, description, and lesson title and content. It does not include grades, submissions, other students, or other courses. The question is redacted and wrapped before that prompt is sent, as specified in `../ai/ai-guardrails.md`. The tool allowlist is empty. The reply does not include a confidence field. The model is `gemini-3.5-flash-lite`. The reply is `{ explanation, example, practiceQuestions }` and is shown on the card only.
 
 The question is required, trimmed, and at most 1,000 characters. A blank question is a form error. The submit control does not send a second request while one is in flight.
 

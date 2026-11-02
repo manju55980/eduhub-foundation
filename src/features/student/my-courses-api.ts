@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { listCompletedLessonIds } from "@/features/notifications/notifications-api";
 
 import { enrolledCourses } from "./my-courses";
 
@@ -16,11 +17,17 @@ export async function listEnrolledCourses(studentId: string) {
   if (enrollments.length === 0) return { ok: true as const, courses: [] };
 
   const courseIds = [...new Set(enrollments.map((row) => row.course_id))];
-  const coursesResult = await supabase
-    .from("courses")
-    .select("id, title, description, level, status, created_at")
-    .in("id", courseIds);
+  const [coursesResult, lessonsResult, completions] = await Promise.all([
+    supabase
+      .from("courses")
+      .select("id, title, description, level, status, created_at")
+      .in("id", courseIds),
+    supabase.from("lessons").select("id, course_id").in("course_id", courseIds),
+    listCompletedLessonIds(studentId),
+  ]);
   if (coursesResult.error) return { ok: false as const, message: coursesResult.error.message };
+  if (lessonsResult.error) return { ok: false as const, message: lessonsResult.error.message };
+  if (!completions.ok) return completions;
 
   return {
     ok: true as const,
@@ -40,6 +47,11 @@ export async function listEnrolledCourses(studentId: string) {
         status: course.status,
         createdAt: course.created_at,
       })),
+      (lessonsResult.data ?? []).map((lesson) => ({
+        id: lesson.id,
+        courseId: lesson.course_id,
+      })),
+      completions.lessonIds,
     ),
   };
 }

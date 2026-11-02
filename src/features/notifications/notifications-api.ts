@@ -97,6 +97,20 @@ export async function markNotificationRead(notificationId: string, recipientId: 
   return { ok: true as const };
 }
 
+export async function listCompletedLessonIds(studentId: string) {
+  const result = await workflowClient()
+    .from("lesson_completions")
+    .select("lesson_id")
+    .eq("student_id", studentId);
+  if (result.error) return { ok: false as const, message: result.error.message };
+  return {
+    ok: true as const,
+    lessonIds: (result.data ?? [])
+      .map((row) => text(row, "lesson_id"))
+      .filter((lessonId) => lessonId.length > 0),
+  };
+}
+
 export async function markLessonComplete(studentId: string, lessonId: string) {
   const result = await workflowClient()
     .from("lesson_completions")
@@ -108,7 +122,7 @@ export async function markLessonComplete(studentId: string, lessonId: string) {
 export async function loadLessonProgress(courseId: string, studentId: string) {
   const enrollmentResult = await supabase
     .from("enrollments")
-    .select("id, status")
+    .select("id, status, progress")
     .eq("course_id", courseId)
     .eq("student_id", studentId)
     .maybeSingle();
@@ -138,11 +152,18 @@ export async function loadLessonProgress(courseId: string, studentId: string) {
     ok: true as const,
     enrolled: true as const,
     enrollmentStatus: enrollmentResult.data.status,
+    progress: storedProgress(enrollmentResult.data.progress),
     completedLessonIds: (completionResult.data ?? []).map((row) => text(row, "lesson_id")),
     certificateIssuedAt: certificateResult.data
       ? nullableText(certificateResult.data, "issued_at")
       : null,
   };
+}
+
+function storedProgress(value: unknown) {
+  const progress = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(progress)) return 0;
+  return progress;
 }
 
 function text(row: Record<string, unknown>, key: string) {

@@ -13,12 +13,15 @@ import {
   Sparkles,
 } from "lucide-react";
 
+const controlFocus =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+
 const roleAreas = [
   {
     name: "Student",
     icon: GraduationCap,
-    soft: { backgroundColor: "var(--student-soft, #d3efff)" },
-    tone: "text-primary",
+    soft: "bg-student-soft",
+    tone: "text-foreground",
     to: "/student",
     description:
       "Browse the catalogue, keep your enrolled courses together, ask the Study Companion about a course you have joined, ask the Learning Assistant for a recommendation, submit assignments, track your grades, and open a certificate when every lesson is complete.",
@@ -36,8 +39,8 @@ const roleAreas = [
   {
     name: "Instructor",
     icon: Presentation,
-    soft: { backgroundColor: "var(--instructor-soft, #d6f7e0)" },
-    tone: "text-accent-foreground",
+    soft: "bg-instructor-soft",
+    tone: "text-foreground",
     to: "/instructor",
     description:
       "Create a course by hand or with the AI Course Builder, publish lessons, review submissions, record the grades that reach your students, and read a notice when one of your students finishes a course.",
@@ -54,7 +57,7 @@ const roleAreas = [
   {
     name: "Admin",
     icon: ShieldCheck,
-    soft: { backgroundColor: "var(--admin-soft, #ffeacf)" },
+    soft: "bg-admin-soft",
     tone: "text-foreground",
     to: "/admin",
     description:
@@ -104,8 +107,8 @@ const agents = [
     audience: "Student",
     name: "Study Companion",
     icon: Sparkles,
-    soft: { backgroundColor: "var(--student-soft, #d3efff)" },
-    tone: "text-primary",
+    soft: "bg-student-soft",
+    tone: "text-foreground",
     detail:
       "On an enrolled course, ask one question. The answer is an explanation, an example, and practice questions. Nothing is saved.",
   },
@@ -113,8 +116,8 @@ const agents = [
     audience: "Student",
     name: "Learning Assistant",
     icon: MessagesSquare,
-    soft: { backgroundColor: "var(--student-soft, #d3efff)" },
-    tone: "text-primary",
+    soft: "bg-student-soft",
+    tone: "text-foreground",
     detail:
       "Ask about a published course, a recommendation, your grades, or the next course. Course answers come from the stored catalogue. It can enrol you in a published course. The chat is not stored.",
   },
@@ -122,8 +125,8 @@ const agents = [
     audience: "Instructor",
     name: "AI Course Builder",
     icon: Sparkles,
-    soft: { backgroundColor: "var(--instructor-soft, #d6f7e0)" },
-    tone: "text-accent-foreground",
+    soft: "bg-instructor-soft",
+    tone: "text-foreground",
     detail:
       "Describe a course and choose a level. Review the outline, lessons, assignment questions, and any video suggestions, then save them as a new draft.",
   },
@@ -133,7 +136,8 @@ const afterEnrollment = [
   {
     icon: CheckCircle2,
     title: "Mark a lesson complete",
-    detail: "Each enrolled lesson can be marked complete once. Progress reaches 100 only when every lesson is done.",
+    detail:
+      "Each enrolled lesson can be marked complete once. Progress reaches 100 only when every lesson is done.",
   },
   {
     icon: Award,
@@ -155,19 +159,19 @@ export function LandingPage({ checking }: { checking: boolean }) {
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6">
         <header className="flex items-center justify-between py-6">
           <div className="flex items-center gap-3">
-            <div className="flex size-8 items-center justify-center rounded-sm bg-primary text-primary-foreground">
+            <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GraduationCap className="size-5" />
             </div>
             <span className="text-lg font-semibold tracking-tight text-foreground">EduHub</span>
           </div>
           {checking ? (
-            <span className="rounded-sm border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
+            <span className="rounded-md border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
               Checking session…
             </span>
           ) : (
             <Link
               to="/auth"
-              className="rounded-sm border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground"
+              className={`inline-flex h-9 items-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard hover:bg-sage motion-reduce:transition-none ${controlFocus}`}
             >
               Sign in
             </Link>
@@ -175,7 +179,7 @@ export function LandingPage({ checking }: { checking: boolean }) {
         </header>
 
         <section className="flex flex-1 flex-col items-center justify-center py-10 text-center sm:py-14">
-          <span className="rounded-sm bg-brand-soft px-3 py-1 text-xs font-medium text-foreground">
+          <span className="rounded-md bg-brand-soft px-3 py-1 text-xs font-medium text-foreground">
             A small learning management system
           </span>
           <h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl">
@@ -190,21 +194,21 @@ export function LandingPage({ checking }: { checking: boolean }) {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
               to="/student"
-              className="inline-flex items-center gap-2 rounded-sm bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className={`inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-raised transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard hover:bg-primary-hover motion-reduce:transition-none ${controlFocus}`}
             >
               Start as a student
               <ArrowRight className="size-4" />
             </Link>
             <a
               href="#roles"
-              className="inline-flex items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              className={`inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard hover:bg-sage motion-reduce:transition-none ${controlFocus}`}
             >
               Choose your role
             </a>
           </div>
         </section>
 
-        <section id="roles" className="scroll-mt-8 pb-4">
+        <section id="roles" className="scroll-mt-8 pb-4 pt-12">
           <div className="text-center">
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">
               Three clear areas, one platform
@@ -218,12 +222,9 @@ export function LandingPage({ checking }: { checking: boolean }) {
               <Link
                 key={role.name}
                 to={role.to}
-                className="group flex flex-col rounded-sm border border-border bg-card p-4"
+                className={`flex flex-col rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none ${controlFocus}`}
               >
-                <div
-                  className="flex size-8 items-center justify-center rounded-sm"
-                  style={role.soft}
-                >
+                <div className={`flex size-8 items-center justify-center rounded-md ${role.soft}`}>
                   <role.icon className={`size-4 ${role.tone}`} />
                 </div>
                 <h3 className="mt-3 text-base font-medium text-foreground">{role.name}</h3>
@@ -243,7 +244,7 @@ export function LandingPage({ checking }: { checking: boolean }) {
                 </ul>
                 <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
                   Open {role.name.toLowerCase()} area
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="size-4" />
                 </span>
               </Link>
             ))}
@@ -260,12 +261,12 @@ export function LandingPage({ checking }: { checking: boolean }) {
           </div>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {agents.map((agent) => (
-              <div key={agent.name} className="rounded-sm border border-border bg-card p-4">
+              <div
+                key={agent.name}
+                className="rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none"
+              >
                 <div className="flex items-center gap-3">
-                  <div
-                    className="flex size-8 items-center justify-center rounded-sm"
-                    style={agent.soft}
-                  >
+                  <div className={`flex size-8 items-center justify-center rounded-md ${agent.soft}`}>
                     <agent.icon className={`size-4 ${agent.tone}`} />
                   </div>
                   <div>
@@ -288,16 +289,19 @@ export function LandingPage({ checking }: { checking: boolean }) {
           </div>
           <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {flow.map((step, index) => (
-              <li key={step.title} className="rounded-sm border border-border bg-card p-4">
+              <li
+                key={step.title}
+                className="rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none"
+              >
                 <div className="flex items-center justify-between">
-                  <div className="flex size-8 items-center justify-center rounded-sm bg-secondary">
+                  <div className="flex size-8 items-center justify-center rounded-md bg-secondary">
                     <step.icon className="size-4.5 text-muted-foreground" />
                   </div>
                   <span className="text-xs font-medium text-muted-foreground">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <h3 className="mt-4 text-sm font-semibold text-foreground">{step.title}</h3>
+                <h3 className="mt-4 text-base font-medium text-foreground">{step.title}</h3>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{step.detail}</p>
               </li>
             ))}
@@ -315,8 +319,11 @@ export function LandingPage({ checking }: { checking: boolean }) {
           </div>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {afterEnrollment.map((item) => (
-              <div key={item.title} className="rounded-sm border border-border bg-card p-4">
-                <div className="flex size-8 items-center justify-center rounded-sm bg-secondary">
+              <div
+                key={item.title}
+                className="rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none"
+              >
+                <div className="flex size-8 items-center justify-center rounded-md bg-secondary">
                   <item.icon className="size-4 text-muted-foreground" />
                 </div>
                 <h3 className="mt-3 text-base font-medium text-foreground">{item.title}</h3>

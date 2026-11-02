@@ -3,7 +3,6 @@ import {
   agentUserPrompt,
   enrolRequested,
   filterAnswerCourses,
-  isAgentTool,
   parseAgentMessages,
   parseAgentReply,
   assistantToolLimit,
@@ -12,6 +11,7 @@ import {
   type AgentCourseRef,
 } from "./agent.ts";
 import { runAgentTool, type AgentReader } from "./agent-tools.ts";
+import { authorizeTool, agentToolAllowlist } from "./guardrails.ts";
 import { defaultOllamaHost, withGeminiTimeout } from "./embeddings.ts";
 import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
@@ -90,7 +90,7 @@ export async function handleAgent(
         enrolled,
       });
     }
-    if (!isAgentTool(reply.name)) {
+    if (!authorizeTool(reply.name, agentToolAllowlist)) {
       return jsonResponse({ ok: false, message: invalidAiMessage });
     }
     if (round >= assistantToolLimit) {

@@ -99,7 +99,7 @@ export function AuthScreen() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
-      <section className="w-full max-w-md space-y-4 rounded-sm border bg-card p-4 text-card-foreground shadow-none">
+      <section className="w-full max-w-md space-y-4 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none">
         <div className="space-y-1">
           <h1 className="text-xl font-semibold text-foreground">
             {mode === "sign-in" ? "Sign in" : "Create account"}

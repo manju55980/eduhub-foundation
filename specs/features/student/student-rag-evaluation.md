@@ -2,7 +2,7 @@
 
 Specifies the matching, extreme, and noisy retrieval report for `rag_chunks`. The corpus, embeddings, and `match_knowledge` stay in `student-rag-corpus.md`. This report is the Assessment 2 retrieval evidence. It is not the admin Reports screen, and it does not add dashboard counts or charts.
 
-This feature adds no table, column, policy, screen, or migration. `scripts/fixtures/rag-queries.json` and `scripts/rag-evaluation.ts` wrote `docs/assessment-2/rag-evaluation.md` for the 5,040 embedded chunks stored on 26 October 2026. That corpus meets the 5,000 FAQ requirement. See `assessment-2-gap.md`.
+This feature adds no table, column, policy, screen, or migration. `scripts/fixtures/rag-queries.json` and `scripts/rag-evaluation.ts` wrote `docs/assessment-2/rag-evaluation.md` for the 5,040 embedded chunks stored on 26 October 2026. That corpus meets the 5,000 FAQ requirement. See `assessment-2/assessment-2-gap.md`.
 
 ## Query sets
 

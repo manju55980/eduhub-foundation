@@ -14,12 +14,20 @@ vi.mock("@tanstack/react-router", () => ({
     children,
     to,
     params,
+    search,
   }: {
     children?: ReactNode;
     to?: string;
     params?: { courseId?: string };
+    search?: { from?: string };
   }) => (
-    <a href={params?.courseId ? `/student/my-courses/${params.courseId}` : (to ?? "#")}>
+    <a
+      href={
+        params?.courseId
+          ? `/student/my-courses/${params.courseId}${search?.from ? `?from=${search.from}` : ""}`
+          : (to ?? "#")
+      }
+    >
       {children}
     </a>
   ),
@@ -56,9 +64,9 @@ describe("student happy path", () => {
     fireEvent.click(screen.getByRole("button", { name: "Enroll" }));
 
     expect(await screen.findByText("You are enrolled in this course.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open course" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Continue Learning" })).toHaveAttribute(
       "href",
-      "/student/my-courses/course-e2e",
+      "/student/my-courses/course-e2e?from=browse",
     );
     browse.unmount();
 

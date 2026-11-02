@@ -51,9 +51,15 @@ describe("CourseBuilderScreen", () => {
   });
 
   it("does not show a created course before a save", async () => {
-    render(<CourseBuilderScreen instructorId="instructor-1" />);
+    const { container } = render(<CourseBuilderScreen instructorId="instructor-1" />);
 
     expect(await screen.findByRole("heading", { name: "AI Course Builder" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Save a draft" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Generate" }).closest("form")?.parentElement).toHaveClass(
+      "gap-5",
+      "lg:gap-4",
+    );
+    expect(container.querySelector(".max-w-3xl")).toBeNull();
     expect(screen.queryByText(/This draft was created/)).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Lessons" })).not.toBeInTheDocument();
   });

@@ -49,7 +49,7 @@ export function StudyCompanionCard({
   }
 
   return (
-    <section className="space-y-4 rounded-sm border border-border bg-card p-4 shadow-none">
+    <section className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none">
       <div className="space-y-1">
         <h2 className="text-base font-medium text-foreground">Study Companion</h2>
         <p className="text-sm text-muted-foreground">

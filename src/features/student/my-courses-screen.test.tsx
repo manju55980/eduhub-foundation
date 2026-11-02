@@ -11,12 +11,20 @@ vi.mock("@tanstack/react-router", () => ({
     children,
     to,
     params,
+    search,
   }: {
     children?: ReactNode;
     to?: string;
     params?: { courseId?: string };
+    search?: { from?: string };
   }) => (
-    <a href={params?.courseId ? `/student/my-courses/${params.courseId}` : (to ?? "#")}>
+    <a
+      href={
+        params?.courseId
+          ? `${(to ?? "").replace("$courseId", params.courseId)}${search?.from ? `?from=${search.from}` : ""}`
+          : (to ?? "#")
+      }
+    >
       {children}
     </a>
   ),
@@ -49,6 +57,9 @@ const course = {
   status: "archived",
   createdAt: "2026-09-01T00:00:00.000Z",
   progress: 40,
+  completedLessons: 1,
+  lessonCount: 3,
+  enrollmentId: "enrollment-1",
   enrollmentStatus: "active",
   enrolledAt: "2026-10-10T00:00:00.000Z",
 };
@@ -73,14 +84,14 @@ describe("MyCoursesScreen", () => {
     render(<MyCoursesScreen studentId="student-1" />);
 
     expect(screen.getByText("Loading courses…")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Open course" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Continue Learning" })).not.toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "My Courses" })).toBeInTheDocument();
     expect(screen.getByText("You are not enrolled in any courses.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Browse Courses" })).toHaveAttribute(
       "href",
       "/student/courses",
     );
-    expect(screen.queryByRole("link", { name: "Open course" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Continue Learning" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Enroll" })).not.toBeInTheDocument();
   });
 
@@ -94,20 +105,25 @@ describe("MyCoursesScreen", () => {
     expect(screen.getByText("Advanced")).toBeInTheDocument();
     expect(screen.getByText("Archived")).toBeInTheDocument();
     expect(screen.getByText(formatCreatedAt(course.createdAt))).toBeInTheDocument();
-    expect(screen.getByText("Progress")).toBeInTheDocument();
+    expect(screen.getByText("1 of 3 lessons complete")).toBeInTheDocument();
     expect(screen.getByText("40%")).toBeInTheDocument();
+    const meter = screen.getByRole("progressbar", { name: "1 of 3 lessons complete" });
+    expect(meter).toHaveAttribute("aria-valuenow", "40");
+    expect(meter).toHaveAttribute("aria-valuetext", "1 of 3 lessons complete, 40%");
+    expect(meter.firstElementChild).toHaveStyle({ width: "40%" });
+    expect(meter.firstElementChild).toHaveClass("bg-positive");
+    expect(meter).toHaveClass("bg-muted");
     expect(screen.getByText("Active")).toBeInTheDocument();
     expect(screen.getByText("Archived")).toBeInTheDocument();
     expect(screen.getByText(formatCreatedAt(course.enrolledAt))).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open course" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Continue Learning" })).toHaveAttribute(
       "href",
-      "/student/my-courses/course-1",
+      "/student/my-courses/course-1?from=my-courses",
     );
     expect(screen.queryByRole("button", { name: "Enroll" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /unenroll|delete/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     expect(screen.queryByText(/instructor/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/lesson/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /sums|notes/i })).not.toBeInTheDocument();
   });
 
   it("replaces published with completed only when that enrollment is completed", async () => {
@@ -139,7 +155,7 @@ describe("MyCoursesScreen", () => {
     render(<MyCoursesScreen studentId="student-1" />);
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not load courses.");
-    expect(screen.queryByRole("link", { name: "Open course" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Continue Learning" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Browse Courses" })).not.toBeInTheDocument();
     expect(screen.queryByText("Archived course")).not.toBeInTheDocument();
   });
@@ -168,5 +184,106 @@ describe("MyCoursesScreen", () => {
     expect(screen.queryByText("Published")).not.toBeInTheDocument();
     expect(screen.queryByText("Assignment due soon")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Mark read" })).not.toBeInTheDocument();
+  });
+
+  it("shows zero, partial, and completed progress from the loaded enrollment", async () => {
+    listCourses.mockResolvedValue({
+      ok: true,
+      courses: [
+        {
+          ...course,
+          id: "course-empty",
+          title: "Empty course",
+          progress: 0,
+          completedLessons: 0,
+          lessonCount: 0,
+        },
+        {
+          ...course,
+          id: "course-open",
+          title: "Open course",
+          progress: 0,
+          completedLessons: 0,
+          lessonCount: 2,
+        },
+        {
+          ...course,
+          id: "course-part",
+          title: "Partial course",
+          progress: 33,
+          completedLessons: 1,
+          lessonCount: 3,
+        },
+        {
+          ...course,
+          id: "course-done",
+          title: "Finished course",
+          progress: 100,
+          completedLessons: 3,
+          lessonCount: 3,
+          enrollmentStatus: "completed",
+        },
+      ],
+    });
+
+    render(<MyCoursesScreen studentId="student-1" />);
+
+    expect(await screen.findByText("0 of 0 lessons complete")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "0 of 0 lessons complete" })).toHaveAttribute(
+      "aria-valuenow",
+      "0",
+    );
+    expect(screen.getByRole("progressbar", { name: "0 of 2 lessons complete" })).toHaveAttribute(
+      "aria-valuenow",
+      "0",
+    );
+    expect(screen.getByRole("progressbar", { name: "1 of 3 lessons complete" })).toHaveAttribute(
+      "aria-valuenow",
+      "33",
+    );
+    const finished = screen.getByRole("progressbar", { name: "3 of 3 lessons complete" });
+    expect(finished).toHaveAttribute("aria-valuenow", "100");
+    expect(finished.firstElementChild).toHaveStyle({ width: "100%" });
+    expect(screen.getByText("33%")).toBeInTheDocument();
+    expect(screen.getByText("100%")).toBeInTheDocument();
+  });
+
+  it("shows the progress loaded on the next visit", async () => {
+    listCourses.mockResolvedValue({
+      ok: true,
+      courses: [
+        {
+          ...course,
+          progress: 0,
+          completedLessons: 0,
+          lessonCount: 2,
+        },
+      ],
+    });
+
+    const { unmount } = render(<MyCoursesScreen studentId="student-1" />);
+
+    expect(
+      await screen.findByRole("progressbar", { name: "0 of 2 lessons complete" }),
+    ).toHaveAttribute("aria-valuenow", "0");
+    unmount();
+
+    listCourses.mockResolvedValue({
+      ok: true,
+      courses: [
+        {
+          ...course,
+          progress: 100,
+          completedLessons: 2,
+          lessonCount: 2,
+          enrollmentStatus: "completed",
+        },
+      ],
+    });
+    render(<MyCoursesScreen studentId="student-1" />);
+
+    expect(
+      await screen.findByRole("progressbar", { name: "2 of 2 lessons complete" }),
+    ).toHaveAttribute("aria-valuenow", "100");
   });
 });

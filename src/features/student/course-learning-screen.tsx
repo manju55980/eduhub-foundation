@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
 import { pageFrameClass } from "@/components/app-shell/record-card";
 import { Button } from "@/components/ui/button";
+import { studentDetailReturn, type StudentDetailSource } from "@/features/courses/course-details";
 import { SaveNotice } from "@/features/instructor/save-notice";
 import { CertificateIssued } from "@/features/notifications/notification-list";
 import {
@@ -18,20 +19,27 @@ import {
   type LearningLesson,
 } from "./course-learning-api";
 import { StudyCompanionCard } from "./study-companion-card";
+import { LessonProgressSummary } from "./lesson-progress";
 import { externalVideoUrl } from "./video-url";
+import { CourseMaterialList } from "@/features/courses/course-material-list";
+import { listCourseMaterials } from "@/features/instructor/course-materials-api";
+import type { CourseMaterial } from "@/features/instructor/course-material";
 
 export function CourseLearningScreen({
   courseId,
   studentId,
+  from = "browse",
 }: {
   courseId: string;
   studentId: string;
+  from?: StudentDetailSource;
 }) {
   const [course, setCourse] = useState<LearningCourse | null>(null);
   const [enrolled, setEnrolled] = useState(false);
   const [lessons, setLessons] = useState<LearningLesson[]>([]);
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
   const [enrollmentStatus, setEnrollmentStatus] = useState("active");
+  const [enrollmentProgress, setEnrollmentProgress] = useState<number | null>(null);
   const [certificateIssuedAt, setCertificateIssuedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [missing, setMissing] = useState(false);
@@ -39,6 +47,9 @@ export function CourseLearningScreen({
   const [progressError, setProgressError] = useState("");
   const [actionError, setActionError] = useState("");
   const [notice, setNotice] = useState("");
+  const [materials, setMaterials] = useState<CourseMaterial[]>([]);
+  const [materialsError, setMaterialsError] = useState("");
+  const [materialsLoaded, setMaterialsLoaded] = useState(false);
   const [savingLessonId, setSavingLessonId] = useState("");
   const [progressLoaded, setProgressLoaded] = useState(false);
   const savingRef = useRef(false);
@@ -53,9 +64,13 @@ export function CourseLearningScreen({
     setLessons([]);
     setCompletedLessonIds([]);
     setEnrollmentStatus("active");
+    setEnrollmentProgress(null);
     setCertificateIssuedAt(null);
     setProgressError("");
     setNotice("");
+    setMaterials([]);
+    setMaterialsError("");
+    setMaterialsLoaded(false);
     setProgressLoaded(false);
 
     loadCourseLearning(courseId, studentId).then((result) => {
@@ -74,6 +89,15 @@ export function CourseLearningScreen({
       setEnrolled(true);
       setLessons(result.lessons);
       void loadProgress();
+      void listCourseMaterials(courseId).then((materialsResult) => {
+        if (!active) return;
+        setMaterialsLoaded(true);
+        if (!materialsResult.ok) {
+          setMaterialsError(materialsResult.message);
+          return;
+        }
+        setMaterials(materialsResult.materials);
+      });
     });
 
     function loadProgress() {
@@ -85,6 +109,7 @@ export function CourseLearningScreen({
         }
         if (!result.enrolled) return;
         setEnrollmentStatus(result.enrollmentStatus);
+        setEnrollmentProgress(result.progress);
         setCompletedLessonIds(result.completedLessonIds);
         setCertificateIssuedAt(result.certificateIssuedAt);
         setProgressLoaded(true);
@@ -116,6 +141,7 @@ export function CourseLearningScreen({
       }
       if (!progress.enrolled) return;
       setEnrollmentStatus(progress.enrollmentStatus);
+      setEnrollmentProgress(progress.progress);
       setCompletedLessonIds(progress.completedLessonIds);
       setCertificateIssuedAt(progress.certificateIssuedAt);
       setProgressLoaded(true);
@@ -126,6 +152,7 @@ export function CourseLearningScreen({
   }
 
   const heading = course?.title ? course.title : "Lessons";
+  const back = studentDetailReturn(from);
   const certificate = shownCertificate(
     enrollmentStatus,
     "this-enrollment",
@@ -137,7 +164,7 @@ export function CourseLearningScreen({
 
   return (
     <section className={pageFrameClass}>
-      <PageHeader title={heading} backTo="/student/courses" backLabel="Browse Courses" />
+      <PageHeader title={heading} backTo={back.to} backLabel={back.label} />
       {loadError ? <ErrorState message={loadError} /> : null}
       {notice ? (
         <SaveNotice saved message={notice} tone="student" onDismiss={() => setNotice("")} />
@@ -155,20 +182,27 @@ export function CourseLearningScreen({
       {enrolled && !loadError && !loading && lessons.length === 0 ? (
         <EmptyState message="This course has no lessons yet." />
       ) : null}
+      {enrolled && !loadError && !loading && lessons.length > 0 && enrollmentProgress != null ? (
+        <LessonProgressSummary
+          completed={lessons.filter((lesson) => completedIds.has(lesson.id)).length}
+          total={lessons.length}
+          progress={enrollmentProgress}
+        />
+      ) : null}
       {enrolled && !loadError
         ? lessons.map((lesson) => {
             const completed = completedIds.has(lesson.id);
             return (
               <article
                 key={lesson.id}
-                className="space-y-3 rounded-sm border border-border bg-card p-4 shadow-none"
+                className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none"
               >
                 <h2 className="text-base font-medium text-foreground">{lesson.title ?? ""}</h2>
                 <dl className="space-y-3 text-sm">
                   <LessonFact label="Content" value={lesson.content ?? ""} />
                   <VideoUrlFact value={lesson.videoUrl} />
                 </dl>
-                {completed ? <p>Completed</p> : null}
+                {completed ? <p className="text-sm text-foreground">Completed</p> : null}
                 {progressLoaded && !progressError && !completed ? (
                   <Button
                     type="button"
@@ -182,6 +216,13 @@ export function CourseLearningScreen({
             );
           })
         : null}
+      {enrolled && !loadError && !loading && materialsLoaded ? (
+        materialsError ? (
+          <ErrorState message={materialsError} />
+        ) : (
+          <CourseMaterialList materials={materials} />
+        )
+      ) : null}
       {enrolled && !loadError && !loading ? (
         <StudyCompanionCard courseId={courseId} lessons={lessons} />
       ) : null}
@@ -210,7 +251,7 @@ function VideoUrlFact({ value }: { value: string | null }) {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary underline-offset-4 hover:underline [overflow-wrap:anywhere]"
+          className="rounded-md text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [overflow-wrap:anywhere]"
         >
           {url}
         </a>

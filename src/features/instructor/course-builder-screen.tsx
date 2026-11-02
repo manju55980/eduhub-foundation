@@ -1,8 +1,11 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
+import { formColumnsClass, PageSection, panelClass, selectFieldClass } from "@/components/app-shell/record-card";
+import { cn } from "@/lib/utils";
 import { ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { CourseListing, InstructorCourseLinks } from "@/features/courses/course-listing";
+import { CourseCard } from "@/features/courses/course-card";
+import { InstructorCourseLinks } from "@/features/courses/course-listing";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -231,7 +234,7 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
   }
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <PageSection>
       <PageHeader
         title="AI Course Builder"
         description="Describe a course. Review the outline, then save it as a draft."
@@ -241,10 +244,8 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading categories…" /> : null}
       {!loading && !loadError ? (
-        <form
-          className="space-y-4 rounded-sm border border-border bg-card p-4 shadow-none"
-          onSubmit={handleGenerate}
-        >
+        <div className={formColumnsClass}>
+        <form className={cn(panelClass, "space-y-4 p-4")} onSubmit={handleGenerate}>
           <Field id="course-brief" label="Brief" hint="What should this course teach?">
             <Textarea
               id="course-brief"
@@ -262,7 +263,7 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
           >
             <select
               id="course-level"
-              className="flex h-9 w-full min-w-0 max-w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className={selectFieldClass}
               value={level}
               disabled={pending !== null || locked || preview !== null}
               onChange={(event) => setLevel(event.target.value)}
@@ -376,10 +377,18 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
             {pending === "generate" ? "Generating…" : "Generate"}
           </Button>
         </form>
+        <aside className={cn(panelClass, "space-y-3 p-4")}>
+          <h2 className="text-base font-medium text-foreground">Save a draft</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Review the outline, then save it as a draft. This is still a draft until you submit it
+            from My Courses.
+          </p>
+        </aside>
+        </div>
       ) : null}
 
       {preview ? (
-        <section className="space-y-4 rounded-sm border border-border bg-card p-4 shadow-none">
+        <section className={cn(panelClass, "space-y-4 p-4")}>
           <h2 className="text-base font-medium text-foreground">Preview</h2>
           <p className="text-sm text-muted-foreground">
             Level: {levelLabels[preview.level as (typeof courseLevels)[number]] ?? preview.level}.
@@ -421,7 +430,7 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
                       href={video.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm font-medium text-foreground underline"
+                      className="rounded-md text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       {video.title}
                     </a>
@@ -480,7 +489,7 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
                 >
                   <select
                     id={`lesson-video-${index}`}
-                    className="flex h-9 w-full min-w-0 max-w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    className={selectFieldClass}
                     value={selectedVideo ? lesson.videoUrl : ""}
                     onChange={(event) => updateLesson(index, "videoUrl", event.target.value)}
                     disabled={pending !== null || locked}
@@ -593,7 +602,7 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
         }}
       />
       {created ? <CreatedCoursePanel course={created} complete={created.complete} /> : null}
-    </div>
+    </PageSection>
   );
 }
 
@@ -606,7 +615,7 @@ export function CreatedCoursePanel({
 }) {
   const title = course.title.trim() || "Draft course";
   return (
-    <CourseListing
+    <CourseCard
       role="instructor"
       from="builder"
       courseId={course.id}
@@ -618,6 +627,7 @@ export function CreatedCoursePanel({
           : "This draft was created. Saving stopped before every lesson and assignment was added. Finish it on the lesson and assignment screens. It is still a draft."
       }
       actions={<InstructorCourseLinks courseId={course.id} />}
+      previewActions={<InstructorCourseLinks courseId={course.id} />}
     />
   );
 }

@@ -30,6 +30,13 @@ describe("CreateCourseScreen", () => {
     expect(screen.queryByRole("button", { name: "Create another course" })).not.toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Title *" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Create engaging learning experiences" }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Save course" }).closest("form")?.parentElement).toHaveClass(
+      "gap-5",
+      "lg:gap-4",
+    );
   });
 
   it("does not offer save when categories fail to load", async () => {

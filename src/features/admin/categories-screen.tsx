@@ -3,7 +3,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordList, panelClass, recordGridClass } from "@/components/app-shell/record-card";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -113,7 +114,7 @@ export function CategoriesScreen() {
   const visible = categories.filter((category) => matchesQuery(query, [category.name]));
 
   return (
-    <section className={pageFrameClass}>
+    <PageSection>
       <PageHeader title="Manage Categories" />
       <SaveNotice
         tone="admin"
@@ -124,10 +125,7 @@ export function CategoriesScreen() {
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading categories…" /> : null}
       {!loading && !loadError ? (
-        <form
-          className="space-y-3 rounded-sm border border-border bg-card p-4 shadow-none"
-          onSubmit={handleCreate}
-        >
+        <form className={cn(panelClass, "space-y-4 p-4")} onSubmit={handleCreate}>
           <div className="space-y-2">
             <Label htmlFor="category-name">
               Name <span className="text-destructive">*</span>
@@ -174,7 +172,7 @@ export function CategoriesScreen() {
           ))}
         </RecordList>
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 
@@ -200,14 +198,11 @@ function CategoryCard({
   }
 
   return (
-    <article className="flex h-full flex-col space-y-3 rounded-sm border border-border bg-card p-4 shadow-none">
+    <article className={cn(panelClass, "flex h-full flex-col space-y-3 p-4")}>
       <h2 className="text-base font-medium text-foreground">{category.name}</h2>
-      <dl className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-        <div className="space-y-1">
-          <dt className="text-xs font-medium text-muted-foreground">Created</dt>
-          <dd className="text-foreground">{formatCreatedAt(category.createdAt)}</dd>
-        </div>
-      </dl>
+      <MetaList stacked>
+        <MetaItem label="Created" value={formatCreatedAt(category.createdAt)} />
+      </MetaList>
       <form className="mt-auto space-y-4" onSubmit={handleRename}>
         <div className="space-y-2">
           <Label htmlFor={`category-name-${category.id}`}>Name</Label>

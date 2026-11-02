@@ -167,10 +167,10 @@ describe("assignment reminders", () => {
 
 describe("assignment reminder request", () => {
   it("accepts only the cron bearer on POST and does not run the job otherwise", async () => {
-    const previous = process.env.LOVABLE_CRON_SECRET;
-    const previousOld = process.env.LOVABLE_CRON_SECRET_PREVIOUS;
-    process.env.LOVABLE_CRON_SECRET = "cron-test-secret";
-    delete process.env.LOVABLE_CRON_SECRET_PREVIOUS;
+    const previous = process.env["LOVABLE_CRON_SECRET"];
+    const previousOld = process.env["LOVABLE_CRON_SECRET_PREVIOUS"];
+    process.env["LOVABLE_CRON_SECRET"] = "cron-test-secret";
+    delete process.env["LOVABLE_CRON_SECRET_PREVIOUS"];
     let runs = 0;
     const run = async () => {
       runs += 1;
@@ -198,7 +198,7 @@ describe("assignment reminder request", () => {
       expect(await ok.json()).toEqual({ ok: true, inserted: 2 });
       expect(runs).toBe(1);
 
-      delete process.env.LOVABLE_CRON_SECRET;
+      delete process.env["LOVABLE_CRON_SECRET"];
       const unconfigured = await handleAssignmentReminderRequest(reminderRequest("POST"), run);
       expect(unconfigured.status).toBe(500);
       expect(runs).toBe(1);
@@ -274,11 +274,18 @@ function recordingClient(pages: Record<string, Record<string, unknown>[]>) {
   const tables: string[] = [];
   const inCalls: Array<{ table: string; values: string[] }> = [];
   const upserts: Array<{
-    rows: Array<{ kind: string; recipient_id: string; assignment_id: string; dedupe_key: string }>;
-    options: unknown;
+    rows: ReminderInsert[];
+    options: { onConflict: string; ignoreDuplicates: boolean };
   }> = [];
 
-  function filter(table: string) {
+  function filter(table: string, slice?: { from: number; to: number }) {
+    const page = () => {
+      const rows = pages[table] ?? [];
+      return {
+        data: slice ? rows.slice(slice.from, slice.to + 1) : rows,
+        error: null as { message: string } | null,
+      };
+    };
     const api = {
       eq() {
         return api;
@@ -297,10 +304,20 @@ function recordingClient(pages: Record<string, Record<string, unknown>[]>) {
         return api;
       },
       range(from: number, to: number) {
-        return Promise.resolve({
-          data: (pages[table] ?? []).slice(from, to + 1),
-          error: null,
-        });
+        return filter(table, { from, to });
+      },
+      then<
+        TResult1 = { data: Record<string, unknown>[] | null; error: { message: string } | null },
+        TResult2 = never,
+      >(
+        onfulfilled?:
+          | ((
+              value: { data: Record<string, unknown>[] | null; error: { message: string } | null },
+            ) => TResult1 | PromiseLike<TResult1>)
+          | null,
+        onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+      ): PromiseLike<TResult1 | TResult2> {
+        return Promise.resolve(page()).then(onfulfilled, onrejected);
       },
     };
     return api;
@@ -317,13 +334,8 @@ function recordingClient(pages: Record<string, Record<string, unknown>[]>) {
           return filter(table);
         },
         upsert(
-          rows: Array<{
-            kind: string;
-            recipient_id: string;
-            assignment_id: string;
-            dedupe_key: string;
-          }>,
-          options: unknown,
+          rows: ReminderInsert[],
+          options: { onConflict: string; ignoreDuplicates: boolean },
         ) {
           upserts.push({ rows, options });
           return Promise.resolve({ data: null, error: null });
@@ -334,10 +346,10 @@ function recordingClient(pages: Record<string, Record<string, unknown>[]>) {
 }
 
 function reminderRequest(method: string, authorization?: string) {
-  return new Request("http://localhost/api/assignment-reminders", {
-    method,
-    headers: authorization ? { authorization } : undefined,
-  });
+  return new Request(
+    "http://localhost/api/assignment-reminders",
+    authorization ? { method, headers: { authorization } } : { method },
+  );
 }
 
 function restoreEnv(name: string, value: string | undefined) {

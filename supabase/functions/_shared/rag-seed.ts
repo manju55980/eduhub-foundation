@@ -57,8 +57,8 @@ export type SeedRunOptions = {
 };
 
 export function readSeedEnv(env: Record<string, string | undefined>) {
-  const url = env.SUPABASE_URL?.trim() || env.VITE_SUPABASE_URL?.trim() || "";
-  const key = env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? "";
+  const url = env["SUPABASE_URL"]?.trim() || env["VITE_SUPABASE_URL"]?.trim() || "";
+  const key = env["SUPABASE_SERVICE_ROLE_KEY"]?.trim() ?? "";
   const ollamaHost = ollamaHostFromEnv(env);
   if (!url || !isServiceRoleKey(key)) {
     return { ok: false as const, message: "The service role key is required." };
@@ -68,12 +68,12 @@ export function readSeedEnv(env: Record<string, string | undefined>) {
 
 export function readSeedRunOptions(env: Record<string, string | undefined>) {
   return {
-    batchSize: boundedInt(env.RAG_EMBED_BATCH_SIZE, defaultBatchSize, 1, seedBatchLimit),
-    delayMs: boundedInt(env.RAG_EMBED_DELAY_MS, defaultDelayMs, 0, seedDelayLimitMs),
-    maxAttempts: boundedInt(env.RAG_EMBED_MAX_ATTEMPTS, defaultMaxAttempts, 1, 6),
-    recordLimit: boundedInt(env.RAG_EMBED_RECORD_LIMIT, defaultRecordLimit, 1, recordLimitMax),
-    replaceExisting: env.RAG_EMBED_REPLACE_ALL === "true" || env.RAG_EMBED_REPLACE_ALL === "1",
-    writeChunks: env.RAG_EMBED_WRITE !== "false",
+    batchSize: boundedInt(env["RAG_EMBED_BATCH_SIZE"], defaultBatchSize, 1, seedBatchLimit),
+    delayMs: boundedInt(env["RAG_EMBED_DELAY_MS"], defaultDelayMs, 0, seedDelayLimitMs),
+    maxAttempts: boundedInt(env["RAG_EMBED_MAX_ATTEMPTS"], defaultMaxAttempts, 1, 6),
+    recordLimit: boundedInt(env["RAG_EMBED_RECORD_LIMIT"], defaultRecordLimit, 1, recordLimitMax),
+    replaceExisting: env["RAG_EMBED_REPLACE_ALL"] === "true" || env["RAG_EMBED_REPLACE_ALL"] === "1",
+    writeChunks: env["RAG_EMBED_WRITE"] !== "false",
   };
 }
 

@@ -21,8 +21,8 @@ export const roleNavigation = {
     { label: "Instructor Dashboard", to: "/instructor" },
     { label: "Create Course", to: "/instructor/courses/new" },
     { label: "AI Course Builder", to: "/instructor/courses/generate" },
-    { label: "My Courses (including lessons)", to: "/instructor/courses" },
-    { label: "Submissions (grading)", to: "/instructor/submissions" },
+    { label: "My Courses", to: "/instructor/courses" },
+    { label: "Submissions", to: "/instructor/submissions" },
   ],
   admin: [
     { label: "Admin Dashboard", to: "/admin" },

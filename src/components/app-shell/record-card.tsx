@@ -5,11 +5,14 @@ import { cn } from "@/lib/utils";
 const metaValueClass =
   "whitespace-pre-wrap text-sm leading-relaxed text-foreground [overflow-wrap:anywhere]";
 
-export const panelClass = "min-w-0 rounded-sm border border-border bg-card shadow-none";
+export const panelClass =
+  "min-w-0 rounded-xl border border-border bg-card shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none";
 export const pageFrameClass = "w-full min-w-0 space-y-5";
 export const recordGridClass = "lg:grid-cols-2";
+export const formColumnsClass =
+  "grid items-start gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)] lg:gap-4";
 export const selectFieldClass =
-  "h-9 min-w-0 rounded-sm border border-input bg-transparent px-2 text-sm text-foreground shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
+  "h-9 min-w-0 rounded-md border border-input bg-transparent px-3 text-sm text-foreground shadow-none transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50";
 
 export function PageSection({ children, className }: { children: ReactNode; className?: string }) {
   return <section className={cn(pageFrameClass, className)}>{children}</section>;
@@ -35,7 +38,7 @@ export function RecordCard({
   const summary = description ?? "";
 
   return (
-    <article className={cn(panelClass, "@container space-y-3 p-4", className)}>
+    <article className={cn(panelClass, "@container flex h-full flex-col space-y-3 p-4", className)}>
       <div className="flex min-w-0 items-start gap-3">
         <h2 className="min-w-0 flex-1 text-base font-medium leading-snug text-foreground [overflow-wrap:anywhere]">
           {title}

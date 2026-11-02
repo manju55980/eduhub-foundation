@@ -16,8 +16,8 @@ describe("roleNavigation", () => {
       "Instructor Dashboard",
       "Create Course",
       "AI Course Builder",
-      "My Courses (including lessons)",
-      "Submissions (grading)",
+      "My Courses",
+      "Submissions",
     ]);
     expect(roleNavigation.admin.map((item) => item.label)).toEqual([
       "Admin Dashboard",

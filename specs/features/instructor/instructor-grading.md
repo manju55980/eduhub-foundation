@@ -4,7 +4,7 @@ Specifies how an instructor reviews submissions for their own courses and record
 
 ## Route
 
-`/instructor/submissions` is Submissions (grading). The heading is “Submissions (grading)”. It is a sidebar item, so it has no back link. The existing file route stays in place. Do not add a submission-detail route. Each submission is a card.
+`/instructor/submissions` is Submissions. The heading and sidebar label are “Submissions”. It is a sidebar item, so it has no back link. The existing file route stays in place. Do not add a submission-detail route. Each submission is a card.
 
 ## Schema and RLS
 
@@ -34,7 +34,7 @@ Read with the signed-in browser client from `@/integrations/supabase/client`. Th
 
 List the submissions this instructor can read. Then read each submission’s assignment `title`, that assignment’s course `title`, and the student’s `full_name`.
 
-Order by the submission `created_at` descending. Do not add search, filters, pagination, or another instructor’s submissions. The two views below are a split of this list. They do not add a query.
+Order by the submission `created_at` descending. A client-side search matches the loaded assignment title, course title, or student name. It does not add a query. Do not add other filters, pagination, or another instructor’s submissions. The two views below are a split of this list. They do not add a query.
 
 If the submission query, assignment query, course query, or profile query fails, show that error and do not offer save. Do not show the views. An empty submission list is an empty state, not sample submissions. It has no save control.
 
@@ -85,7 +85,7 @@ There is no delete control.
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader`, the existing tabs, white bordered cards, and the existing button, input, and textarea primitives.
+Follow the visual direction in `product.md`. Use `PageHeader`, `ChoiceButton` for To Grade and Graded, the shared card surface, and the existing button, input, and textarea primitives.
 
 - **Loading.** The views are not shown yet. Do not offer save and do not show sample submissions.
 - **Ready.** To Grade is selected. It lists `submitted` rows, or “No submissions to grade.” Graded lists `graded` rows, or “No graded submissions.” Each card has Save grade.

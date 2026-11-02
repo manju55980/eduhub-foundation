@@ -14,9 +14,15 @@ describe("LandingPage", () => {
   it("links sign-in and the three role areas", () => {
     render(<LandingPage checking={false} />);
 
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Courses, submissions and grades",
-    );
+    const hero = screen.getByRole("heading", { level: 1 });
+    expect(hero).toHaveTextContent("Courses, submissions and grades");
+    expect(hero.className).toContain("text-3xl");
+    expect(hero.className).toContain("sm:text-4xl");
+    expect(hero.className).not.toContain("text-5xl");
+    expect(document.querySelector(".bg-student-soft")).toBeInTheDocument();
+    expect(document.querySelector(".bg-instructor-soft")).toBeInTheDocument();
+    expect(document.querySelector(".bg-admin-soft")).toBeInTheDocument();
+    expect(screen.getByText("Better learning builds brighter futures.")).toBeInTheDocument();
     const hrefs = screen.getAllByRole("link").map((link) => link.getAttribute("href"));
     expect(hrefs).toEqual(
       expect.arrayContaining(["/auth", "/student", "/instructor", "/admin", "#roles"]),

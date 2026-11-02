@@ -85,7 +85,7 @@ export function instructorDetailReturn(source: InstructorDetailSource) {
     return { to: "/instructor" as const, label: "Instructor Dashboard" };
   if (source === "builder")
     return { to: "/instructor/courses/generate" as const, label: "AI Course Builder" };
-  return { to: "/instructor/courses" as const, label: "My Courses (including lessons)" };
+  return { to: "/instructor/courses" as const, label: "My Courses" };
 }
 
 export function adminDetailReturn(source: AdminDetailSource) {

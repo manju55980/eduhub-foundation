@@ -6,7 +6,7 @@ The profile columns stay in `supabase/migrations/20261009133000_create_profiles.
 
 ## Route
 
-`/admin/users` is Manage Users. The heading is “Manage Users”. It is a sidebar item, so it has no back link. The existing file route stays in place. Do not add a user-detail route. Each profile is a card.
+`/admin/users` is Manage Users. The heading is “Manage Users”. It is a sidebar item, so it has no back link. The existing file route stays in place. Do not add a user-detail route. Each profile is one `DataTable` row. It is not a card.
 
 ## Schema and RLS
 
@@ -30,23 +30,23 @@ A promoted person has one role. Existing enrollment rows stay. Student policies 
 
 The route stays thin and passes the session user id. The query lives in `features/admin/`. Do not filter the query to the signed-in admin.
 
-List every profile, newest `created_at` first, including the signed-in admin. The assignment does not specify an order. This is the same order as the other admin lists.
+List every profile, newest `created_at` first, including the signed-in admin. The assignment does not specify an order. This is the same order as the other admin lists. A client-side search matches the loaded name or email. Role choices are All, Student, Instructor, and Admin. Both filter the loaded rows. They do not add a query, and they do not change who can be promoted.
 
-Each card shows the stored `full_name`, `email`, `role`, and `created_at`. A null name or email is blank. Do not substitute a made-up name. Role is the stored `student`, `instructor`, or `admin` value. Do not list phone, courses, enrollments, grades, or submissions.
+Each row shows the stored `full_name`, `email`, `role`, and `created_at`. A null name or email is blank. Do not substitute a made-up name. Role is the stored `student`, `instructor`, or `admin` value. Do not list phone, courses, enrollments, grades, or submissions.
 
-If the profile query fails, show that error and do not show cards or Promote. An empty result says “There are no users yet.” It is not sample users, and it has no Promote control.
+If the profile query fails, show that error and do not show the table or Promote. An empty result says “There are no users yet.” It is not sample users, and it has no Promote control.
 
 ## Promote
 
-Show Promote only when the card’s role is `student` and the card’s id is not the session user. The signed-in admin, an instructor, and another admin have no Promote control.
+Show Promote only when the row’s role is `student` and the row’s id is not the session user. The signed-in admin, an instructor, and another admin have no Promote control.
 
 Promote calls `promote_student_to_instructor` with that profile id as `target_id`. It does not send `role` or any other column through a table update.
 
 - **Loading.** The list is not shown yet. Do not offer Promote.
 - **Ready.** Each other student has Promote.
 - **Promoting.** That control does not send a second call.
-- **Promoted.** Stay on this screen. That card’s role becomes Instructor and Promote leaves that card. The banner says “This user was promoted to instructor.” It can be dismissed. Dismissing it does not change the role back or change the route.
-- **Error.** Show the database error inline. An error replaces the success banner. The card’s role stays what it was.
+- **Promoted.** Stay on this screen. That row’s role becomes Instructor and Promote leaves that row. The banner says “This user was promoted to instructor.” It can be dismissed. Dismissing it does not change the role back or change the route.
+- **Error.** Show the database error inline. An error replaces the success banner. The row’s role stays what it was.
 
 Until the migration is applied, the call fails and the screen shows that error. Do not claim the user was promoted.
 
@@ -67,11 +67,11 @@ The function and the trigger are the data boundary. A hidden button is not enoug
 ## Acceptance criteria
 
 - An admin sees every profile, newest `created_at` first, including their own.
-- Each card shows the stored name, email, role, and profile created time. Phone, courses, enrollments, grades, and submissions are not shown.
+- Each row shows the stored name, email, role, and profile created time. Phone, courses, enrollments, grades, and submissions are not shown.
 - Promote is offered only for another user’s `student` row. It calls `promote_student_to_instructor` with that id.
-- An authorized promotion sets that row’s role to `instructor` and changes no other column. The card shows Instructor and loses Promote. The banner can be dismissed without undoing it.
+- An authorized promotion sets that row’s role to `instructor` and changes no other column. The row shows Instructor and loses Promote. The banner can be dismissed without undoing it.
 - A student or instructor caller, a self-target, a target who is not a student, and a repeated promotion each raise and do not change the role.
-- A failed call shows the error and leaves the card’s role unchanged.
+- A failed call shows the error and leaves the row’s role unchanged.
 - The screen does not use the service role. It has no demote, delete, invite, or profile-edit control.
 - No table or column is added. `UPDATE` on `role` is not granted.
 - A student or instructor does not get this screen.

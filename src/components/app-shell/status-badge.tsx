@@ -2,10 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const tones = {
-  progress: "border-transparent bg-student-soft text-lozenge-foreground",
-  done: "border-transparent bg-instructor-soft text-lozenge-foreground",
-  complete: "border-transparent bg-completed-soft text-completed-foreground",
-  attention: "border-primary/40 bg-card text-primary",
+  progress: "border-transparent bg-progress-soft text-progress-foreground",
+  done: "border-transparent bg-positive-soft text-positive-foreground",
+  attention: "border-active bg-card text-active",
   muted: "border-transparent bg-muted text-muted-foreground",
 } as const;
 
@@ -15,7 +14,7 @@ const statuses: Record<string, { label: string; tone: keyof typeof tones }> = {
   published: { label: "Published", tone: "done" },
   archived: { label: "Archived", tone: "muted" },
   active: { label: "Active", tone: "progress" },
-  completed: { label: "Completed", tone: "complete" },
+  completed: { label: "Completed", tone: "done" },
   submitted: { label: "Submitted", tone: "progress" },
   graded: { label: "Graded", tone: "done" },
   student: { label: "Student", tone: "progress" },
@@ -28,7 +27,10 @@ export function StatusBadge({ value }: { value: string }) {
   return (
     <Badge
       variant="outline"
-      className={cn("shrink-0 whitespace-nowrap font-medium shadow-none", tones[status.tone])}
+      className={cn(
+        "shrink-0 whitespace-nowrap rounded-full font-semibold shadow-none",
+        tones[status.tone],
+      )}
     >
       {status.label}
     </Badge>

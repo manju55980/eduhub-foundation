@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { BoardSection } from "@/components/app-shell/data-table";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordList, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
-import { CourseListing } from "@/features/courses/course-listing";
+import { CourseCard } from "@/features/courses/course-card";
 
 import { listPendingCourses, type PendingCourse } from "./approve-courses-api";
 import { listAllEnrollments } from "./enrollments-api";
@@ -40,7 +40,7 @@ export function AdminDashboardScreen({ fullName }: { fullName: string }) {
   const name = fullName.trim() || "Admin";
 
   return (
-    <section className={pageFrameClass}>
+    <PageSection>
       <PageHeader
         title={`Welcome back, ${name}`}
         description="Courses waiting for approval, and the newest enrollments."
@@ -55,19 +55,20 @@ export function AdminDashboardScreen({ fullName }: { fullName: string }) {
           {!courseError && courses.length > 0 ? (
             <RecordList className={recordGridClass}>
               {courses.map((course) => (
-                <CourseListing
+                <CourseCard
                   key={course.id}
                   role="admin"
                   from="dashboard"
                   courseId={course.id}
                   title={course.title ?? ""}
+                  instructorName={course.instructorName}
                   badge={<StatusBadge value="pending" />}
                 >
                   <MetaList stacked>
                     <MetaItem label="Instructor" value={course.instructorName ?? ""} />
                     <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
                   </MetaList>
-                </CourseListing>
+                </CourseCard>
               ))}
             </RecordList>
           ) : null}
@@ -82,7 +83,7 @@ export function AdminDashboardScreen({ fullName }: { fullName: string }) {
           {!enrollmentError && enrollments.length > 0 ? (
             <RecordList className={recordGridClass}>
               {enrollments.map((enrollment) => (
-                <CourseListing
+                <CourseCard
                   key={enrollment.id}
                   role="admin"
                   from="dashboard"
@@ -101,13 +102,13 @@ export function AdminDashboardScreen({ fullName }: { fullName: string }) {
                     <MetaItem label="Student" value={enrollment.studentName ?? ""} />
                     <MetaItem label="Enrolled" value={formatCreatedAt(enrollment.enrolledAt)} />
                   </MetaList>
-                </CourseListing>
+                </CourseCard>
               ))}
             </RecordList>
           ) : null}
         </BoardSection>
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 

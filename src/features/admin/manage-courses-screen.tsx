@@ -2,7 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { PageSection, RecordList, recordGridClass, selectFieldClass } from "@/components/app-shell/record-card";
+import {
+  MetaItem,
+  MetaList,
+  PageSection,
+  RecordList,
+  recordGridClass,
+  selectFieldClass,
+} from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,12 +19,20 @@ import {
   ResultBar,
   SummaryCounts,
 } from "@/components/app-shell/management";
-import { CourseDetailsLink, CourseListing } from "@/features/courses/course-listing";
+import { CourseCard } from "@/features/courses/course-card";
+import { CourseDetailsLink } from "@/features/courses/course-listing";
 import { courseLevelLabel, formatCourseDate } from "@/features/courses/course-details";
 import { SaveNotice } from "@/features/instructor/save-notice";
 import { externalVideoUrl } from "@/features/student/video-url";
 
+import { CourseMaterialList } from "@/features/courses/course-material-list";
+import { materialsForCourse, type CourseMaterial } from "@/features/instructor/course-material";
+import { listMaterialsForCourses } from "@/features/instructor/course-materials-api";
+
 import { archiveCourse } from "./archive-courses-api";
+import { listNewestCourseReviews } from "./course-review-api";
+import { reviewForCourse, type CourseReview } from "./course-review";
+import { CourseReviewPanel } from "./course-review-panel";
 import { publishCourse } from "./approve-courses-api";
 import { listAdminCourses } from "./manage-courses-api";
 import {
@@ -56,20 +71,38 @@ export function ManageCoursesScreen() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [notice, setNotice] = useState<Notice>(emptyNotice);
+  const [materials, setMaterials] = useState<CourseMaterial[]>([]);
+  const [materialsError, setMaterialsError] = useState("");
+  const [reviews, setReviews] = useState<CourseReview[]>([]);
+  const [reviewsError, setReviewsError] = useState("");
   const [filter, setFilter] = useState<AdminCourseFilter>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<AdminCourseSort>("newest");
 
   useEffect(() => {
     let active = true;
-    listAdminCourses().then((result) => {
+    listAdminCourses().then(async (result) => {
       if (!active) return;
-      setLoading(false);
       if (!result.ok) {
+        setLoading(false);
         setLoadError(result.message);
         return;
       }
+      const ids = result.courses.map((course) => course.id);
+      const pendingIds = result.courses
+        .filter((course) => course.status === "pending")
+        .map((course) => course.id);
+      const [files, savedReviews] = await Promise.all([
+        listMaterialsForCourses(ids),
+        listNewestCourseReviews(pendingIds),
+      ]);
+      if (!active) return;
+      setLoading(false);
       setCourses(result.courses);
+      if (!files.ok) setMaterialsError(files.message);
+      else setMaterials(files.materials);
+      if (!savedReviews.ok) setReviewsError(savedReviews.message);
+      else setReviews(savedReviews.reviews);
     });
     return () => {
       active = false;
@@ -95,6 +128,8 @@ export function ManageCoursesScreen() {
         description="Search, filter and manage all courses. Take action on approvals and archive published courses."
       />
       {loadError ? <ErrorState message={loadError} /> : null}
+      {materialsError ? <ErrorState message={materialsError} /> : null}
+      {reviewsError ? <ErrorState message={reviewsError} /> : null}
       {loading ? <LoadingState message="Loading courses…" /> : null}
       {!loading && !loadError ? (
         <>
@@ -149,6 +184,8 @@ export function ManageCoursesScreen() {
                 <ManagedCourseCard
                   key={course.id}
                   course={course}
+                  materials={materialsError ? null : materialsForCourse(materials, course.id)}
+                  review={reviewsError ? null : reviewForCourse(reviews, course.id)}
                   onNotice={setNotice}
                   onStatus={updateStatus}
                 />
@@ -163,10 +200,14 @@ export function ManageCoursesScreen() {
 
 function ManagedCourseCard({
   course,
+  materials,
+  review,
   onNotice,
   onStatus,
 }: {
   course: AdminCourse;
+  materials: CourseMaterial[] | null;
+  review: CourseReview | null;
   onNotice: (notice: Notice) => void;
   onStatus: (courseId: string, status: string) => void;
 }) {
@@ -193,54 +234,58 @@ function ManagedCourseCard({
     onNotice({ saved: true, message: "This course was archived." });
   }
 
+  function reviewActions() {
+    return (
+      <>
+        <CourseDetailsLink
+          role="admin"
+          from="manage"
+          courseId={course.id}
+          className="text-sm font-medium text-primary"
+        >
+          View details
+        </CourseDetailsLink>
+        {course.status === "pending" ? (
+          <Button type="button" disabled={pending} onClick={() => run("publish")}>
+            {pending ? "Publishing…" : "Approve"}
+          </Button>
+        ) : null}
+        {course.status === "published" ? (
+          <Button type="button" variant="outline" disabled={pending} onClick={() => run("archive")}>
+            {pending ? "Archiving…" : "Archive"}
+          </Button>
+        ) : null}
+      </>
+    );
+  }
+
   return (
-    <CourseListing
+    <CourseCard
       role="admin"
       from="manage"
       courseId={course.id}
       title={course.title ?? ""}
       badge={<StatusBadge value={course.status} />}
-      footer={course.status === "pending" ? <PendingLessons lessons={course.lessons} /> : null}
-      actions={
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <CourseDetailsLink
-            role="admin"
-            from="manage"
-            courseId={course.id}
-            className="text-sm font-medium text-primary"
-          >
-            View details
-          </CourseDetailsLink>
-          <div className="flex flex-wrap gap-2">
-            {course.status === "pending" ? (
-              <Button type="button" disabled={pending} onClick={() => run("publish")}>
-                {pending ? "Publishing…" : "Approve"}
-              </Button>
-            ) : null}
-            {course.status === "published" ? (
-              <Button
-                type="button"
-                variant="outline"
-                disabled={pending}
-                onClick={() => run("archive")}
-              >
-                {pending ? "Archiving…" : "Archive"}
-              </Button>
-            ) : null}
-          </div>
-        </div>
-      }
+      description={course.description}
+      level={course.level}
+      instructorName={instructor}
+      lessons={course.lessons}
+      actions={reviewActions()}
+      previewActions={reviewActions()}
     >
-      <p className="text-sm text-muted-foreground">
-        {instructor ? <span className="text-foreground">{instructor}</span> : null}
-        {instructor ? " · " : null}
-        {level}
-      </p>
-      <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
-        {course.description ?? ""}
-      </p>
-      <p className="text-xs text-muted-foreground">Created {formatCourseDate(course.createdAt)}</p>
-    </CourseListing>
+      <MetaList stacked>
+        <MetaItem label="Instructor" value={instructor} />
+        <MetaItem label="Level" value={level} />
+        <MetaItem label="Created" value={formatCourseDate(course.createdAt)} />
+      </MetaList>
+      {course.status === "pending" ? <PendingLessons lessons={course.lessons} /> : null}
+      {course.status === "pending" && materials ? (
+        <CourseMaterialList materials={materials} />
+      ) : null}
+      {course.status === "pending" ? (
+        <CourseReviewPanel courseId={course.id} review={review} />
+      ) : null}
+    </CourseCard>
   );
 }
 
@@ -273,7 +318,7 @@ function VideoUrlItem({ value }: { value: string | null }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-sm text-primary underline-offset-4 hover:underline [overflow-wrap:anywhere]"
+      className="rounded-md text-sm text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [overflow-wrap:anywhere]"
     >
       {url}
     </a>

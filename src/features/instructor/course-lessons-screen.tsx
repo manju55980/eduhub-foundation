@@ -3,7 +3,15 @@ import { Save } from "lucide-react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
+import {
+  MetaItem,
+  MetaList,
+  PageSection,
+  RecordList,
+  panelClass,
+  recordGridClass,
+} from "@/components/app-shell/record-card";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,12 +79,8 @@ export function CourseLessonsScreen({ courseId }: { courseId: string }) {
   const heading = course?.title ? course.title : "Lessons";
 
   return (
-    <section className={pageFrameClass}>
-      <PageHeader
-        title={heading}
-        backTo="/instructor/courses"
-        backLabel="My Courses (including lessons)"
-      />
+    <PageSection>
+      <PageHeader title={heading} backTo="/instructor/courses" backLabel="My Courses" />
       <SaveNotice
         tone="instructor"
         saved={notice.saved}
@@ -88,13 +92,15 @@ export function CourseLessonsScreen({ courseId }: { courseId: string }) {
       {missing ? <EmptyState message="This course is not available." /> : null}
       {course && !loadError && !loading ? (
         <>
-          <CreateLessonForm
-            courseId={course.id}
-            onNotice={setNotice}
-            onCreated={(lesson) =>
-              setLessons((current) => [...current, lesson].sort(compareLessons))
-            }
-          />
+          {course.status === "draft" ? (
+            <CreateLessonForm
+              courseId={course.id}
+              onNotice={setNotice}
+              onCreated={(lesson) =>
+                setLessons((current) => [...current, lesson].sort(compareLessons))
+              }
+            />
+          ) : null}
           {lessons.length === 0 ? (
             <EmptyState message="This course has no lessons yet." />
           ) : (
@@ -103,6 +109,7 @@ export function CourseLessonsScreen({ courseId }: { courseId: string }) {
                 <LessonCard
                   key={lesson.id}
                   lesson={lesson}
+                  canEdit={course.status === "draft"}
                   onNotice={setNotice}
                   onUpdated={(lessonId, text) =>
                     setLessons((current) =>
@@ -124,7 +131,7 @@ export function CourseLessonsScreen({ courseId }: { courseId: string }) {
           )}
         </>
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 
@@ -168,10 +175,7 @@ function CreateLessonForm({
   }
 
   return (
-    <form
-      className="space-y-4 rounded-sm border border-border bg-card p-4 shadow-none"
-      onSubmit={handleSubmit}
-    >
+    <form className={cn(panelClass, "space-y-4 p-4")} onSubmit={handleSubmit}>
       <LessonFields
         idPrefix="new-lesson"
         title={title}
@@ -192,10 +196,12 @@ function CreateLessonForm({
 
 function LessonCard({
   lesson,
+  canEdit,
   onNotice,
   onUpdated,
 }: {
   lesson: CourseLesson;
+  canEdit: boolean;
   onNotice: (notice: Notice) => void;
   onUpdated: (lessonId: string, text: LessonText) => void;
 }) {
@@ -231,11 +237,11 @@ function LessonCard({
   }
 
   return (
-    <article className="flex h-full flex-col space-y-3 rounded-sm border border-border bg-card p-4 shadow-none">
+    <article className={cn(panelClass, "flex h-full flex-col space-y-3 p-4")}>
       <h2 className="text-base font-medium text-foreground">{lesson.title ?? ""}</h2>
       <p className="text-sm text-muted-foreground">Order {lesson.orderIndex ?? ""}</p>
       {editing ? (
-        <form className="mt-auto space-y-5" onSubmit={handleSubmit}>
+        <form className="mt-auto space-y-4" onSubmit={handleSubmit}>
           <LessonFields
             idPrefix={`lesson-${lesson.id}`}
             title={title}
@@ -263,27 +269,20 @@ function LessonCard({
         </form>
       ) : (
         <>
-          <dl className="space-y-3 text-sm">
-            <LessonFact label="Content" value={lesson.content ?? ""} />
-            <LessonFact label="Video URL" value={lesson.videoUrl ?? ""} />
-          </dl>
-          <div className="mt-auto">
-            <Button type="button" variant="outline" onClick={() => setEditing(true)}>
-              Edit
-            </Button>
-          </div>
+          <MetaList stacked>
+            <MetaItem label="Content" value={lesson.content ?? ""} />
+            <MetaItem label="Video URL" value={lesson.videoUrl ?? ""} />
+          </MetaList>
+          {canEdit ? (
+            <div className="mt-auto">
+              <Button type="button" variant="outline" onClick={() => setEditing(true)}>
+                Edit
+              </Button>
+            </div>
+          ) : null}
         </>
       )}
     </article>
-  );
-}
-
-function LessonFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-      <dd className="whitespace-pre-wrap text-foreground">{value}</dd>
-    </div>
   );
 }
 

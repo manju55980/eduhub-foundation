@@ -1,3 +1,12 @@
+import {
+  redactPii,
+  requiredText,
+  textList,
+  untrustedDataRule,
+  wrapUntrusted,
+  asRecord,
+} from "./guardrails.ts";
+
 export const questionLimit = 1000;
 export const notAvailableMessage = "This course is not available.";
 export const studentOnlyMessage = "Only a student can use the study companion.";
@@ -61,9 +70,19 @@ export function studyPrompt(input: {
     .join("\n\n");
 
   return {
-    system:
-      'You help a student with one course. Use only the course title, description, and lesson text in the user message. Explain that text in simpler words, give one short example that illustrates it, and write three practice questions about it. Do not mention scores, submissions, other students, or other courses. Reply with JSON only: {"explanation": string, "example": string, "practiceQuestions": string[]}.',
-    user: `Course title: ${(input.course.title ?? "").trim()}\nCourse description: ${(input.course.description ?? "").trim()}\n\nLessons:\n${lessons}\n\nQuestion: ${input.question}`,
+    system: [
+      "You help a student with one course. Use only the course title, description, and lesson text in the user message.",
+      "Explain that text in simpler words, give one short example that illustrates it, and write three practice questions about it.",
+      "Do not mention scores, submissions, other students, or other courses.",
+      'Reply with JSON only: {"explanation": string, "example": string, "practiceQuestions": string[]}.',
+      untrustedDataRule,
+    ].join(" "),
+    user: [
+      `Course title:\n${wrapUntrusted("course", redactPii((input.course.title ?? "").trim()))}`,
+      `Course description:\n${wrapUntrusted("course", redactPii((input.course.description ?? "").trim()))}`,
+      `Lessons:\n${wrapUntrusted("course", redactPii(lessons))}`,
+      `Question:\n${wrapUntrusted("user", redactPii(input.question))}`,
+    ].join("\n\n"),
   };
 }
 
@@ -72,22 +91,11 @@ export function parseStudyReply(
 ):
   | { ok: true; explanation: string; example: string; practiceQuestions: string[] }
   | { ok: false; message: string } {
-  if (!value || typeof value !== "object") {
-    return { ok: false, message: "The AI response was not valid." };
-  }
-  const explanation =
-    "explanation" in value && typeof value.explanation === "string" ? value.explanation.trim() : "";
-  const example =
-    "example" in value && typeof value.example === "string" ? value.example.trim() : "";
-  const practice =
-    "practiceQuestions" in value && Array.isArray(value.practiceQuestions)
-      ? value.practiceQuestions
-      : [];
-  const practiceQuestions = practice
-    .filter((item): item is string => typeof item === "string")
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-    .slice(0, 5);
+  const record = asRecord(value);
+  if (!record) return { ok: false, message: "The AI response was not valid." };
+  const explanation = requiredText(record, "explanation") ?? "";
+  const example = requiredText(record, "example") ?? "";
+  const practiceQuestions = textList(record["practiceQuestions"], 5);
 
   if (!explanation || !example || practiceQuestions.length === 0) {
     return { ok: false, message: "The AI response was not valid." };

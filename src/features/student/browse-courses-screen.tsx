@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
 import { MetaItem, MetaList, PageSection, RecordList, recordGridClass, selectFieldClass } from "@/components/app-shell/record-card";
 import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
-import { CourseListing } from "@/features/courses/course-listing";
+import { CourseCard } from "@/features/courses/course-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -114,19 +114,24 @@ export function BrowseCoursesScreen({ studentId }: { studentId: string }) {
       {!loading && !loadError && visibleCourses.length > 0 ? (
         <RecordList className={recordGridClass}>
           {visibleCourses.map((course) => (
-            <CourseCard
+            <CatalogueCourseCard
               key={course.id}
               course={course}
               studentId={studentId}
               categoryName={storedCategoryName(categories, course.categoryId)}
               onNotice={setNotice}
-              onEnrolled={() =>
+              onEnrolled={() => {
                 setCourses((current) =>
                   current.map((item) =>
-                    item.id === course.id ? { ...item, enrolled: true } : item,
+                    item.id === course.id ? { ...item, enrolled: true, progress: item.progress ?? 0 } : item,
                   ),
-                )
-              }
+                );
+                void listPublishedCourses(studentId).then((result) => {
+                  if (!result.ok) return;
+                  setCourses(result.courses);
+                  setCategories(result.categories);
+                });
+              }}
             />
           ))}
         </RecordList>
@@ -135,7 +140,7 @@ export function BrowseCoursesScreen({ studentId }: { studentId: string }) {
   );
 }
 
-function CourseCard({
+function CatalogueCourseCard({
   course,
   studentId,
   categoryName,
@@ -165,34 +170,57 @@ function CourseCard({
     onNotice({ saved: true, message: "You are enrolled in this course." });
   }
 
+  function learningAction() {
+    return (
+      <Button asChild>
+        <Link
+          to="/student/my-courses/$courseId"
+          params={{ courseId: course.id }}
+          search={{ from: "browse" }}
+        >
+          Continue Learning
+        </Link>
+      </Button>
+    );
+  }
+  function enrollAction() {
+    return (
+      <Button type="button" disabled={pending} onClick={handleEnroll}>
+        {pending ? "Enrolling…" : "Enroll"}
+      </Button>
+    );
+  }
+
   return (
-    <CourseListing
+    <CourseCard
       role="student"
       from="browse"
+      studentId={studentId}
+      enrolled={course.enrolled}
       courseId={course.id}
       title={course.title ?? ""}
       badge={<StatusBadge value={course.completed ? "completed" : "published"} />}
       description={course.description}
-      actions={
-        course.enrolled ? (
-          <Button asChild>
-            <Link to="/student/my-courses/$courseId" params={{ courseId: course.id }}>
-              Open course
-            </Link>
-          </Button>
-        ) : (
-          <Button type="button" disabled={pending} onClick={handleEnroll}>
-            {pending ? "Enrolling…" : "Enroll"}
-          </Button>
-        )
+      categoryName={categoryName}
+      level={course.level}
+      progress={
+        course.enrolled && course.progress !== null
+          ? {
+              completed: course.completedLessons,
+              total: course.lessonCount,
+              percent: course.progress,
+            }
+          : null
       }
+      actions={course.enrolled ? learningAction() : enrollAction()}
+      previewActions={course.enrolled ? learningAction() : enrollAction()}
     >
       <MetaList stacked>
         <MetaItem label="Category" value={categoryName} />
         <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
         <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
       </MetaList>
-    </CourseListing>
+    </CourseCard>
   );
 }
 

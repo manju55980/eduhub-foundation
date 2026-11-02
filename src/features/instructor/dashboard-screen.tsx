@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { BoardSection } from "@/components/app-shell/data-table";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, RecordCard, RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordCard, RecordList, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
-import { CourseListing } from "@/features/courses/course-listing";
+import { CourseCard } from "@/features/courses/course-card";
+import { InstructorCourseLinks } from "@/features/courses/course-listing";
 import { listInstructorCourses, type InstructorCourse } from "./my-courses-api";
 import { listInstructorSubmissions } from "./submissions-api";
 import { submissionViews, type GradableSubmission } from "./submissions";
@@ -45,7 +46,7 @@ export function InstructorDashboardScreen({ fullName }: { fullName: string }) {
   const name = fullName.trim() || "Instructor";
 
   return (
-    <section className={pageFrameClass}>
+    <PageSection>
       <PageHeader
         title={`Welcome back, ${name}`}
         description="Submissions to grade, and your newest courses."
@@ -86,25 +87,28 @@ export function InstructorDashboardScreen({ fullName }: { fullName: string }) {
           {!courseError && courses.length > 0 ? (
             <RecordList className={recordGridClass}>
               {courses.map((course) => (
-                <CourseListing
+                <CourseCard
                   key={course.id}
                   role="instructor"
                   from="dashboard"
                   courseId={course.id}
                   title={course.title ?? ""}
+                  level={course.level}
                   badge={<StatusBadge value={course.status} />}
+                  actions={<InstructorCourseLinks courseId={course.id} />}
+                  previewActions={<InstructorCourseLinks courseId={course.id} />}
                 >
                   <MetaList stacked>
                     <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
                     <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
                   </MetaList>
-                </CourseListing>
+                </CourseCard>
               ))}
             </RecordList>
           ) : null}
         </BoardSection>
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 

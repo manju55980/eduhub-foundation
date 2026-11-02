@@ -2,7 +2,7 @@
 
 Specifies the Approve Courses screen. An admin reviews pending courses and publishes one. Archiving a published course stays in `admin-archive-course.md`. Reject and the other admin screens stay out of this feature. Roles and the route map stay in `product.md`. Schema and RLS stay in `architecture.md` and `supabase/migrations/20261009220000_create_lms_tables.sql`.
 
-This feature does not add a table, column, policy, route, or migration.
+This feature does not add a table, column, policy, route, or migration. Materials and the advisory review on this screen are specified in `admin-course-review.md` and `../instructor/instructor-course-materials.md`. They do not change the publish payload.
 
 ## Route
 
@@ -36,7 +36,7 @@ A published course then matches the student catalogue, which lists `status = pub
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader`, white bordered cards, and the existing button primitives.
+Follow the visual direction in `product.md`. Use `PageHeader`, the shared card surface, and the existing button primitives.
 
 - **Loading.** The pending list is not shown yet. Do not offer Approve and do not show sample courses.
 - **Ready.** The list shows the loaded pending courses, or the empty state. Each pending course has Approve.
@@ -57,6 +57,7 @@ RLS is the data boundary. A hidden control is not enough. Do not hand-edit `src/
 - Archiving a published course. The trigger allows `published` to `archived`. This screen does not send it. The archive screen is specified in `admin-archive-course.md`.
 - Rejecting a pending course, and restoring an archived course. Those transitions are not specified.
 - Editing course or lesson fields.
+- Hiding Approve when the AI review is missing, has failed, is low confidence, or says revise. That review is specified in `admin-course-review.md`.
 - Manage Users, categories, reports, and the admin dashboard. Manage Users is specified in `admin-manage-users.md`. Manage Categories is specified in `admin-manage-categories.md`. All Enrollments is specified in `admin-all-enrollments.md`.
 - Instructor and student screens.
 

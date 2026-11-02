@@ -8,12 +8,22 @@ import {
   fewShotExamples,
   fewShotLimit,
   formatAccuracy,
+  formatMetric,
+  heldOutIsComplete,
   labelledLevelRows,
+  levelAccuracyReportPath,
+  levelClassMetrics,
   levelNames,
   levelPrompt,
+  levelProviderFromArgs,
   levelReport,
+  mergeSavedPredictions,
   meetsAccuracyBar,
+  normalizeSavedPrediction,
+  ollamaEvaluationPassed,
+  predictionsForModel,
   readReportedAccuracy,
+  replaceGeminiReportRequested,
   reportMeetsBar,
   scorePredictions,
   shouldWriteReport,
@@ -100,12 +110,14 @@ describe("course level score", () => {
   });
 
   it("writes the held-out report without course text", () => {
+    const matrix: LevelScore["matrix"] = {
+      beginner: { beginner: 12, intermediate: 1, advanced: 0 },
+      intermediate: { beginner: 2, intermediate: 10, advanced: 1 },
+      advanced: { beginner: 0, intermediate: 6, advanced: 8 },
+    };
     const score: LevelScore = {
-      matrix: {
-        beginner: { beginner: 12, intermediate: 1, advanced: 0 },
-        intermediate: { beginner: 2, intermediate: 10, advanced: 1 },
-        advanced: { beginner: 0, intermediate: 6, advanced: 8 },
-      },
+      matrix,
+      metrics: levelClassMetrics(matrix),
       correct: 30,
       invalid: 0,
       classified: 40,
@@ -282,7 +294,234 @@ describe("course level score", () => {
     expect(source).not.toContain("rag_chunks");
     expect(source).not.toContain("seed-rag-chunks");
     expect(source).toContain("level-progress.json");
+    expect(source).toContain("levelAccuracyReportPath");
+    expect(source).toContain("levelProviderFromArgs");
     expect(source).not.toMatch(/console\.(log|error)\([^)]*GEMINI_API_KEY/);
+    expect(source).not.toMatch(/console\.(log|error)\([^)]*OLLAMA_HOST/);
+  });
+});
+
+describe("level classification metrics", () => {
+  it("scores per-class and macro precision, recall, and F1", () => {
+    const summary = scorePredictions(
+      [
+        prediction("1", "beginner", "beginner"),
+        prediction("2", "beginner", "beginner"),
+        prediction("3", "intermediate", "advanced"),
+        prediction("4", "advanced", null, "invalid"),
+        prediction("5", "beginner", null, "infrastructure"),
+      ],
+      6,
+    );
+
+    expect(summary.metrics.perClass.beginner).toMatchObject({
+      precision: 1,
+      recall: 1,
+      f1: 1,
+      support: 2,
+    });
+    expect(summary.metrics.perClass.intermediate).toMatchObject({
+      precision: 0,
+      recall: 0,
+      f1: 0,
+      support: 1,
+    });
+    expect(summary.metrics.perClass.advanced).toMatchObject({
+      precision: 0,
+      recall: 0,
+      f1: 0,
+      support: 1,
+    });
+    expect(summary.metrics.macro.precision).toBeCloseTo(1 / 3);
+    expect(summary.metrics.macro.recall).toBeCloseTo(1 / 3);
+    expect(summary.metrics.macro.f1).toBeCloseTo(1 / 3);
+    expect(summary.accuracy).toBe(0.5);
+    expect(summary.coverage).toBeCloseTo(4 / 6);
+    expect(heldOutIsComplete(summary)).toBe(false);
+    expect(shouldWriteReport(summary)).toBe(false);
+    expect(ollamaEvaluationPassed(summary)).toBe(false);
+    expect(formatMetric(summary.metrics.macro.f1)).toBe("0.333");
+  });
+
+  it("keeps a perfect classified subset from passing while rows remain", () => {
+    const summary = scorePredictions(
+      [
+        prediction("1", "beginner", "beginner"),
+        prediction("2", "intermediate", "intermediate"),
+        prediction("3", "advanced", "advanced"),
+      ],
+      40,
+    );
+
+    expect(summary.accuracy).toBe(1);
+    expect(summary.metrics.macro.f1).toBe(1);
+    expect(summary.coverage).toBeCloseTo(3 / 40);
+    expect(summary.notAttempted).toBe(37);
+    expect(heldOutIsComplete(summary)).toBe(false);
+    expect(ollamaEvaluationPassed(summary)).toBe(false);
+
+    const complete = scorePredictions(
+      [
+        prediction("1", "beginner", "beginner"),
+        prediction("2", "intermediate", "intermediate"),
+        prediction("3", "advanced", "advanced"),
+      ],
+      3,
+    );
+    expect(complete.metrics.macro.precision).toBe(1);
+    expect(complete.metrics.macro.recall).toBe(1);
+    expect(complete.metrics.macro.f1).toBe(1);
+    expect(ollamaEvaluationPassed(complete)).toBe(true);
+  });
+});
+
+describe("model-specific level progress", () => {
+  it("treats an unlabelled saved row as Gemini and keeps other models beside it", () => {
+    const legacy = normalizeSavedPrediction({ id: "label-0001", predicted: "beginner" });
+    const ollama = normalizeSavedPrediction({
+      id: "label-0001",
+      predicted: "advanced",
+      provider: "ollama",
+      model: "llama3.2",
+    });
+    const otherModel = normalizeSavedPrediction({
+      id: "label-0002",
+      predicted: "intermediate",
+      provider: "ollama",
+      model: "phi3",
+    });
+
+    expect(legacy).toMatchObject({
+      provider: "gemini",
+      model: "gemini-3.5-flash-lite",
+      predicted: "beginner",
+    });
+    const saved = mergeSavedPredictions(mergeSavedPredictions([legacy!], ollama!), otherModel!);
+    expect(predictionsForModel(saved, "gemini", "gemini-3.5-flash-lite")).toEqual([legacy]);
+    expect(predictionsForModel(saved, "ollama", "llama3.2")).toEqual([ollama]);
+    expect(predictionsForModel(saved, "ollama", "phi3")).toEqual([otherModel]);
+    expect(levelProviderFromArgs(["--provider", "ollama"], { LEVEL_PROVIDER: "gemini" })).toEqual({
+      ok: true,
+      provider: "ollama",
+    });
+    expect(levelProviderFromArgs([], {})).toEqual({ ok: true, provider: "gemini" });
+    expect(levelProviderFromArgs(["--provider"], {}).ok).toBe(false);
+    expect(replaceGeminiReportRequested(["--provider", "ollama"])).toBe(false);
+    expect(replaceGeminiReportRequested(["--replace-gemini-report"])).toBe(true);
+    expect(levelAccuracyReportPath("ollama")).toBe("docs/assessment-2/level-accuracy-ollama.md");
+    expect(levelAccuracyReportPath("gemini")).toBe("docs/assessment-2/level-accuracy.md");
+  });
+
+  it("does not resume a Gemini prediction when classifying with Ollama", async () => {
+    const rows = labelledLevelRows().slice(0, 10);
+    const split = splitLabelledRows(rows, 42);
+    const calls: string[] = [];
+    const completed: string[] = [];
+    const result = await classifyHeldOut(rows, {
+      provider: "ollama",
+      model: "llama3.2",
+      ollamaHost: "http://127.0.0.1:11434",
+      saved: [
+        { id: split.test[0]!.id, predicted: split.test[0]!.level },
+        {
+          id: split.test[1]!.id,
+          predicted: "beginner",
+          provider: "ollama",
+          model: "phi3",
+        },
+      ],
+      sleep: async () => {},
+      onCompleted: (prediction) => {
+        completed.push(`${prediction.provider}:${prediction.model}:${prediction.id}`);
+      },
+      fetchImpl: async (input, init) => {
+        expect(String(input)).toBe("http://127.0.0.1:11434/api/chat");
+        const body = JSON.parse(String(init?.body)) as {
+          model: string;
+          stream: boolean;
+          format: string;
+          options: { temperature: number };
+          messages: Array<{ role: string; content: string }>;
+        };
+        expect(body.model).toBe("llama3.2");
+        expect(body.stream).toBe(false);
+        expect(body.format).toBe("json");
+        expect(body.options.temperature).toBe(0);
+        const course = courseSection(body.messages.at(-1)?.content ?? "");
+        calls.push(course);
+        return ollamaLevelResponse(course);
+      },
+    });
+
+    expect(calls).toHaveLength(split.test.length);
+    expect(calls.some((course) => course.includes(split.test[0]!.title))).toBe(true);
+    expect(completed.every((item) => item.startsWith("ollama:llama3.2:"))).toBe(true);
+    expect(result.summary.classified).toBe(split.test.length);
+    expect(result.summary.accuracy).toBe(1);
+    expect(heldOutIsComplete(result.summary)).toBe(true);
+    expect(result.report).toContain("# Course level accuracy (Ollama)");
+    expect(result.report).toContain("`llama3.2`");
+    expect(result.report).toContain("docs/assessment-2/level-accuracy.md");
+    expect(result.report).not.toContain("`gemini-3.5-flash-lite`");
+    expect(result.report).not.toContain("photosynthesis");
+
+    const resumedCalls: string[] = [];
+    await classifyHeldOut(rows, {
+      provider: "ollama",
+      model: "llama3.2",
+      saved: [
+        {
+          id: split.test[0]!.id,
+          predicted: split.test[0]!.level,
+          provider: "ollama",
+          model: "llama3.2",
+        },
+      ],
+      sleep: async () => {},
+      fetchImpl: async (_input, init) => {
+        const body = JSON.parse(String(init?.body)) as {
+          messages: Array<{ content: string }>;
+        };
+        const course = courseSection(body.messages.at(-1)?.content ?? "");
+        resumedCalls.push(course);
+        return ollamaLevelResponse(course);
+      },
+    });
+    expect(resumedCalls).toHaveLength(split.test.length - 1);
+    expect(resumedCalls.some((course) => course.includes(split.test[0]!.title))).toBe(false);
+  });
+
+  it("stops an incomplete Ollama run without treating it as a finished evaluation", async () => {
+    const rows = labelledLevelRows().slice(0, 15);
+    const split = splitLabelledRows(rows, 42);
+    let calls = 0;
+    const result = await classifyHeldOut(rows, {
+      provider: "ollama",
+      model: "llama3.2",
+      maxAttempts: 2,
+      sleep: async () => {},
+      fetchImpl: async () => {
+        calls += 1;
+        throw new Error("connection refused");
+      },
+    });
+
+    expect(calls).toBe(2);
+    expect(result.summary.infrastructureErrors).toBe(1);
+    expect(result.summary.notAttempted).toBe(split.test.length - 1);
+    expect(heldOutIsComplete(result.summary)).toBe(false);
+    expect(ollamaEvaluationPassed(result.summary)).toBe(false);
+    expect(result.report).toContain("| Not attempted |");
+  });
+});
+
+describe("published Gemini level baseline", () => {
+  it("still records the partial Gemini result", () => {
+    const report = readFileSync(resolve(root, "docs/assessment-2/level-accuracy.md"), "utf8");
+    expect(report).toContain("`gemini-3.5-flash-lite`");
+    expect(report).toContain("| Classified | 32 |");
+    expect(report).toContain("| Test count | 40 |");
+    expect(report).not.toContain("(Ollama)");
   });
 });
 
@@ -309,6 +548,18 @@ function requestText(init: RequestInit | undefined) {
 
 function courseSection(text: string) {
   return text.split("Course to classify:").at(-1) ?? "";
+}
+
+function ollamaLevelResponse(course: string) {
+  const predicted = course.includes("Beginner introduction")
+    ? "beginner"
+    : course.includes("Intermediate practice")
+      ? "intermediate"
+      : "advanced";
+  return new Response(
+    JSON.stringify({ message: { content: JSON.stringify({ level: predicted }) } }),
+    { status: 200 },
+  );
 }
 
 function levelResponse(text: string) {

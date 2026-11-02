@@ -28,7 +28,7 @@ export function CourseDetailsLink({
   ...target
 }: CourseDetailsLinkProps) {
   const classNames = cn(
-    "block min-w-0 space-y-3 rounded-sm text-left text-inherit focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+    "block min-w-0 space-y-3 rounded-md text-left text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
     className,
   );
   if (target.role === "student") {
@@ -118,6 +118,11 @@ export function InstructorCourseLinks({ courseId }: { courseId: string }) {
       <Button variant="outline" asChild>
         <Link to="/instructor/courses/$courseId/assignments" params={{ courseId }}>
           Assignments
+        </Link>
+      </Button>
+      <Button variant="outline" asChild>
+        <Link to="/instructor/courses/$courseId/materials" params={{ courseId }}>
+          Materials
         </Link>
       </Button>
     </div>

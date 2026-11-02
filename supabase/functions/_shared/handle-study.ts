@@ -1,4 +1,5 @@
-import { completeJson } from "./gemini.ts";
+import { completeJson, invalidAiMessage } from "./gemini.ts";
+import { authorizeTool, isToolShaped, noToolAllowlist, toolName } from "./guardrails.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
 import { resolveUserClient } from "./user-client.ts";
 import {
@@ -87,6 +88,12 @@ export async function handleStudy(
     deps.fetchImpl,
   );
   if (!completion.ok) return jsonResponse({ ok: false, message: completion.message });
+  if (
+    isToolShaped(completion.value) &&
+    !authorizeTool(toolName(completion.value), noToolAllowlist)
+  ) {
+    return jsonResponse({ ok: false, message: invalidAiMessage });
+  }
 
   const reply = parseStudyReply(completion.value);
   if (!reply.ok) return jsonResponse({ ok: false, message: reply.message });

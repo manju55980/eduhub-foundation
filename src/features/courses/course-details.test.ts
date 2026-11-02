@@ -61,7 +61,10 @@ describe("course detail return paths", () => {
     expect(studentDetailReturn("assistant").to).toBe("/student/assistant");
     expect(instructorDetailReturn("dashboard").to).toBe("/instructor");
     expect(instructorDetailReturn("builder").label).toBe("AI Course Builder");
-    expect(instructorDetailReturn("courses").to).toBe("/instructor/courses");
+    expect(instructorDetailReturn("courses")).toEqual({
+      to: "/instructor/courses",
+      label: "My Courses",
+    });
     expect(adminDetailReturn("archive").label).toBe("Archive Courses");
     expect(adminDetailReturn("dashboard").to).toBe("/admin");
     expect(adminDetailReturn("enrollments").label).toBe("All Enrollments");

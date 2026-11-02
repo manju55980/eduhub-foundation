@@ -28,7 +28,7 @@ Read with the signed-in browser client from `@/integrations/supabase/client`. Th
 
 List every enrollment this admin can read. Then read each enrollment’s course `title` and `status`, and the student’s `full_name`.
 
-Order by the enrollment `created_at` descending, the same order as Student My Courses. Do not add search, filters, pagination, lesson lists, grades, or a count of other students.
+Order by the enrollment `created_at` descending, the same order as Student My Courses. A client-side search matches the loaded course title or student name. It does not add a query. Do not add other filters, pagination, lesson lists, grades, or a count of other students.
 
 If the enrollment query, course query, or profile query fails, show that error and do not show cards. An empty enrollment list is an empty state, not sample enrollments. It has no controls.
 
@@ -52,7 +52,7 @@ There is no Open course control. This screen does not add an admin learning rout
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader` and white bordered cards. Do not add a form.
+Follow the visual direction in `product.md`. Use `PageHeader` and the shared card surface. Do not add a form.
 
 - **Loading.** The list is not shown yet. Do not show sample enrollments.
 - **Ready.** The list shows the loaded enrollments, or the empty state.

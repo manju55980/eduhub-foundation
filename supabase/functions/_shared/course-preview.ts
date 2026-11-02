@@ -1,3 +1,11 @@
+import {
+  asRecord,
+  optionalText as recordText,
+  redactPii,
+  untrustedDataRule,
+  wrapUntrusted,
+} from "./guardrails.ts";
+
 export const briefLimit = 2000;
 export const descriptionLimit = 2000;
 export const lessonContentLimit = 8000;
@@ -110,8 +118,13 @@ export function builderPrompt(request: BuilderRequest) {
       "Keep the description within 2000 characters. Keep each lesson content within 8000 characters.",
       assignments,
       "Do not include a status, owner, due date, or video URL. Do not invent video or document links.",
+      untrustedDataRule,
     ].join(" "),
-    user: [`Level: ${request.level}`, `Brief: ${request.brief}`, ...notes].join("\n"),
+    user: [
+      `Level: ${request.level}`,
+      `Brief:\n${wrapUntrusted("user", redactPii(request.brief))}`,
+      ...notes.map((note) => wrapUntrusted("user", redactPii(note))),
+    ].join("\n"),
   };
 }
 
@@ -182,8 +195,8 @@ function optionalText(body: object, key: string, limit: number, label: string) {
 }
 
 function textField(value: unknown, key: string) {
-  const field = fieldValue(value, key);
-  return typeof field === "string" ? field.trim() : "";
+  const record = asRecord(value);
+  return record ? recordText(record, key) : "";
 }
 
 function arrayField(value: unknown, key: string) {

@@ -59,8 +59,8 @@ export function AppSidebar({ role }: { role: AppRole }) {
   const items = roleNavigation[role];
 
   return (
-    <Sidebar className="print:hidden">
-      <SidebarHeader className="px-4 py-5">
+    <Sidebar collapsible="offcanvas" className="print:hidden">
+      <SidebarHeader className="px-5 py-5">
         <div className="flex items-center gap-2 text-base font-semibold text-foreground">
           <GraduationCap className="size-5 text-primary" />
           EduHub
@@ -68,14 +68,14 @@ export function AppSidebar({ role }: { role: AppRole }) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-muted-foreground">Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
                 const Icon = navIcon[item.to];
                 return (
                   <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton asChild isActive={isCurrentPath(pathname, item.to)}>
+                    <SidebarMenuButton asChild isActive={isCurrentPath(pathname, item.to, items)}>
                       <Link to={item.to} onClick={() => setOpenMobile(false)}>
                         {Icon ? <Icon /> : null}
                         <span>{item.label}</span>
@@ -98,7 +98,12 @@ export function AppSidebar({ role }: { role: AppRole }) {
   );
 }
 
-function isCurrentPath(pathname: string, to: string) {
+function isCurrentPath(pathname: string, to: string, items: readonly { to: string }[]) {
   const current = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
-  return current === to;
+  const matches = items.filter((item) => current === item.to || current.startsWith(`${item.to}/`));
+  const best = matches.reduce<{ to: string } | undefined>((longest, item) => {
+    if (!longest || item.to.length > longest.to.length) return item;
+    return longest;
+  }, undefined);
+  return best?.to === to;
 }

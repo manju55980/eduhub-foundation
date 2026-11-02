@@ -38,7 +38,7 @@ const newer: EnrollmentRow = {
 
 describe("enrolledCourses", () => {
   it("lists enrolled courses newest enrollment first, including archived", () => {
-    const courses = enrolledCourses([older, newer], [archived, published]);
+    const courses = enrolledCourses([older, newer], [archived, published], [], []);
 
     expect(courses.map((course) => course.id)).toEqual(["course-published", "course-archived"]);
     expect(courses[0]).toMatchObject({
@@ -68,8 +68,48 @@ describe("enrolledCourses", () => {
     const courses = enrolledCourses(
       [older, { ...newer, courseId: "course-missing" }],
       [archived, unenrolled],
+      [],
+      [],
     );
 
     expect(courses.map((course) => course.id)).toEqual(["course-archived"]);
+  });
+
+  it("counts only this course's completed lessons and keeps the stored percentage", () => {
+    const courses = enrolledCourses(
+      [older, newer],
+      [archived, published],
+      [
+        { id: "lesson-1", courseId: "course-archived" },
+        { id: "lesson-2", courseId: "course-archived" },
+        { id: "lesson-3", courseId: "course-archived" },
+        { id: "lesson-4", courseId: "course-published" },
+        { id: "lesson-5", courseId: "course-published" },
+        { id: "lesson-6", courseId: "course-published" },
+        { id: "lesson-other", courseId: "course-other" },
+      ],
+      ["lesson-1", "lesson-4", "lesson-5", "lesson-6", "lesson-other"],
+    );
+
+    expect(courses.find((course) => course.id === "course-archived")).toMatchObject({
+      progress: 40,
+      completedLessons: 1,
+      lessonCount: 3,
+    });
+    expect(courses.find((course) => course.id === "course-published")).toMatchObject({
+      progress: 100,
+      completedLessons: 3,
+      lessonCount: 3,
+    });
+  });
+
+  it("counts zero when a course has no lessons", () => {
+    const courses = enrolledCourses([older], [archived], [], ["lesson-1"]);
+
+    expect(courses[0]).toMatchObject({
+      progress: 40,
+      completedLessons: 0,
+      lessonCount: 0,
+    });
   });
 });

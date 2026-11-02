@@ -50,6 +50,7 @@ describe("UsersScreen", () => {
     expect(screen.getByText("alan@example.com")).toBeInTheDocument();
     expect(screen.getAllByText("Student").length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: "Promote" })).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Promote" })).toHaveClass("h-9");
     const emailCell = screen.getByText("alan@example.com").closest("td");
     expect(emailCell).toHaveTextContent("Email");
     const table = screen.getByRole("table");

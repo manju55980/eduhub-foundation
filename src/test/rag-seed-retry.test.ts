@@ -17,6 +17,7 @@ import {
   readSeedRunOptions,
   runRagSeed,
   seedPageSize,
+  type RagSeedDb,
 } from "../../supabase/functions/_shared/rag-seed.ts";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -186,7 +187,7 @@ describe("resumable rag seed", () => {
             body: chunk.body,
           },
     );
-    const upsert = vi.fn(async () => ({ ok: true as const }));
+    const upsert = recordingUpsert();
     const sleep = vi.fn(async () => undefined);
     const responses = [embedResponse(1), new Response(quotaBody, { status: 429 })];
 
@@ -269,7 +270,7 @@ describe("resumable rag seed", () => {
   });
 
   it("embeds every catalogue chunk before FAQ rows and stops near the record limit", async () => {
-    const upsert = vi.fn(async () => ({ ok: true as const }));
+    const upsert = recordingUpsert();
     const result = await runRagSeed({
       geminiKey: "test-key",
       batchSize: 10,
@@ -293,7 +294,7 @@ describe("resumable rag seed", () => {
     });
 
     expect(result).toMatchObject({ ok: true, embedded: 4, unchanged: 0 });
-    expect(upsert.mock.calls[0]?.[0].map((row) => row.sourceKey)).toEqual([
+    expect(upsert.mock.calls[0]?.[0]?.map((row) => row.sourceKey)).toEqual([
       "course:course-1",
       "lesson:lesson-1",
       "faq:0001",
@@ -303,7 +304,7 @@ describe("resumable rag seed", () => {
 
   it("rewrites unchanged rows when replacing the embedding model and can cache without writing", async () => {
     const faqs = faqChunks();
-    const upsert = vi.fn(async () => ({ ok: true as const }));
+    const upsert = recordingUpsert();
     const cached: string[] = [];
     const result = await runRagSeed({
       ollamaHost: "http://127.0.0.1:11434",
@@ -339,6 +340,10 @@ describe("resumable rag seed", () => {
     expect(cached).toEqual(["course:course-1", "faq:0001", "faq:0002"]);
   });
 });
+
+function recordingUpsert() {
+  return vi.fn<RagSeedDb["upsert"]>(async () => ({ ok: true }));
+}
 
 function geminiEmbedResponse(count: number) {
   return new Response(

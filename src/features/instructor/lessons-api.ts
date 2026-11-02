@@ -11,6 +11,7 @@ import {
 export type OwnedCourse = {
   id: string;
   title: string | null;
+  status: string;
 };
 
 export type CourseLesson = {
@@ -43,13 +44,16 @@ function toLesson(row: {
 export async function getOwnedCourse(courseId: string) {
   const { data, error } = await supabase
     .from("courses")
-    .select("id, title")
+    .select("id, title, status")
     .eq("id", courseId)
     .maybeSingle();
 
   if (error) return { ok: false as const, message: error.message };
   if (!data) return { ok: true as const, course: null };
-  return { ok: true as const, course: { id: data.id, title: data.title } };
+  return {
+    ok: true as const,
+    course: { id: data.id, title: data.title, status: data.status },
+  };
 }
 
 export async function listCourseLessons(courseId: string) {

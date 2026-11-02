@@ -91,31 +91,31 @@ export function CertificateDocument({
   return (
     <>
       <style>{printStyle}</style>
-      <article className="certificate-print mx-auto w-full max-w-5xl bg-[#fbf7ef] text-[#1c2430] shadow-sm print:max-w-none print:shadow-none">
-        <div className="aspect-[11/8.5] border-[10px] border-[#1e3a5f] p-2 sm:border-[14px] sm:p-3">
-          <div className="flex h-full min-h-0 flex-col border-2 border-[#b0893f] px-6 py-5 sm:px-10 sm:py-8">
-            <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-[#1e3a5f]">
+      <article className="certificate-document certificate-print mx-auto w-full max-w-5xl shadow-raised print:max-w-none print:shadow-none">
+        <div className="certificate-rule aspect-[11/8.5] border-[10px] p-2 sm:border-[14px] sm:p-3">
+          <div className="certificate-rule-inner flex h-full min-h-0 flex-col border-2 px-6 py-5 sm:px-10 sm:py-8">
+            <p className="certificate-brand text-center text-xs font-semibold uppercase tracking-[0.28em]">
               EduHub
             </p>
-            <h2 className="mt-3 text-center text-2xl font-semibold tracking-tight text-[#1e3a5f] sm:text-3xl">
+            <h2 className="certificate-brand mt-3 text-center text-2xl font-semibold tracking-tight sm:text-3xl">
               Certificate of Completion
             </h2>
-            <p className="mt-6 text-center text-sm text-[#3d4a5c]">This certifies that</p>
+            <p className="mt-6 text-center text-sm">This certifies that</p>
             <p className="mt-2 text-center text-2xl font-semibold [overflow-wrap:anywhere] sm:text-3xl">
               {studentName}
             </p>
-            <p className="mt-4 text-center text-sm text-[#3d4a5c]">has successfully completed</p>
+            <p className="mt-4 text-center text-sm">has successfully completed</p>
             <p className="mt-2 text-center text-xl font-semibold [overflow-wrap:anywhere] sm:text-2xl">
               {courseTitle}
             </p>
             <p className="mt-6 text-center text-sm">Completed on {completedOn}</p>
             <div className="mt-auto flex items-end justify-between gap-4 pt-6">
-              <p className="min-w-0 text-xs [overflow-wrap:anywhere] text-[#3d4a5c]">
+              <p className="min-w-0 text-xs [overflow-wrap:anywhere]">
                 Certificate ID
-                <span className="mt-1 block font-medium text-[#1c2430]">{certificateId}</span>
+                <span className="mt-1 block font-medium">{certificateId}</span>
               </p>
               <div
-                className="flex size-20 shrink-0 items-center justify-center rounded-full border-4 border-[#b0893f] text-center text-[10px] font-semibold uppercase leading-tight tracking-wide text-[#1e3a5f] sm:size-24 sm:text-xs"
+                className="certificate-brand certificate-rule flex size-20 shrink-0 items-center justify-center rounded-full border-4 text-center text-[10px] font-semibold uppercase leading-tight tracking-wide sm:size-24 sm:text-xs"
                 aria-label="EduHub achievement seal"
               >
                 EduHub

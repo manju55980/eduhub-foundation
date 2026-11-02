@@ -1,6 +1,6 @@
 # Instructor My Courses
 
-Specifies the instructor course list and lesson management. Creating a course stays in `instructor-course-creation.md`. Roles, status transitions, and the route map stay in `product.md`. Schema and RLS stay in `architecture.md` and `supabase/migrations/20261009220000_create_lms_tables.sql`.
+Specifies the instructor course list and lesson management. Creating a course stays in `instructor-course-creation.md`. Course materials stay in `instructor-course-materials.md`. Roles, status transitions, and the route map stay in `product.md`. Schema and RLS stay in `architecture.md`. The content freeze is the later change to lesson writes.
 
 This feature does not add a table, column, policy, or migration.
 
@@ -8,7 +8,7 @@ This feature does not add a table, column, policy, or migration.
 
 | Path                                    | What it is                                                            |
 | --------------------------------------- | --------------------------------------------------------------------- |
-| `/instructor/courses`                   | My Courses. Sidebar label: “My Courses (including lessons)”.          |
+| `/instructor/courses`                   | My Courses. Sidebar label and heading: “My Courses”.                  |
 | `/instructor/courses/$courseId/lessons` | Lessons for one course the instructor owns. No separate sidebar item. |
 
 Create Course remains `/instructor/courses/new`. AI Course Builder is `/instructor/courses/generate`, specified in `instructor-ai-course-builder.md`. Do not add another lesson route. Assignment authoring is a separate course route in `instructor-assignment-management.md`.
@@ -19,9 +19,9 @@ A signed-in instructor sees the `courses` rows RLS already returns for them: `co
 
 Read with the signed-in browser client from `@/integrations/supabase/client`. The route stays thin. The query lives in `features/instructor/`. Do not use the service-role client.
 
-Show each course’s stored `title`, `description`, `level`, and `status`. Show `created_at`. The saved title opens that course’s details page, specified in `../course-details.md`. On a draft, the inputs and save controls stay outside that link. Order by `created_at` descending. Do not add search, filters, pagination, enrollment counts, grades, or assignment counts.
+Show each course’s stored `title`, `description`, `level`, and `status`. Show `created_at`. The saved title opens that course’s details page, specified in `../course-details.md`. On a draft, the inputs and save controls stay outside that link. Order by `created_at` descending. A client-side search matches the loaded course title. It does not add a query. Do not add other filters, pagination, enrollment counts, grades, or assignment counts.
 
-An empty list is an empty state, not sample courses. Link to the existing Create Course route. The heading is “My Courses (including lessons)”. This page has no back link; it is a sidebar item.
+An empty list is an empty state, not sample courses. Link to the existing Create Course route. The heading is “My Courses”. This page has no back link; it is a sidebar item.
 
 A null `title` or `description` is shown blank. Do not substitute a made-up name.
 
@@ -32,9 +32,9 @@ A null `title` or `description` is shown blank. Do not substitute a made-up name
 | Status      | Instructor action in this feature                                                                                                                                                                                        |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `draft`     | Edit title, description, level, and the optional category on this course’s card. Submit for approval when it has at least one lesson. Open lessons. Category edit is specified in `../admin/admin-manage-categories.md`. |
-| `pending`   | Open lessons. The card shows the stored fields and has no edit form and no status control.                                                                                                                               |
-| `published` | Open lessons. The card shows the stored fields and has no edit form and no status control. Archive is an admin action.                                                                                                   |
-| `archived`  | Open lessons. The card shows the stored fields and has no edit form and no status control. Restoring an archived course is not specified.                                                                                |
+| `pending`   | Open lessons. The card shows the stored fields and has no edit form and no status control. Lesson text cannot be saved.                                                                                                  |
+| `published` | Open lessons. The card shows the stored fields and has no edit form and no status control. Lesson text cannot be saved. Archive is an admin action.                                                                      |
+| `archived`  | Open lessons. The card shows the stored fields and has no edit form and no status control. Lesson text cannot be saved. Restoring an archived course is not specified.                                                    |
 
 Submit for approval is on the draft card, separate from saving title, description, level, or category. A field save must not send `status`. Submitting must not change title, description, level, `category_id`, `instructor_id`, `id`, or `created_at`.
 
@@ -54,26 +54,26 @@ Use the same rules as Create Course for those three fields: trim, reject a blank
 
 The form does not collect `instructor_id`, `status`, `id`, or `created_at`.
 
-The form is on the draft course card on `/instructor/courses`. It is not on the lessons page, and it is not a new route. After the course leaves `draft`, the card no longer shows the form. The database would still allow those column updates; this screen does not send them.
+The form is on the draft course card on `/instructor/courses`. It is not on the lessons page, and it is not a new route. After the course leaves `draft`, the card no longer shows the form. `courses_guard_update` rejects a change to `title`, `description`, `level`, or `category_id` unless the old status is `draft`.
 
 ## Lessons
 
 `/instructor/courses/$courseId/lessons` loads that course with the signed-in client. If the course row is not returned, show that it is not available. Do not show a lesson form and do not insert a lesson.
 
-The heading is the course title when one is stored, otherwise “Lessons”. The back link goes to `/instructor/courses` and its label is “My Courses (including lessons)”.
+The heading is the course title when one is stored, otherwise “Lessons”. The back link goes to `/instructor/courses` and its label is “My Courses”.
 
 Lesson RLS:
 
 - Select: the owning instructor, an admin, or an enrolled student. This screen is still instructor-only because the instructor layout already calls `requireRole("instructor")`.
-- Insert: an instructor, and only when `is_course_owner(course_id)` is true. `course_id` is the route id.
-- Update: the owning instructor may change `title`, `content`, `video_url`, and `order_index` only. The update grant does not include `course_id`, `id`, or `created_at`. Do not send those columns. This screen also does not send `order_index` on edit. A lesson cannot be moved to another course.
+- Insert: an instructor, `is_course_owner(course_id)` is true, and `is_draft_course(course_id)` is true. `course_id` is the route id.
+- Update: the owning instructor, and only while the course is `draft`, may change `title`, `content`, `video_url`, and `order_index`. The update grant does not include `course_id`, `id`, or `created_at`. Do not send those columns. This screen also does not send `order_index` on edit. A lesson cannot be moved to another course.
 - Delete: no grant. Do not offer delete.
 
-Lesson policies do not check course status. Do not add a client-side status gate unless a later decision adds one.
+Lesson insert and update require `is_draft_course(course_id)` as well as the owner check. Select does not. The lessons page shows the create and edit forms only when the loaded course is `draft`. On any other status it lists the stored lessons and does not offer save. A hidden form is not the only block.
 
 List the course’s lessons with no sample rows. Order by `order_index` ascending, nulls last, then `created_at` ascending. Show each lesson’s stored `title`, `content`, `video_url`, and `order_index`.
 
-The page can create a lesson and edit an existing one. Both stay on this page. A create saves one row and then clears the form so the same lesson is not inserted twice. An edit leaves the saved values in place. Neither save changes the course status or edits the course fields. This screen does not write `enrollments`. After a lesson insert, the database recalculates `enrollments.progress` for that course, as specified in `../student/student-lesson-completion.md`. An edit of lesson text does not clear a student’s completion.
+On a draft, the page can create a lesson and edit an existing one. Both stay on this page. On any other status it cannot. A create saves one row and then clears the form so the same lesson is not inserted twice. An edit leaves the saved values in place. Neither save changes the course status or edits the course fields. This screen does not write `enrollments`. After a lesson insert, the database recalculates `enrollments.progress` for that course, as specified in `../student/student-lesson-completion.md`. An edit of lesson text does not clear a student’s completion.
 
 | Column        | On create                                                                                                                         | On edit                    |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
@@ -93,18 +93,18 @@ RLS is the data boundary. A hidden control is not enough. Do not use the service
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader`, white bordered cards, and the existing button, input, and textarea primitives.
+Follow the visual direction in `product.md`. Use `PageHeader`, the shared card surface, and the existing button, input, and textarea primitives.
 
 - **Ready.** The list shows the loaded courses, or the empty state. The lessons page shows the loaded lessons, or an empty lesson list.
 - **Submitting.** The control that was used does not send a second request.
 - **Saved.** Stay on the same screen. The banner says “Course changes were saved.”, “This course was submitted for approval.”, “This lesson was saved.”, or “This lesson was updated.” It can be dismissed. Dismissing it does not undo the save or change the route.
 - **Error.** Show the Supabase or form error inline. An error replaces the success banner. Leave the entered values in place.
 
-No second visual system. No enrollment or grade data on these screens. The course card links to assignments; it does not list assignment rows. That link and the assignment screen are specified in `instructor-assignment-management.md`.
+No second visual system. No enrollment or grade data on these screens. The course card links to materials and to assignments. It does not list those rows. Materials are specified in `instructor-course-materials.md`. Assignments are specified in `instructor-assignment-management.md`.
 
 ## Out of scope
 
-- Creating a course, submissions, grading, and enrollment progress. Assignment authoring is specified in `instructor-assignment-management.md`.
+- Creating a course, submissions, grading, and enrollment progress. Assignment authoring is specified in `instructor-assignment-management.md`. Course-material upload is specified in `instructor-course-materials.md`.
 - Admin publish and archive.
 - Student lesson viewing.
 - Deleting or moving a course or lesson.
@@ -119,6 +119,7 @@ No second visual system. No enrollment or grade data on these screens. The cours
 - Pending, published, and archived courses have no edit form and no instructor status control. There is no delete control.
 - A draft field save is on the course card, does not send `status`, and uses the Create Course rules for title, description, and level. The lessons page does not edit those fields.
 - The lessons page loads lessons only for a course returned to that instructor. A missing course shows no form and inserts nothing.
-- A new lesson requires a trimmed title and trimmed content, stores a blank video URL as null, and gets the next `order_index`. An edit does not change `order_index`. A lesson save does not change `course_id`, `id`, `created_at`, or the course, and does not delete a lesson.
+- On a draft, a new lesson requires a trimmed title and trimmed content, stores a blank video URL as null, and gets the next `order_index`. An edit does not change `order_index`. A lesson save does not change `course_id`, `id`, `created_at`, or the course, and does not delete a lesson.
+- On a pending, published, or archived course, the lessons page does not offer save. A direct lesson insert or update fails.
 - A student or admin does not get these screens.
 - These screens do not publish, archive, enroll, grade, or create an assignment or submission.

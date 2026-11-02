@@ -6,36 +6,48 @@ export type CertificatePdfInput = {
 };
 
 const pageWidth = 792;
+const paper = "0.969 0.957 0.933";
+const forest = "0.122 0.361 0.239";
+const forestRule = "0.184 0.478 0.322";
+const ink = "0.173 0.227 0.196";
 
 export function buildCertificatePdf(input: CertificatePdfInput) {
   const courseLines = wrap(input.courseTitle.trim(), 42);
   const name = input.studentName.trim();
   let content = "";
-  content += "0.12 0.22 0.38 RG\n2.2 w\n36 36 720 540 re S\n";
-  content += "0.69 0.54 0.24 RG\n1.1 w\n48 48 696 516 re S\n";
-  content += centered("EduHub", 520, 22, "F2");
-  content += centered("Certificate of Completion", 478, 26, "F2");
-  content += centered("This certifies that", 430, 14, "F1");
-  content += centered(name, 390, 28, "F2");
-  content += centered("has successfully completed", 344, 14, "F1");
+  content += `${paper} rg\n0 0 792 612 re f\n`;
+  content += `${forest} RG\n2.2 w\n36 36 720 540 re S\n`;
+  content += `${forestRule} RG\n1.1 w\n48 48 696 516 re S\n`;
+  content += centered("EduHub", 520, 22, "F2", forest);
+  content += centered("Certificate of Completion", 478, 26, "F2", forest);
+  content += centered("This certifies that", 430, 14, "F1", ink);
+  content += centered(name, 390, 28, "F2", ink);
+  content += centered("has successfully completed", 344, 14, "F1", ink);
   courseLines.forEach((line, index) => {
-    content += centered(line, 304 - index * 26, 20, "F2");
+    content += centered(line, 304 - index * 26, 20, "F2", ink);
   });
-  content += centered(`Completed on ${input.completedOn}`, 210, 13, "F1");
-  content += centered(`Certificate ID ${input.certificateId}`, 184, 11, "F1");
-  content += "0.69 0.54 0.24 RG\n1.4 w\n688 118 m\n688 118 34 0 360 arc S\n";
-  content += "0.12 0.22 0.38 RG\n0.8 w\n688 118 m\n688 118 26 0 360 arc S\n";
-  content += centeredAt("SEAL", 676, 114, 9, "F2");
+  content += centered(`Completed on ${input.completedOn}`, 210, 13, "F1", ink);
+  content += centered(`Certificate ID ${input.certificateId}`, 184, 11, "F1", ink);
+  content += `${forest} RG\n1.4 w\n688 118 m\n688 118 34 0 360 arc S\n`;
+  content += `${forestRule} RG\n0.8 w\n688 118 m\n688 118 26 0 360 arc S\n`;
+  content += centeredAt("SEAL", 676, 114, 9, "F2", forest);
   return pdfDocument(content);
 }
 
-function centered(text: string, y: number, size: number, font: "F1" | "F2") {
-  return centeredAt(text, (pageWidth - text.length * size * 0.5) / 2, y, size, font);
+function centered(text: string, y: number, size: number, font: "F1" | "F2", fill: string) {
+  return centeredAt(text, (pageWidth - text.length * size * 0.5) / 2, y, size, font, fill);
 }
 
-function centeredAt(text: string, x: number, y: number, size: number, font: "F1" | "F2") {
+function centeredAt(
+  text: string,
+  x: number,
+  y: number,
+  size: number,
+  font: "F1" | "F2",
+  fill: string,
+) {
   const left = Math.max(56, x);
-  return `BT /${font} ${size} Tf 1 0 0 1 ${left.toFixed(1)} ${y} Tm (${pdfText(text)}) Tj ET\n`;
+  return `${fill} rg\nBT /${font} ${size} Tf 1 0 0 1 ${left.toFixed(1)} ${y} Tm (${pdfText(text)}) Tj ET\n`;
 }
 
 function wrap(value: string, max: number) {

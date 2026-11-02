@@ -29,9 +29,10 @@ Follow `coding-standards.md`.
 
 ## What not to do yet
 
-- Do not add tables or columns beyond the required schema.
-- Category storage is specified in `features/admin/admin-manage-categories.md`. Do not invent report metrics. Course status, grades, progress, and submission storage follow `product.md`.
+- Do not add tables or columns beyond the schema in `architecture.md`.
+- Category storage is specified in `features/admin/admin-manage-categories.md`. Do not invent report metrics. Course status, grades, progress, and submission storage follow `product.md`. Instructor course files are specified in `features/instructor/instructor-course-materials.md`. They are not submission files.
 - Do not start the bonus progress animation or deployment until the core path works. Deployment to Vercel is a required deliverable after that path, not a bonus.
 - The AI Study Companion and AI Course Builder are specified. They add no table, column, or policy. Gemini is called only from Supabase Edge Functions.
 - The learning assistant is specified and adds the Edge Function `ai-agent` only. The level classifier and the RAG evaluation are specified scripts. None of those three adds a table.
-- Lesson completion, certificates, and notifications are on the linked database. `rag_chunks` is applied. RAG and the level classifier are partially completed and paused on the Gemini quota. See `assessment-2-gap.md`. Do not add any table beyond that list.
+- Lesson completion, certificates, and notifications are on the linked database. `rag_chunks` is applied. RAG and the level classifier are partially completed and paused on the Gemini quota. See `assessment-2/assessment-2-gap.md`.
+- The additional Assessment 3 slice adds `course_materials`, `course_reviews`, the private `course-materials` bucket, and the content freeze. Shared Gemini guardrails add no table. Those specs are `features/instructor/instructor-course-materials.md`, `features/admin/admin-course-review.md`, and `features/ai/ai-guardrails.md`. The migrations are not applied until that is asked for. Do not add a table beyond that list.

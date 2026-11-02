@@ -69,7 +69,15 @@ Extreme rejection at cosine 0.75 is 1.000: all 15 out-of-corpus queries had a to
 
 ### Level accuracy
 
-`scripts/level-accuracy.ts` predicts `beginner`, `intermediate`, or `advanced` with `gemini-3.5-flash-lite`. The labelled file uses a seed-42 split of 160 train rows and 40 test rows. The evidence is [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md).
+`scripts/level-accuracy.ts` predicts `beginner`, `intermediate`, or `advanced` with `gemini-3.5-flash-lite`. The labelled file uses a seed-42 split of 160 train rows and 40 test rows. The Gemini evidence is [docs/assessment-2/level-accuracy.md](docs/assessment-2/level-accuracy.md).
+
+The Ollama carry-over uses the same split:
+
+```sh
+node --experimental-strip-types scripts/level-accuracy.ts --provider ollama
+```
+
+Ollama must already be running at `OLLAMA_HOST` (default `http://127.0.0.1:11434`) with `OLLAMA_LEVEL_MODEL` pulled (default `llama3.2`). That command writes `docs/assessment-2/level-accuracy-ollama.md` and leaves the Gemini baseline in place. The Ollama file is produced only after all 40 held-out rows are classified.
 
 On 28 October 2026 the script resumed the saved predictions and classified the rows left uncalled by the 21 October plan-quota stop. The earlier predictions are unchanged. Accuracy on all 40 held-out rows is 1.000. Coverage is 1.000. Classification errors, infrastructure errors, rows not attempted, and invalid replies are 0. The confusion matrix is 16 beginner, 12 intermediate, and 12 advanced, all on the diagonal.
 

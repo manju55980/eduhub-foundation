@@ -22,15 +22,15 @@ The heading is the stored title, or “Course” when the title is blank. The pa
 
 | Audience   | Extra fields                                      | Actions on this page                                      |
 | ---------- | ------------------------------------------------- | --------------------------------------------------------- |
-| Student    | Own enrollment progress, status, and enrolled date when a row exists | Open course, only when that enrollment exists. It goes to `/student/my-courses/$courseId`. |
-| Instructor | Lessons, ordered the same way as the lessons screen | Lessons and Assignments links for that course.           |
-| Admin      | Instructor name, and the same lesson list         | None. Approve and Archive stay on their lists.           |
+| Student    | Own enrollment progress, status, and enrolled date when a row exists | Open course, only when that enrollment exists. It goes to `/student/my-courses/$courseId` and copies this page’s `from`. A missing `from` is sent as `browse`. |
+| Instructor | Lessons, ordered the same way as the lessons screen | Lessons, Materials, and Assignments links for that course. |
+| Admin      | Instructor name, the same lesson list, and the course’s material file names | None. Approve, Archive, and Review with AI stay on their lists. |
 
 A student does not request `profiles` and does not see lessons. An empty lesson list, for an instructor or admin, says “This course has no lessons yet.” Hiding the section is not the same as an empty list.
 
 ## Listings that open this page
 
-The summary of the course is the link. Enroll, Open course, Approve, Archive, Save course, Submit for approval, Lessons, and Assignments stay outside that link.
+The summary of the course is the link. Enroll, Open course, Approve, Archive, Save course, Submit for approval, Lessons, Materials, and Assignments stay outside that link.
 
 | Listing                         | `from`        |
 | ------------------------------- | ------------- |

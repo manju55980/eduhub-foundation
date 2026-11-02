@@ -507,7 +507,7 @@ describe("learning assistant", () => {
     vi.useFakeTimers();
     try {
       const searchReader = catalogueReader();
-      let embedSignal: AbortSignal | undefined;
+      let embedSignal: AbortSignal | null | undefined;
       let chats = 0;
       const response = handleAgent(
         post({ messages: [{ role: "user", content: "Find algebra" }] }),

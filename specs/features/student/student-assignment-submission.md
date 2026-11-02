@@ -29,7 +29,7 @@ Read with the signed-in browser client from `@/integrations/supabase/client`. Th
 
 List assignments the signed-in student can read. That is the assignments for courses they have joined, including an archived course. Do not list an assignment for a course they have not joined. Then read those courses’ stored `title`, and the student’s own `submissions` for those assignment ids.
 
-Order assignments by `created_at` descending. Do not add search, filters, pagination, or another student’s submission.
+Order assignments by `created_at` descending. A client-side search matches the loaded assignment title or course title. It does not add a query. Do not add other filters, pagination, or another student’s submission.
 
 If the assignment query, course query, or submission query fails, show that error and do not offer Submit. An empty assignment list is an empty state, not sample assignments. Link that empty state to `/student/courses`. The link label is “Browse Courses”.
 
@@ -70,7 +70,7 @@ This screen does not update or delete a submission. Cancel is not a second submi
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader`, white bordered cards, and the existing button, input, and textarea primitives.
+Follow the visual direction in `product.md`. Use `PageHeader`, the shared card surface, and the existing button, input, and textarea primitives.
 
 - **Loading.** The list is not shown yet. Do not offer Submit and do not show sample assignments.
 - **Ready.** The list shows the loaded assignments, or the empty state. An assignment with no submission has Submit. An assignment that already has one does not.
@@ -91,7 +91,7 @@ RLS is the data boundary. A hidden control is not enough. Do not hand-edit `src/
 - Creating or editing assignments. That stays in `instructor-assignment-management.md`.
 - Grading. That stays in `../instructor/instructor-grading.md`. The student’s own grades are specified in `student-my-grades.md`.
 - Changing a submission or submitting the same assignment again.
-- File upload.
+- File upload. A submission stays text or a link. Course materials are specified in `../instructor/instructor-course-materials.md` and are not stored in `content_url`.
 - Enrollment, lessons, and course status changes.
 - Instructor and admin screens.
 

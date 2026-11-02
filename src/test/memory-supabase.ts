@@ -1,4 +1,32 @@
-type Row = Record<string, unknown>;
+type Row = {
+  id?: string;
+  created_at?: string;
+  student_id?: string | undefined;
+  lesson_id?: string | undefined;
+  course_id?: string | undefined;
+  instructor_id?: string | undefined;
+  enrollment_id?: string | undefined;
+  recipient_id?: string | undefined;
+  assignment_id?: string | undefined;
+  status?: string;
+  progress?: number;
+  title?: string;
+  kind?: string;
+  body?: string;
+  content?: string;
+  content_url?: string;
+  name?: string;
+  description?: string;
+  level?: string;
+  category_id?: string | null;
+  video_url?: string | null;
+  due_date?: string | null;
+  read_at?: string | null;
+  dedupe_key?: string;
+  issued_at?: string;
+  order_index?: number;
+  [key: string]: string | number | null | undefined;
+};
 
 type Filter = { column: string; op: "eq" | "in"; value: unknown };
 
@@ -47,7 +75,7 @@ export function createMemorySupabase() {
   }
 
   function insertRow(table: string, row: Row) {
-    const stored = {
+    const stored: Row = {
       ...row,
       id: typeof row.id === "string" ? row.id : nextId(table),
       created_at: typeof row.created_at === "string" ? row.created_at : "2026-10-18T12:00:00.000Z",

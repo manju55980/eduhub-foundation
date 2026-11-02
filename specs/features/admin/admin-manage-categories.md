@@ -42,7 +42,7 @@ Rename sends only `name`. Create sends only `name`. Delete sends no column updat
 
 ## Admin actions
 
-List every category, newest `created_at` first. Each card shows the stored `name` and `created_at`. A form creates one category. An existing card can rename it. Each card can delete it.
+List every category, newest `created_at` first. A client-side search matches the loaded category name. It does not add a query or pagination. Each card shows the stored `name` and `created_at`. A form creates one category. An existing card can rename it. Each card can delete it.
 
 Trim `name`. Reject a blank name before the write. Store the trimmed text. There is no length limit. If the unique name rejects the write, show that database error and leave the entered name in place.
 
@@ -63,7 +63,7 @@ The create insert and the draft field save may send `category_id`. They still do
 
 Browse Courses still lists `status = published`, newest `created_at` first. A category control defaults to all categories. That default includes courses with a null `category_id`. Choosing one category lists only published courses with that `category_id`.
 
-Each catalogue card shows the stored category name beside the existing title, description, level, and created time. A null category is blank. Draft, pending, and archived courses stay off this catalogue. The filter does not search text and does not add pagination.
+Each catalogue card shows the stored category name beside the existing title, description, level, and created time. A null category is blank. Draft, pending, and archived courses stay off this catalogue. The category control does not match text and does not add pagination. Title search on Browse Courses is specified in `../student/student-browse-courses.md`.
 
 If the category query fails, show that error and do not show the catalogue or the filter.
 

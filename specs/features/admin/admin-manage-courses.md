@@ -12,7 +12,7 @@ The card summary and “View details” open `/admin/courses/$courseId` with `fr
 
 An admin sees every course `courses_select` returns: draft, pending, published, and archived. The list is not sample data. A search matches the course title or the instructor name. Status filters are All, Pending, Published, Draft, and Archived. Counts use the loaded courses, and choosing a count applies that status filter. The default order is newest `created_at` first. Oldest first is the other order.
 
-Each card shows the title, status, instructor, level, description, and created date. A pending card also lists its lessons. A lesson video URL that is a web URL opens in a new tab. Approve is shown only for `pending`. Archive is shown only for `published`. Draft and archived cards have View details and no status action. There is no Reject control. The database still allows only `pending` to `published` and `published` to `archived`.
+Each card shows the title, status, instructor, level, description, and created date. A pending card also lists its lessons. A lesson video URL that is a web URL opens in a new tab. A pending card also lists course materials and the advisory review, as specified in `admin-course-review.md`. Approve is shown only for `pending`. Archive is shown only for `published`. Draft and archived cards have View details and no status action. There is no Reject control. The database still allows only `pending` to `published` and `published` to `archived`. A failed or low-confidence review does not hide Approve.
 
 ## States
 
@@ -23,7 +23,7 @@ Each card shows the title, status, instructor, level, description, and created d
 - **Archived.** Stay on this page. That course’s status becomes Archived. The banner says “This course was archived.” Dismissing it does not undo the archive.
 - **Error.** Show the load error and do not offer Approve or Archive.
 
-The page uses the existing bordered panels, status badges, and the width of the admin content area. It does not add pastel count tiles, charts, or a second visual system.
+The page uses the shared panels, status badges, and the width of the admin content area. Count tiles stay on that surface and do not use role tints. It does not add charts or a second visual system.
 
 ## Out of scope
 

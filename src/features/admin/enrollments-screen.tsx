@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordList, recordGridClass } from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
-import { CourseListing } from "@/features/courses/course-listing";
+import { CourseCard } from "@/features/courses/course-card";
 
 import { listAllEnrollments } from "./enrollments-api";
 import type { AdminEnrollment } from "./enrollments";
@@ -37,7 +37,7 @@ export function EnrollmentsScreen() {
   );
 
   return (
-    <section className={pageFrameClass}>
+    <PageSection>
       <PageHeader
         title="All Enrollments"
         description="Every enrollment. Search by course or student."
@@ -65,13 +65,13 @@ export function EnrollmentsScreen() {
           ))}
         </RecordList>
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 
 function EnrollmentCard({ enrollment }: { enrollment: AdminEnrollment }) {
   return (
-    <CourseListing
+    <CourseCard
       role="admin"
       from="enrollments"
       courseId={enrollment.courseId}
@@ -87,7 +87,7 @@ function EnrollmentCard({ enrollment }: { enrollment: AdminEnrollment }) {
         <MetaItem label="Student" value={enrollment.studentName ?? ""} />
         <MetaItem label="Enrolled" value={formatCreatedAt(enrollment.enrolledAt)} />
       </MetaList>
-    </CourseListing>
+    </CourseCard>
   );
 }
 

@@ -13,8 +13,12 @@ import {
   formatCourseDate,
   statusShownToStudent,
   type CourseDetail,
+  type StudentDetailSource,
 } from "./course-details";
 import { InstructorCourseLinks } from "./course-listing";
+import { CourseMaterialList } from "./course-material-list";
+import { listCourseMaterials } from "@/features/instructor/course-materials-api";
+import type { CourseMaterial } from "@/features/instructor/course-material";
 
 export function CourseDetailsScreen({
   courseId,
@@ -22,24 +26,35 @@ export function CourseDetailsScreen({
   backLabel,
   audience,
   studentId,
+  learningFrom = "browse",
 }: {
   courseId: string;
   backTo: LinkProps["to"];
   backLabel: string;
   audience: "student" | "instructor" | "admin";
   studentId?: string;
+  learningFrom?: StudentDetailSource;
 }) {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [materials, setMaterials] = useState<CourseMaterial[]>([]);
+  const [materialsError, setMaterialsError] = useState("");
 
   useEffect(() => {
     let active = true;
-    getCourseDetails(courseId, {
+    setMaterials([]);
+    setMaterialsError("");
+    const details = getCourseDetails(courseId, {
       includeLessons: audience !== "student",
       includeInstructor: audience === "admin",
-      studentId,
-    }).then((result) => {
+      ...(studentId !== undefined ? { studentId } : {}),
+    });
+    const files =
+      audience === "admin"
+        ? listCourseMaterials(courseId)
+        : Promise.resolve({ ok: true as const, materials: [] as CourseMaterial[] });
+    Promise.all([details, files]).then(([result, materialsResult]) => {
       if (!active) return;
       setLoading(false);
       if (!result.ok) {
@@ -47,6 +62,11 @@ export function CourseDetailsScreen({
         return;
       }
       setCourse(result.course);
+      if (!materialsResult.ok) {
+        setMaterialsError(materialsResult.message);
+        return;
+      }
+      setMaterials(materialsResult.materials);
     });
     return () => {
       active = false;
@@ -63,7 +83,7 @@ export function CourseDetailsScreen({
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading course…" /> : null}
       {!loading && !loadError && course ? (
-        <div className="space-y-4 rounded-sm border border-border bg-card p-4 shadow-none">
+        <div className="space-y-4 rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none">
           <MetaList>
             <MetaItem label="Status">
               <StatusBadge
@@ -99,7 +119,14 @@ export function CourseDetailsScreen({
             </p>
           </div>
           {course.lessons ? <LessonList lessons={course.lessons} /> : null}
-          <DetailActions course={course} audience={audience} />
+          {audience === "admin" ? (
+            materialsError ? (
+              <ErrorState message={materialsError} />
+            ) : (
+              <CourseMaterialList materials={materials} />
+            )
+          ) : null}
+          <DetailActions course={course} audience={audience} learningFrom={learningFrom} />
         </div>
       ) : null}
     </PageSection>
@@ -132,15 +159,21 @@ function LessonList({ lessons }: { lessons: NonNullable<CourseDetail["lessons"]>
 function DetailActions({
   course,
   audience,
+  learningFrom,
 }: {
   course: CourseDetail;
   audience: "student" | "instructor" | "admin";
+  learningFrom: StudentDetailSource;
 }) {
   let actions: ReactNode = null;
   if (audience === "student" && course.enrollment) {
     actions = (
       <Button asChild>
-        <Link to="/student/my-courses/$courseId" params={{ courseId: course.id }}>
+        <Link
+          to="/student/my-courses/$courseId"
+          params={{ courseId: course.id }}
+          search={{ from: learningFrom }}
+        >
           Open course
         </Link>
       </Button>

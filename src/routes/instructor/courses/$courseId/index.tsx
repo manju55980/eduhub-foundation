@@ -10,7 +10,7 @@ const instructorRoute = getRouteApi("/instructor");
 
 export const Route = createFileRoute("/instructor/courses/$courseId/")({
   validateSearch: (search: Record<string, unknown>) => ({
-    from: isInstructorDetailSource(search.from) ? search.from : "courses",
+    from: isInstructorDetailSource(search["from"]) ? search["from"] : "courses",
   }),
   component: InstructorCourseDetailsPage,
 });

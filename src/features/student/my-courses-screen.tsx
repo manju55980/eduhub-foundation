@@ -5,7 +5,7 @@ import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
 import { MetaItem, MetaList, PageSection, RecordList, recordGridClass } from "@/components/app-shell/record-card";
-import { CourseListing } from "@/features/courses/course-listing";
+import { CourseCard } from "@/features/courses/course-card";
 import { statusShownToStudent } from "@/features/courses/course-details";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 } from "@/features/notifications/notifications-api";
 
 import { listEnrolledCourses } from "./my-courses-api";
+import type { EnrolledCourse } from "./my-courses";
 
 const levelLabels: Record<string, string> = {
   beginner: "Beginner",
@@ -78,7 +79,12 @@ export function MyCoursesScreen({ studentId }: { studentId: string }) {
       {!loading && !loadError && visible.length > 0 ? (
         <RecordList className={recordGridClass}>
           {visible.map((course) => (
-            <EnrolledCourseCard key={course.id} course={course} certificates={certificates} />
+            <EnrolledCourseCard
+              key={course.id}
+              course={course}
+              certificates={certificates}
+              studentId={studentId}
+            />
           ))}
         </RecordList>
       ) : null}
@@ -89,34 +95,53 @@ export function MyCoursesScreen({ studentId }: { studentId: string }) {
 function EnrolledCourseCard({
   course,
   certificates,
+  studentId,
 }: {
   course: EnrolledCourse;
   certificates: CertificateRecord[];
+  studentId: string;
 }) {
   const certificate = shownCertificate(course.enrollmentStatus, course.enrollmentId, certificates);
+  function learningAction() {
+    return (
+      <Button asChild>
+        <Link
+          to="/student/my-courses/$courseId"
+          params={{ courseId: course.id }}
+          search={{ from: "my-courses" }}
+        >
+          Continue Learning
+        </Link>
+      </Button>
+    );
+  }
   return (
-    <CourseListing
+    <CourseCard
       role="student"
       from="my-courses"
+      studentId={studentId}
+      enrolled
       courseId={course.id}
       title={course.title ?? ""}
       description={course.description}
+      level={course.level}
+      progress={{
+        completed: course.completedLessons,
+        total: course.lessonCount,
+        percent: course.progress,
+      }}
       actions={
         <>
           {certificate ? (
             <CertificateIssued title={course.title ?? ""} issuedAt={certificate.issuedAt} />
           ) : null}
-          <Button asChild>
-            <Link to="/student/my-courses/$courseId" params={{ courseId: course.id }}>
-              Open course
-            </Link>
-          </Button>
+          {learningAction()}
         </>
       }
+      previewActions={learningAction()}
     >
       <MetaList stacked>
         <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
-        <MetaItem label="Progress" value={`${course.progress}%`} />
         <MetaItem label="Status">
           <StatusBadge value={statusShownToStudent(course.status, course.enrollmentStatus)} />
         </MetaItem>
@@ -126,7 +151,7 @@ function EnrolledCourseCard({
         </MetaItem>
         <MetaItem label="Enrolled" value={formatCreatedAt(course.enrolledAt)} />
       </MetaList>
-    </CourseListing>
+    </CourseCard>
   );
 }
 

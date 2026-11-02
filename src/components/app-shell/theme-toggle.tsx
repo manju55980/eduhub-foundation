@@ -2,7 +2,13 @@ import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { applyTheme, readStoredTheme, storeTheme, themeStorageKey, type ColorTheme } from "@/lib/theme";
+import {
+  applyTheme,
+  readStoredTheme,
+  storeTheme,
+  themeStorageKey,
+  type ColorTheme,
+} from "@/lib/theme";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<ColorTheme>("light");
@@ -37,7 +43,7 @@ export function ThemeToggle() {
       type="button"
       variant="outline"
       size="icon"
-      className="shrink-0 rounded-sm shadow-none"
+      className="shrink-0"
       aria-pressed={dark}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       onClick={toggle}

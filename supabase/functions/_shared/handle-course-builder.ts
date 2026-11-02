@@ -4,7 +4,8 @@ import {
   parseBuilderRequest,
   parseCoursePreview,
 } from "./course-preview.ts";
-import { completeJson } from "./gemini.ts";
+import { completeJson, invalidAiMessage } from "./gemini.ts";
+import { authorizeTool, isToolShaped, noToolAllowlist, toolName } from "./guardrails.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
 import { learningVideoQuery, searchLearningVideos } from "./learning-videos.ts";
 import { resolveUserClient } from "./user-client.ts";
@@ -64,6 +65,12 @@ export async function handleCourseBuilder(
     deps.fetchImpl,
   );
   if (!completion.ok) return jsonResponse({ ok: false, message: completion.message });
+  if (
+    isToolShaped(completion.value) &&
+    !authorizeTool(toolName(completion.value), noToolAllowlist)
+  ) {
+    return jsonResponse({ ok: false, message: invalidAiMessage });
+  }
 
   const preview = parseCoursePreview(completion.value, {
     lessons: parsed.lessonCount,

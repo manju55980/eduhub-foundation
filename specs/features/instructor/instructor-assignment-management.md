@@ -1,8 +1,8 @@
 # Instructor assignment management
 
-Specifies how an instructor creates, edits, and lists assignments for a course they own. Course creation stays in `instructor-course-creation.md`. Lessons stay in `instructor-my-courses.md`. Grading stays on `/instructor/submissions` and is not this feature. Roles and the route map stay in `product.md`. Schema and RLS stay in `architecture.md` and `supabase/migrations/20261009220000_create_lms_tables.sql`.
+Specifies how an instructor creates, edits, and lists assignments for a course they own. Course creation stays in `instructor-course-creation.md`. Lessons stay in `instructor-my-courses.md`. The content freeze is in `instructor-course-materials.md`. Grading stays on `/instructor/submissions` and is not this feature. Roles and the route map stay in `product.md`. Schema and RLS stay in `architecture.md`.
 
-This feature does not add a table, column, policy, or migration.
+This feature does not add a table, column, policy, or migration. The freeze migration narrows assignment insert and update. It does not add an assignment column.
 
 ## Route
 
@@ -12,24 +12,24 @@ This feature does not add a table, column, policy, or migration.
 
 The instructor sidebar stays as recorded in `product.md`. Do not add an Assignments item. `/instructor/submissions` stays the grading screen and does not create or edit assignments.
 
-Each course card on `/instructor/courses` links here. The link label is “Assignments”. It is shown for every course status, next to the existing Lessons link. The course list still does not show assignment rows, counts, grades, or submissions.
+Each course card on `/instructor/courses` links here. The link label is “Assignments”. It is shown for every course status, next to the Lessons and Materials links. The course list still does not show assignment rows, counts, grades, or submissions.
 
-The heading is the course title when one is stored, otherwise “Assignments”. The back link goes to `/instructor/courses` and its label is “My Courses (including lessons)”.
+The heading is the course title when one is stored, otherwise “Assignments”. The back link goes to `/instructor/courses` and its label is “My Courses”.
 
 ## Schema and RLS
 
 No schema change. `assignments` already has `course_id`. That is the course association. The table has no `lesson_id`, and this feature does not add one. An assignment is for the course, not for one lesson. Lessons stay on `/instructor/courses/$courseId/lessons`. Creating or editing an assignment does not create, edit, delete, or reorder a lesson.
 
-No RLS change. The applied policies already do this:
+Select is unchanged. Insert and update gain the draft check from the content freeze:
 
 | Action | Rule                                                                                                  |
 | ------ | ----------------------------------------------------------------------------------------------------- |
 | Select | An admin, the owning instructor (`is_course_owner(course_id)`), or a student enrolled in that course. |
-| Insert | An instructor, and only when `is_course_owner(course_id)` is true.                                    |
-| Update | The owning instructor. The update grant is `title`, `description`, and `due_date` only.               |
+| Insert | An instructor, `is_course_owner(course_id)` is true, and `is_draft_course(course_id)` is true.        |
+| Update | The owning instructor, and `is_draft_course(course_id)` is true. The update grant is `title`, `description`, and `due_date` only. |
 | Delete | No grant. `assignments` are referenced by `submissions` with `ON DELETE RESTRICT`.                    |
 
-`course_id` is not in the update grant, so an edit cannot move an assignment to another course. Do not send `course_id` on edit. Policies do not check course status. Do not add a client-side status gate. An instructor can manage assignments on a `draft`, `pending`, `published`, or `archived` course they own.
+`course_id` is not in the update grant, so an edit cannot move an assignment to another course. Do not send `course_id` on edit. Insert and update also require `is_draft_course(course_id)`. The instructor can create and edit assignments only while the course is `draft`. Pending, published, and archived courses still list their assignments and do not show the form. A hidden form is not the only block.
 
 `title`, `description`, and `due_date` are nullable in the table. Do not add a database constraint for them.
 
@@ -47,7 +47,7 @@ If the course query or the assignment query fails, show that error and do not of
 
 ## Create and edit
 
-The page can create an assignment and edit an existing one. Both stay on this page. A create saves one row and then clears the form so the same assignment is not inserted twice. An edit leaves the saved values in place. Cancel closes the edit and does not write. Neither save changes the course, its lessons, or any submission.
+On a draft, the page can create an assignment and edit an existing one. Both stay on this page. On any other status it cannot. A create saves one row and then clears the form so the same assignment is not inserted twice. An edit leaves the saved values in place. Cancel closes the edit and does not write. Neither save changes the course, its lessons, or any submission.
 
 | Column             | On create                                                                   | On edit                        |
 | ------------------ | --------------------------------------------------------------------------- | ------------------------------ |
@@ -59,17 +59,17 @@ The page can create an assignment and edit an existing one. Both stay on this pa
 
 Do not store `""` for `title`, `description`, or `due_date`. Do not add a character limit. The table does not make `title` unique, and this screen does not reject a duplicate. Do not add that constraint.
 
-AI Course Builder inserts generated assignments with a due date before the course is submitted. This screen is where the instructor reviews and changes that date. An edit writes `title`, `description`, and `due_date` through the existing update grant. It stores the value in the form, including a cleared null. It does not fill a new lesson-order default over a date already saved.
+AI Course Builder inserts generated assignments with a due date before the course is submitted. While the course is `draft`, this screen is where the instructor reviews and changes that date. An edit writes `title`, `description`, and `due_date` through the existing update grant. It stores the value in the form, including a cleared null. It does not fill a new lesson-order default over a date already saved. After submit, `due_date` is frozen with the other assignment fields.
 
 There is no delete control.
 
 ## UI
 
-Follow the visual direction in `product.md`. Use `PageHeader`, white bordered cards, and the existing button, input, and textarea primitives.
+Follow the visual direction in `product.md`. Use `PageHeader`, the shared card surface, and the existing button, input, and textarea primitives.
 
 - **Loading.** The course and its assignments are not shown yet. Do not offer save and do not show sample assignments.
 - **Missing course.** Say the course is not available. No form and no assignment list.
-- **Ready.** The list shows the loaded assignments, or the empty state. The create form is shown only when the course was returned.
+- **Ready.** The list shows the loaded assignments, or the empty state. The create form is shown only when the course was returned and its status is `draft`.
 - **Submitting.** The control that was used does not send a second request.
 - **Saved.** Stay on this screen. The banner says “This assignment was saved.” or “This assignment was updated.” It can be dismissed. Dismissing it does not undo the save or change the route.
 - **Error.** Show the Supabase or form error inline. An error replaces the success banner. Leave the entered values in place.
@@ -100,5 +100,5 @@ RLS is the data boundary. A hidden control is not enough. Do not hand-edit `src/
 - The empty list has no sample assignments. A failed course or assignment load shows the error and does not offer save.
 - There is no delete control. Saving does not create a lesson, enrollment, or submission, and does not grade anything.
 - The screen does not add a sidebar item. Grading stays on `/instructor/submissions`.
-- No table, column, policy, or migration is added.
+- This screen adds no table or column. Assignment writes fail once the course leaves `draft`.
 - A student or admin does not get this screen.

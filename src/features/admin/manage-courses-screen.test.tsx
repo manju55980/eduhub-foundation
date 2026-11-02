@@ -6,6 +6,7 @@ import { archiveCourse } from "./archive-courses-api";
 import { publishCourse } from "./approve-courses-api";
 import { listAdminCourses } from "./manage-courses-api";
 import { ManageCoursesScreen } from "./manage-courses-screen";
+import { listNewestCourseReviews, requestCourseReview } from "./course-review-api";
 import {
   adminCourseEmptyMessage,
   countAdminCourses,
@@ -32,9 +33,21 @@ vi.mock("./archive-courses-api", () => ({
   archiveCourse: vi.fn(),
 }));
 
+vi.mock("./course-review-api", () => ({
+  listNewestCourseReviews: vi.fn(async () => ({ ok: true, reviews: [] })),
+  requestCourseReview: vi.fn(),
+}));
+
+vi.mock("@/features/instructor/course-materials-api", () => ({
+  listMaterialsForCourses: vi.fn(async () => ({ ok: true, materials: [] })),
+  createMaterialDownloadUrl: vi.fn(),
+}));
+
 const listCourses = vi.mocked(listAdminCourses);
 const publish = vi.mocked(publishCourse);
 const archive = vi.mocked(archiveCourse);
+const listReviews = vi.mocked(listNewestCourseReviews);
+const requestReview = vi.mocked(requestCourseReview);
 
 function course(overrides: Partial<AdminCourse> & Pick<AdminCourse, "id" | "status">): AdminCourse {
   return {
@@ -121,6 +134,7 @@ describe("admin course filters", () => {
 describe("ManageCoursesScreen", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    listReviews.mockResolvedValue({ ok: true, reviews: [] });
   });
 
   it("shows the loaded courses, counts, and only the allowed action for each status", async () => {
@@ -131,6 +145,7 @@ describe("ManageCoursesScreen", () => {
     expect(await screen.findByRole("heading", { name: "Course Management" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Total courses/ })).toHaveTextContent("4");
     expect(screen.getByRole("heading", { name: "Intro to React" })).toBeInTheDocument();
+    expect(screen.getAllByText("A course description")[0]).not.toHaveClass("line-clamp-3");
     expect(screen.getByRole("heading", { name: "Welcome" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "https://videos.example/welcome" })).toHaveAttribute(
       "target",
@@ -138,12 +153,16 @@ describe("ManageCoursesScreen", () => {
     );
     expect(screen.getAllByRole("button", { name: "Approve" })).toHaveLength(1);
     expect(screen.getAllByRole("button", { name: "Archive" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Review with AI" })).toHaveLength(1);
     expect(screen.queryByRole("button", { name: /reject/i })).not.toBeInTheDocument();
+    expect(requestReview).not.toHaveBeenCalled();
+    expect(listReviews).toHaveBeenCalledWith(["pending-1"]);
 
     fireEvent.click(screen.getByRole("button", { name: "Draft" }));
     expect(screen.getByRole("heading", { name: "Draft notes" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Archive" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Review with AI" })).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Search"), { target: { value: "hopper" } });
     fireEvent.click(screen.getByRole("button", { name: "All" }));
@@ -165,8 +184,10 @@ describe("ManageCoursesScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "Approve" }));
     expect(await screen.findByText("This course was published.")).toBeInTheDocument();
     expect(publish).toHaveBeenCalledWith("pending-1");
+    expect(requestReview).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "Intro to React" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Approve" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Review with AI" })).not.toBeInTheDocument();
   });
 
   it("shows an error without course actions", async () => {

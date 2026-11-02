@@ -17,6 +17,7 @@ import {
   type EmbeddingTask,
 } from "./embeddings.ts";
 import { failedAiMessage } from "./gemini.ts";
+import { readToolArguments } from "./guardrails.ts";
 
 export type AgentMatch = {
   id: string;
@@ -121,7 +122,7 @@ async function searchCatalogue(
     reader: AgentReader;
   },
 ): Promise<{ ok: true; run: ToolRun } | { ok: false; message: string }> {
-  const query = "query" in args && typeof args.query === "string" ? args.query.trim() : "";
+  const query = readToolArguments(args, [{ key: "query", type: "text" }])["query"] ?? "";
   if (!query) {
     return {
       ok: true,

@@ -5,7 +5,16 @@ import { Save } from "lucide-react";
 import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
+import {
+  MetaItem,
+  MetaList,
+  PageSection,
+  RecordList,
+  panelClass,
+  recordGridClass,
+  selectFieldClass,
+} from "@/components/app-shell/record-card";
+import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +25,9 @@ import { listCategories } from "@/features/categories/categories-api";
 import { CategorySelect } from "@/features/categories/category-select";
 import { storedCategoryName, type CourseCategory } from "@/features/categories/category-name";
 
-import { CourseDetailsLink, CourseListing, InstructorCourseLinks } from "@/features/courses/course-listing";
+import { CourseCard } from "@/features/courses/course-card";
+import { CoursePreview } from "@/features/courses/course-preview";
+import { CourseDetailsLink, InstructorCourseLinks } from "@/features/courses/course-listing";
 import { courseLevels } from "./course-draft";
 import { canSubmitCourse, courseFieldUpdate } from "./course-update";
 import {
@@ -73,9 +84,9 @@ export function MyCoursesScreen() {
   const visible = courses.filter((course) => matchesQuery(query, [course.title]));
 
   return (
-    <section className={pageFrameClass}>
+    <PageSection>
       <PageHeader
-        title="My Courses (including lessons)"
+        title="My Courses"
         description="Drafts you can edit, and courses you have submitted."
       />
       <SaveNotice
@@ -132,7 +143,7 @@ export function MyCoursesScreen() {
           )}
         </RecordList>
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 
@@ -205,7 +216,7 @@ function DraftCourseCard({
 
   return (
     <form
-      className="flex h-full flex-col space-y-4 rounded-sm border border-border bg-card p-4 shadow-none"
+      className={cn(panelClass, "flex h-full flex-col space-y-4 p-4")}
       onSubmit={handleSave}
     >
       <CourseDetailsLink role="instructor" from="courses" courseId={course.id}>
@@ -246,7 +257,7 @@ function DraftCourseCard({
       >
         <select
           id={`level-${course.id}`}
-          className="flex h-9 w-full min-w-0 max-w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          className={selectFieldClass}
           value={level}
           disabled={busy}
           onChange={(event) => setLevel(event.target.value)}
@@ -282,6 +293,15 @@ function DraftCourseCard({
             Add a lesson before submitting this course.
           </p>
         )}
+        <CoursePreview
+          courseId={course.id}
+          title={title || course.title || ""}
+          description={description}
+          level={level || course.level}
+          categoryName={storedCategoryName(categories, categoryId || course.categoryId)}
+          role="instructor"
+          actions={<InstructorCourseLinks courseId={course.id} />}
+        />
         <InstructorCourseLinks courseId={course.id} />
       </div>
     </form>
@@ -295,22 +315,22 @@ function CourseSummary({
   course: InstructorCourse;
   categories: CourseCategory[];
 }) {
+  const categoryName = storedCategoryName(categories, course.categoryId);
   return (
-    <CourseListing
+    <CourseCard
       role="instructor"
       from="courses"
       courseId={course.id}
       title={course.title ?? ""}
       badge={<StatusBadge value={course.status} />}
+      description={course.description}
+      categoryName={categoryName}
+      level={course.level}
       actions={<InstructorCourseLinks courseId={course.id} />}
+      previewActions={<InstructorCourseLinks courseId={course.id} />}
     >
-      <p className="line-clamp-2 text-sm text-muted-foreground">{course.description ?? ""}</p>
-      <CourseMeta
-        course={course}
-        categoryName={storedCategoryName(categories, course.categoryId)}
-        showStatus={false}
-      />
-    </CourseListing>
+      <CourseMeta course={course} categoryName={categoryName} showStatus={false} />
+    </CourseCard>
   );
 }
 
@@ -326,20 +346,11 @@ function CourseMeta({
   return (
     <div className="space-y-3">
       {showStatus ? <StatusBadge value={course.status} /> : null}
-      <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      <MetaList stacked>
         <MetaItem label="Level" value={levelLabels[course.level] ?? course.level} />
         {categoryName !== undefined ? <MetaItem label="Category" value={categoryName} /> : null}
         <MetaItem label="Created" value={formatCreatedAt(course.createdAt)} />
-      </dl>
-    </div>
-  );
-}
-
-function MetaItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-      <dd className="text-foreground">{value}</dd>
+      </MetaList>
     </div>
   );
 }

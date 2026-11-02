@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Save } from "lucide-react";
 
-import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
+import { ChoiceButton, FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { RecordList, pageFrameClass, recordGridClass } from "@/components/app-shell/record-card";
+import { MetaItem, MetaList, PageSection, RecordList, panelClass, recordGridClass } from "@/components/app-shell/record-card";
+import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,9 +53,9 @@ export function SubmissionsScreen() {
   );
 
   return (
-    <section className={pageFrameClass}>
+    <PageSection>
       <PageHeader
-        title="Submissions (grading)"
+        title="Submissions"
         description="Review submitted work and record a grade."
       />
       <SaveNotice
@@ -96,7 +97,7 @@ export function SubmissionsScreen() {
           }
         />
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 
@@ -119,25 +120,21 @@ function SubmissionViews({
 
   return (
     <div className="space-y-4">
-      <div
-        role="tablist"
-        className="flex flex-wrap gap-2"
-      >
+      <div role="tablist" className="flex flex-wrap gap-2">
         {tabs.map((item) => {
           const active = tab === item.value;
           return (
-            <button
+            <ChoiceButton
               key={item.value}
-              type="button"
+              pressed={active}
               role="tab"
               aria-selected={active}
               data-state={active ? "active" : "inactive"}
-              className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-sm border px-3 text-sm font-medium shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:border-input data-[state=inactive]:bg-background data-[state=inactive]:text-foreground"
               onMouseDown={() => setTab(item.value)}
               onClick={() => setTab(item.value)}
             >
               {item.label}
-            </button>
+            </ChoiceButton>
           );
         })}
       </div>
@@ -220,20 +217,20 @@ function SubmissionCard({
   }
 
   return (
-    <article className="flex h-full flex-col space-y-3 rounded-sm border border-border bg-card p-4 shadow-none">
+    <article className={cn(panelClass, "flex h-full flex-col space-y-3 p-4")}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <h2 className="text-base font-medium text-foreground">
           {submission.assignmentTitle ?? ""}
         </h2>
         <StatusBadge value={submission.status} />
       </div>
-      <dl className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      <MetaList stacked>
         <MetaItem label="Course" value={submission.courseTitle ?? ""} />
         <MetaItem label="Student" value={submission.studentName ?? ""} />
         <MetaItem label="Created" value={formatCreatedAt(submission.createdAt)} />
-      </dl>
-      <MetaItem label="Submission" value={submission.contentUrl ?? ""} />
-      <form className="mt-auto space-y-5" onSubmit={handleSubmit}>
+        <MetaItem label="Submission" value={submission.contentUrl ?? ""} />
+      </MetaList>
+      <form className="mt-auto space-y-4" onSubmit={handleSubmit}>
         <Field
           id={`grade-${submission.id}`}
           label="Grade"
@@ -274,15 +271,6 @@ function SubmissionCard({
         </Button>
       </form>
     </article>
-  );
-}
-
-function MetaItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-      <dd className="whitespace-pre-wrap text-foreground">{value}</dd>
-    </div>
   );
 }
 

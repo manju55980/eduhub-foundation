@@ -188,7 +188,9 @@ export async function embedTexts(
   }
 
   try {
-    return parseEmbedResponse(await response.json(), options.texts.length);
+    const parsed = parseEmbedResponse(await response.json(), options.texts.length);
+    if (!parsed.ok) return { ...parsed, kind: "fatal" as const, retryAfterMs: null };
+    return parsed;
   } catch {
     return { ok: false, message: invalidAiMessage, kind: "fatal", retryAfterMs: null };
   }
@@ -236,7 +238,7 @@ function clampInteger(value: number, min: number, max: number, fallback: number)
 }
 
 export function ollamaHostFromEnv(env: Record<string, string | undefined>) {
-  const host = env.OLLAMA_HOST?.trim() || defaultOllamaHost;
+  const host = env["OLLAMA_HOST"]?.trim() || defaultOllamaHost;
   return host.replace(/\/$/, "");
 }
 

@@ -3,7 +3,15 @@ import { Save } from "lucide-react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { pageFrameClass } from "@/components/app-shell/record-card";
+import {
+  MetaItem,
+  MetaList,
+  PageSection,
+  RecordList,
+  panelClass,
+  recordGridClass,
+} from "@/components/app-shell/record-card";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,12 +79,8 @@ export function CourseAssignmentsScreen({ courseId }: { courseId: string }) {
   const heading = course?.title ? course.title : "Assignments";
 
   return (
-    <section className={pageFrameClass}>
-      <PageHeader
-        title={heading}
-        backTo="/instructor/courses"
-        backLabel="My Courses (including lessons)"
-      />
+    <PageSection>
+      <PageHeader title={heading} backTo="/instructor/courses" backLabel="My Courses" />
       <SaveNotice
         tone="instructor"
         saved={notice.saved}
@@ -88,41 +92,48 @@ export function CourseAssignmentsScreen({ courseId }: { courseId: string }) {
       {missing ? <EmptyState message="This course is not available." /> : null}
       {course && !loadError && !loading ? (
         <>
-          <CreateAssignmentForm
-            courseId={course.id}
-            onNotice={setNotice}
-            onCreated={(assignment) =>
-              setAssignments((current) => [...current, assignment].sort(compareCoursesNewestFirst))
-            }
-          />
+          {course.status === "draft" ? (
+            <CreateAssignmentForm
+              courseId={course.id}
+              onNotice={setNotice}
+              onCreated={(assignment) =>
+                setAssignments((current) =>
+                  [...current, assignment].sort(compareCoursesNewestFirst),
+                )
+              }
+            />
+          ) : null}
           {assignments.length === 0 ? (
             <EmptyState message="This course has no assignments yet." />
           ) : (
-            assignments.map((assignment) => (
-              <AssignmentCard
-                key={assignment.id}
-                assignment={assignment}
-                onNotice={setNotice}
-                onUpdated={(assignmentId, text) =>
-                  setAssignments((current) =>
-                    current.map((item) =>
-                      item.id === assignmentId
-                        ? {
-                            ...item,
-                            title: text.title,
-                            description: text.description,
-                            dueDate: text.dueDate,
-                          }
-                        : item,
-                    ),
-                  )
-                }
-              />
-            ))
+            <RecordList className={recordGridClass}>
+              {assignments.map((assignment) => (
+                <AssignmentCard
+                  key={assignment.id}
+                  assignment={assignment}
+                  canEdit={course.status === "draft"}
+                  onNotice={setNotice}
+                  onUpdated={(assignmentId, text) =>
+                    setAssignments((current) =>
+                      current.map((item) =>
+                        item.id === assignmentId
+                          ? {
+                              ...item,
+                              title: text.title,
+                              description: text.description,
+                              dueDate: text.dueDate,
+                            }
+                          : item,
+                      ),
+                    )
+                  }
+                />
+              ))}
+            </RecordList>
           )}
         </>
       ) : null}
-    </section>
+    </PageSection>
   );
 }
 
@@ -166,10 +177,7 @@ function CreateAssignmentForm({
   }
 
   return (
-    <form
-      className="space-y-4 rounded-sm border border-border bg-card p-4 shadow-none"
-      onSubmit={handleSubmit}
-    >
+    <form className={cn(panelClass, "space-y-4 p-4")} onSubmit={handleSubmit}>
       <AssignmentFields
         idPrefix="new-assignment"
         title={title}
@@ -190,10 +198,12 @@ function CreateAssignmentForm({
 
 function AssignmentCard({
   assignment,
+  canEdit,
   onNotice,
   onUpdated,
 }: {
   assignment: CourseAssignment;
+  canEdit: boolean;
   onNotice: (notice: Notice) => void;
   onUpdated: (assignmentId: string, text: AssignmentText) => void;
 }) {
@@ -236,11 +246,15 @@ function AssignmentCard({
   }
 
   return (
-    <article className="space-y-3 rounded-sm border border-border bg-card p-4 shadow-none">
+    <article className={cn(panelClass, "flex h-full flex-col space-y-3 p-4")}>
       <h2 className="text-base font-medium text-foreground">{assignment.title ?? ""}</h2>
-      <p className="whitespace-pre-wrap text-sm text-foreground">{assignment.description ?? ""}</p>
+      {assignment.description ? (
+        <p className="whitespace-pre-wrap text-sm text-muted-foreground [overflow-wrap:anywhere]">
+          {assignment.description}
+        </p>
+      ) : null}
       {editing ? (
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <AssignmentFields
             idPrefix={`assignment-${assignment.id}`}
             title={title}
@@ -263,25 +277,18 @@ function AssignmentCard({
         </form>
       ) : (
         <>
-          <dl className="space-y-3 text-sm">
-            <AssignmentFact label="Due date" value={formatDueAt(assignment.dueDate)} />
-            <AssignmentFact label="Created" value={formatCreatedAt(assignment.createdAt)} />
-          </dl>
-          <Button type="button" variant="outline" onClick={() => setEditing(true)}>
-            Edit
-          </Button>
+          <MetaList stacked>
+            <MetaItem label="Due date" value={formatDueAt(assignment.dueDate)} />
+            <MetaItem label="Created" value={formatCreatedAt(assignment.createdAt)} />
+          </MetaList>
+          {canEdit ? (
+            <Button type="button" variant="outline" onClick={() => setEditing(true)}>
+              Edit
+            </Button>
+          ) : null}
         </>
       )}
     </article>
-  );
-}
-
-function AssignmentFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-      <dd className="whitespace-pre-wrap text-foreground">{value}</dd>
-    </div>
   );
 }
 
@@ -392,4 +399,3 @@ function formatDueAt(value: string | null) {
     minute: "2-digit",
   }).format(date);
 }
-

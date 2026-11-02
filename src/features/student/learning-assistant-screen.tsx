@@ -100,7 +100,7 @@ export function LearningAssistantScreen() {
                           to="/student/courses/$courseId"
                           params={{ courseId: course.id }}
                           search={{ from: "assistant" }}
-                          className="underline-offset-2 hover:underline"
+                          className="rounded-md text-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
                           {course.title || "Untitled course"}
                         </Link>
@@ -113,7 +113,6 @@ export function LearningAssistantScreen() {
           ))}
         </ul>
       ) : null}
-      {pending ? <LoadingState message="Sending…" /> : null}
       {error ? <ErrorState message={error} /> : null}
       <form className="min-w-0 space-y-3" onSubmit={handleSubmit}>
         <div className="space-y-2">
@@ -135,9 +134,13 @@ export function LearningAssistantScreen() {
             Enter sends. Shift+Enter adds a line.
           </p>
         </div>
-        <Button type="submit" disabled={pending || draft.trim().length === 0}>
-          {pending ? "Sending…" : "Send"}
-        </Button>
+        {pending ? (
+          <LoadingState message="Sending…" />
+        ) : (
+          <Button type="submit" disabled={draft.trim().length === 0}>
+            Send
+          </Button>
+        )}
       </form>
     </PageSection>
   );
