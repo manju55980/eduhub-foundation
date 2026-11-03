@@ -5,6 +5,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/pag
 import { pageFrameClass } from "@/components/app-shell/record-card";
 import { Button } from "@/components/ui/button";
 import { studentDetailReturn, type StudentDetailSource } from "@/features/courses/course-details";
+import { notifyCourseCompletion } from "@/features/integrations/student-email-api";
 import { SaveNotice } from "@/features/instructor/save-notice";
 import { CertificateIssued } from "@/features/notifications/notification-list";
 import {
@@ -140,6 +141,13 @@ export function CourseLearningScreen({
         return;
       }
       if (!progress.enrolled) return;
+      if (progress.enrollmentStatus === "completed") {
+        try {
+          await notifyCourseCompletion(courseId);
+        } catch {
+          // The lesson stays complete.
+        }
+      }
       setEnrollmentStatus(progress.enrollmentStatus);
       setEnrollmentProgress(progress.progress);
       setCompletedLessonIds(progress.completedLessonIds);

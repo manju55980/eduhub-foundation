@@ -1,3 +1,4 @@
+import { notifyStudentProfile } from "@/features/integrations/student-email-api";
 import { supabase } from "@/integrations/supabase/client";
 
 import { isAppRole, type AppRole } from "@/lib/roles";
@@ -90,5 +91,6 @@ export async function updateOwnProfile(
   const { error } = await supabase.from("profiles").update(changes).eq("id", userId);
 
   if (error) return { ok: false as const, message: error.message };
+  await notifyStudentProfile();
   return { ok: true as const };
 }

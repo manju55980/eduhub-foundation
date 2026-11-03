@@ -2,6 +2,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { notifyCourseCompletion } from "@/features/integrations/student-email-api";
+
 import { CourseLearningScreen } from "./course-learning-screen";
 import { loadCourseLearning } from "./course-learning-api";
 import { loadLessonProgress, markLessonComplete } from "@/features/notifications/notifications-api";
@@ -14,6 +16,10 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("./course-learning-api", () => ({
   loadCourseLearning: vi.fn(),
+}));
+
+vi.mock("@/features/integrations/student-email-api", () => ({
+  notifyCourseCompletion: vi.fn(async () => undefined),
 }));
 
 vi.mock("@/features/instructor/course-materials-api", () => ({
@@ -35,6 +41,7 @@ vi.mock("@/features/notifications/notifications-api", async () => {
 const loadLearning = vi.mocked(loadCourseLearning);
 const loadProgress = vi.mocked(loadLessonProgress);
 const markComplete = vi.mocked(markLessonComplete);
+const notifyCompletion = vi.mocked(notifyCourseCompletion);
 
 const lesson = {
   id: "lesson-1",
@@ -153,6 +160,7 @@ describe("CourseLearningScreen study companion", () => {
     expect(screen.getByText(/Certificate issued/)).toHaveTextContent("Algebra");
     expect(screen.queryByRole("button", { name: "Mark complete" })).not.toBeInTheDocument();
     expect(markComplete).toHaveBeenCalledWith("student-1", "lesson-1");
+    expect(notifyCompletion).toHaveBeenCalledWith("course-1");
     expect(screen.getByText("1 of 1 lessons complete")).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "1 of 1 lessons complete" })).toHaveAttribute(

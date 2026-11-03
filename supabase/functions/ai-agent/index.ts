@@ -2,6 +2,8 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { bindAgentReader } from "../_shared/agent-reader.ts";
 import { handleAgent } from "../_shared/handle-agent.ts";
+import { bindStudentDb, syncSavedEnrolment } from "../_shared/student-integrations.ts";
+import type { EventWriteClient } from "../_shared/student-integrations.ts";
 
 declare const Deno: {
   serve: (handler: (request: Request) => Response | Promise<Response>) => void;
@@ -18,6 +20,10 @@ Deno.serve((request) => {
   const token = authorization?.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length).trim()
     : "";
+  const userClient = createClient(supabaseUrl ?? "", publishableKey ?? "", {
+    global: { headers: authorization ? { Authorization: authorization } : {} },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   return handleAgent(request, {
     supabaseUrl,
@@ -26,12 +32,18 @@ Deno.serve((request) => {
     ollamaHost,
     authorization,
     fetchImpl: fetch,
-    reader: bindAgentReader(
-      createClient(supabaseUrl ?? "", publishableKey ?? "", {
-        global: { headers: authorization ? { Authorization: authorization } : {} },
-        auth: { persistSession: false, autoRefreshToken: false },
-      }),
-      token,
-    ),
+    reader: bindAgentReader(userClient, token),
+    syncEnrolment: (userId, courseId) =>
+      syncSavedEnrolment(
+        bindStudentDb(userClient as EventWriteClient),
+        userId,
+        courseId,
+        {
+          resendKey: Deno.env.get("RESEND_API_KEY"),
+          resendFrom: Deno.env.get("RESEND_FROM"),
+          hubspotToken: Deno.env.get("HUBSPOT_ACCESS_TOKEN"),
+        },
+        fetch,
+      ),
   });
 });

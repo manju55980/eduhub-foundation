@@ -29,6 +29,7 @@ export async function handleAgent(
     authorization: string | null;
     reader: AgentReader;
     fetchImpl: typeof fetch;
+    syncEnrolment?: (userId: string, courseId: string) => Promise<void>;
   },
 ) {
   if (request.method === "OPTIONS") return emptyResponse(204);
@@ -106,6 +107,13 @@ export async function handleAgent(
       reader: deps.reader,
     });
     if (!tool.ok) return jsonResponse({ ok: false, message: tool.message });
+    if (reply.name === "enrol_in_course" && tool.run.enrolled && deps.syncEnrolment) {
+      try {
+        await deps.syncEnrolment(user.userId, tool.run.enrolled.id);
+      } catch {
+        // The enrolment is already saved.
+      }
+    }
     for (const courseId of tool.run.courseIds) allowedIds.add(courseId);
     if (tool.run.enrolled) enrolled = tool.run.enrolled;
     toolResults.push({ name: tool.run.name, result: tool.run.payload });

@@ -4,6 +4,8 @@ import { listCategories } from "@/features/categories/categories-api";
 import { compareCoursesNewestFirst } from "@/features/instructor/course-update";
 import { listCompletedLessonIds } from "@/features/notifications/notifications-api";
 
+import { notifyEnrolment } from "@/features/integrations/student-email-api";
+
 import { enrollmentInsert } from "./enrollment";
 import { courseLessonProgress } from "./my-courses";
 
@@ -91,5 +93,6 @@ export async function enrollInCourse(studentId: string, courseId: string) {
     .insert(enrollmentInsert(studentId, courseId));
 
   if (error) return { ok: false as const, message: error.message };
+  await notifyEnrolment(courseId);
   return { ok: true as const };
 }
