@@ -516,11 +516,13 @@ describe("model-specific level progress", () => {
 });
 
 describe("published Gemini level baseline", () => {
-  it("still records the partial Gemini result", () => {
+  it("records the completed Gemini baseline and not the Ollama report", () => {
     const report = readFileSync(resolve(root, "docs/assessment-2/level-accuracy.md"), "utf8");
     expect(report).toContain("`gemini-3.5-flash-lite`");
-    expect(report).toContain("| Classified | 32 |");
+    expect(report).toContain("| Classified | 40 |");
     expect(report).toContain("| Test count | 40 |");
+    expect(report).toContain("| Coverage | 1.000 (100.0%) |");
+    expect(report).toContain("| Accuracy | 1.000 (100.0%) |");
     expect(report).not.toContain("(Ollama)");
   });
 });
