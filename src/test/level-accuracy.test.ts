@@ -515,15 +515,40 @@ describe("model-specific level progress", () => {
   });
 });
 
-describe("published Gemini level baseline", () => {
+describe("published level reports", () => {
   it("records the completed Gemini baseline and not the Ollama report", () => {
     const report = readFileSync(resolve(root, "docs/assessment-2/level-accuracy.md"), "utf8");
+    expect(report).toContain("| Provider | `gemini` |");
     expect(report).toContain("`gemini-3.5-flash-lite`");
     expect(report).toContain("| Classified | 40 |");
     expect(report).toContain("| Test count | 40 |");
     expect(report).toContain("| Coverage | 1.000 (100.0%) |");
     expect(report).toContain("| Accuracy | 1.000 (100.0%) |");
+    expect(report).toContain("| Precision (macro) | 1.000 |");
+    expect(report).toContain("| Recall (macro) | 1.000 |");
+    expect(report).toContain("| F1 (macro) | 1.000 |");
     expect(report).not.toContain("(Ollama)");
+  });
+
+  it("compares Gemini and Ollama on the same 40 held-out rows", () => {
+    const comparison = readFileSync(
+      resolve(root, "docs/assessment-3/level-accuracy-comparison.md"),
+      "utf8",
+    );
+    const gemini = readFileSync(resolve(root, "docs/assessment-2/level-accuracy.md"), "utf8");
+    const ollama = readFileSync(
+      resolve(root, "docs/assessment-2/level-accuracy-ollama.md"),
+      "utf8",
+    );
+    expect(comparison).toContain("same 40 held-out rows");
+    expect(comparison).toContain("`gemini-3.5-flash-lite`");
+    expect(comparison).toContain("`llama3.2`");
+    expect(comparison).toContain("| Precision (macro) | 1.000 | 1.000 |");
+    expect(comparison).toContain("| Recall (macro) | 1.000 | 1.000 |");
+    expect(comparison).toContain("| F1 (macro) | 1.000 | 1.000 |");
+    expect(gemini).toContain("| Test count | 40 |");
+    expect(ollama).toContain("| Test count | 40 |");
+    expect(ollama).toContain("| F1 (macro) | 1.000 |");
   });
 });
 

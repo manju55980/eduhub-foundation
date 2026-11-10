@@ -1,4 +1,5 @@
-import { completeJson, invalidAiMessage } from "./gemini.ts";
+import { enforceAiRateLimit, type AiRateDb } from "./ai-rate-limit.ts";
+import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { authorizeTool, isToolShaped, noToolAllowlist, toolName } from "./guardrails.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
 import { resolveUserClient } from "./user-client.ts";
@@ -23,6 +24,7 @@ export async function handleStudy(
     authorization: string | null;
     reader: StudyReader;
     fetchImpl: typeof fetch;
+    rateLimit?: AiRateDb;
   },
 ) {
   if (request.method === "OPTIONS") return emptyResponse(204);
@@ -76,6 +78,13 @@ export async function handleStudy(
   if (!lessons.ok) return jsonResponse({ ok: false, message: lessons.message });
   if (!hasLessonContent(lessons.lessons)) {
     return jsonResponse({ ok: false, message: noLessonContentMessage });
+  }
+
+  if (!deps.geminiKey?.trim()) return jsonResponse({ ok: false, message: missingAiMessage });
+
+  const allowance = await enforceAiRateLimit(deps.rateLimit, "ai-study");
+  if (!allowance.ok) {
+    return jsonResponse({ ok: false, message: allowance.message }, allowance.status);
   }
 
   const prompt = studyPrompt({

@@ -18,7 +18,9 @@ vi.mock("@tanstack/react-router", () => ({
     params?: { courseId?: string };
     search?: { from?: string };
   }) => (
-    <a href={`${to.replace("$courseId", params?.courseId ?? "")}${search?.from ? `?from=${search.from}` : ""}`}>
+    <a
+      href={`${to.replace("$courseId", params?.courseId ?? "")}${search?.from ? `?from=${search.from}` : ""}`}
+    >
       {children}
     </a>
   ),

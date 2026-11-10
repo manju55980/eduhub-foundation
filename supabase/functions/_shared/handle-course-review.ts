@@ -5,7 +5,8 @@ import {
   parseReviewReply,
   reviewPrompt,
 } from "./course-review.ts";
-import { completeJson, invalidAiMessage } from "./gemini.ts";
+import { enforceAiRateLimit, type AiRateDb } from "./ai-rate-limit.ts";
+import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { authorizeTool, isToolShaped, noToolAllowlist, toolName } from "./guardrails.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
 import type { ReviewReader } from "./review-reader.ts";
@@ -20,6 +21,7 @@ export async function handleCourseReview(
     authorization: string | null;
     reader: ReviewReader;
     fetchImpl: typeof fetch;
+    rateLimit?: AiRateDb;
   },
 ) {
   if (request.method === "OPTIONS") return emptyResponse(204);
@@ -65,6 +67,13 @@ export async function handleCourseReview(
   if (!assignments.ok) return jsonResponse({ ok: false, message: assignments.message });
   const materials = await deps.reader.materials(parsed.courseId);
   if (!materials.ok) return jsonResponse({ ok: false, message: materials.message });
+
+  if (!deps.geminiKey?.trim()) return jsonResponse({ ok: false, message: missingAiMessage });
+
+  const allowance = await enforceAiRateLimit(deps.rateLimit, "ai-course-review");
+  if (!allowance.ok) {
+    return jsonResponse({ ok: false, message: allowance.message }, allowance.status);
+  }
 
   const prompt = reviewPrompt({
     course: course.course,

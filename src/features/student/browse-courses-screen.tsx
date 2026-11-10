@@ -3,7 +3,14 @@ import { Link } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, PageSection, RecordList, recordGridClass, selectFieldClass } from "@/components/app-shell/record-card";
+import {
+  MetaItem,
+  MetaList,
+  PageSection,
+  RecordList,
+  recordGridClass,
+  selectFieldClass,
+} from "@/components/app-shell/record-card";
 import { FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { CourseCard } from "@/features/courses/course-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
@@ -123,7 +130,9 @@ export function BrowseCoursesScreen({ studentId }: { studentId: string }) {
               onEnrolled={() => {
                 setCourses((current) =>
                   current.map((item) =>
-                    item.id === course.id ? { ...item, enrolled: true, progress: item.progress ?? 0 } : item,
+                    item.id === course.id
+                      ? { ...item, enrolled: true, progress: item.progress ?? 0 }
+                      : item,
                   ),
                 );
                 void listPublishedCourses(studentId).then((result) => {

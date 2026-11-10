@@ -61,6 +61,7 @@ describe("student email and HubSpot sync", () => {
     expect(email?.headers["idempotency-key"]).toBe(emailClaimKey("enrolment", enrollmentId));
     expect(email?.headers["authorization"]).toBe("Bearer re_test");
     expect(email?.body).toMatchObject({
+      from: secrets.resendFrom,
       to: ["ada@example.com"],
       subject: "You are enrolled",
       text: "You are enrolled in Algebra.",
@@ -200,17 +201,17 @@ describe("student email and HubSpot sync", () => {
       }),
     } as EventWriteClient;
     const saved = await bindDeliveryStore(client).record({
-      eventKey: "delivery:msg_1",
-      status: "email.complained",
+      eventKey: deliveryEventKey("resend", "msg_1"),
+      status: "failed",
       providerEmailId: "email-1",
     });
     expect(saved).toEqual({ ok: true, stored: false });
     expect(calls[0]?.options).toEqual({ onConflict: "event_key", ignoreDuplicates: true });
     expect(calls[0]?.values).toMatchObject({
-      event_key: "delivery:msg_1",
+      event_key: deliveryEventKey("resend", "msg_1"),
       student_id: null,
       kind: "delivery",
-      status: "email.complained",
+      status: "failed",
     });
   });
 });
@@ -292,7 +293,8 @@ describe("Resend delivery webhook", () => {
     expect(first.status).toBe(200);
     expect(await first.json()).toMatchObject({ ok: true, stored: true });
     expect(await second.json()).toMatchObject({ ok: true, stored: false });
-    expect([...store.keys]).toEqual([deliveryEventKey("msg_1")]);
+    expect([...store.keys]).toEqual([deliveryEventKey("resend", "msg_1")]);
+    expect(store.records).toEqual([{ status: "delivered" }]);
   });
 
   it("rejects a changed body, a stale timestamp, and a missing secret before writing", async () => {
@@ -331,13 +333,75 @@ describe("Resend delivery webhook", () => {
     expect(await response.json()).toMatchObject({ ok: false, message: "Email is not configured." });
   });
 
-  it("accepts an unknown event without storing it", async () => {
-    const payload = JSON.stringify({ type: "email.opened", data: { email_id: "email-1" } });
+  it("stores opened and failed deliveries under the shared event names", async () => {
+    const cases = [
+      [{ type: "email.opened", data: { email_id: "email-1" } }, "opened"],
+      [{ type: "email.failed", data: { email_id: "email-1" } }, "failed"],
+      [{ type: "email.complained", data: { email_id: "email-1" } }, "failed"],
+    ] as const;
+    for (const [payload, status] of cases) {
+      const store = deliveryMemory();
+      const response = await postWebhook(JSON.stringify(payload), store, signedAt);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({ ok: true, stored: true });
+      expect(store.records).toEqual([{ status }]);
+      expect([...store.keys]).toEqual([deliveryEventKey("resend", "msg_1")]);
+    }
+  });
+
+  it("accepts an unmapped event without storing it", async () => {
+    const payload = JSON.stringify({ type: "email.clicked", data: { email_id: "email-1" } });
     const store = deliveryMemory();
     const response = await postWebhook(payload, store, signedAt);
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true, stored: false });
     expect(store.keys.size).toBe(0);
+  });
+
+  it("updates a campaign open and suppresses a complaint", async () => {
+    const applied: unknown[] = [];
+    const campaigns = {
+      async apply(input: unknown) {
+        applied.push(input);
+        return { ok: true as const };
+      },
+    };
+    const opened = await handleResendWebhook(
+      await signedRequest(
+        JSON.stringify({
+          type: "email.opened",
+          data: { email_id: "email-1", to: ["ada@example.com"] },
+        }),
+        signedAt,
+      ),
+      { webhookSecret, store: deliveryMemory(), campaigns, nowMs },
+    );
+    const complained = await handleResendWebhook(
+      await signedRequest(
+        JSON.stringify({
+          type: "email.complained",
+          data: { email_id: "email-1", to: ["ada@example.com"] },
+        }),
+        signedAt,
+      ),
+      { webhookSecret, store: deliveryMemory(), campaigns, nowMs },
+    );
+    expect(opened.status).toBe(200);
+    expect(complained.status).toBe(200);
+    expect(applied).toEqual([
+      {
+        providerEmailId: "email-1",
+        nextStatus: "opened",
+        suppressReason: null,
+        suppressEmail: "ada@example.com",
+      },
+      {
+        providerEmailId: "email-1",
+        nextStatus: "failed",
+        suppressReason: "complaint",
+        suppressEmail: "ada@example.com",
+      },
+    ]);
   });
 });
 
@@ -439,13 +503,19 @@ function memoryStore(): OutboundStore & {
   };
 }
 
-function deliveryMemory(): DeliveryStore & { keys: Set<string> } {
+function deliveryMemory(): DeliveryStore & {
+  keys: Set<string>;
+  records: Array<{ status: string }>;
+} {
   const keys = new Set<string>();
+  const records: Array<{ status: string }> = [];
   return {
     keys,
+    records,
     async record(input) {
       if (keys.has(input.eventKey)) return { ok: true, stored: false };
       keys.add(input.eventKey);
+      records.push({ status: input.status });
       return { ok: true, stored: true };
     },
   };

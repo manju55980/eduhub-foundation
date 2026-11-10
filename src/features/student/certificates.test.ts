@@ -25,9 +25,11 @@ describe("visibleCertificates", () => {
 
   it("hides a certificate when the enrollment is no longer completed", () => {
     expect(
-      visibleCertificates([certificate], [{ id: "enrollment-1", status: "active" }], [
-        { id: "course-1", title: "Algebra" },
-      ]),
+      visibleCertificates(
+        [certificate],
+        [{ id: "enrollment-1", status: "active" }],
+        [{ id: "course-1", title: "Algebra" }],
+      ),
     ).toEqual([]);
   });
 

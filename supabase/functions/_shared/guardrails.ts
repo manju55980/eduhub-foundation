@@ -153,6 +153,8 @@ function shieldCourseIds(value: string) {
 }
 
 function restoreCourseIds(value: string, ids: string[]) {
+  // The NUL delimiters cannot appear in course text, so the sentinel stays unambiguous.
+  // eslint-disable-next-line no-control-regex
   return value.replace(/\u0000(\d+)\u0000/g, (token, index: string) => {
     const id = ids[Number(index)];
     return id ?? token;

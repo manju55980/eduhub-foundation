@@ -45,7 +45,10 @@ export function CertificatesScreen({ studentId }: { studentId: string }) {
 
   return (
     <PageSection>
-      <PageHeader title="My Certificates" description="Certificates for courses you have finished." />
+      <PageHeader
+        title="My Certificates"
+        description="Certificates for courses you have finished."
+      />
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading certificates…" /> : null}
       {!loading && !loadError && certificates.length === 0 ? (
@@ -81,10 +84,7 @@ function CertificateCard({ certificate }: { certificate: StudentCertificate }) {
   return (
     <RecordCard className="flex h-full flex-col" title={certificate.courseTitle}>
       <MetaList stacked>
-        <MetaItem
-          label="Completion date"
-          value={formatCertificateDate(certificate.issuedAt)}
-        />
+        <MetaItem label="Completion date" value={formatCertificateDate(certificate.issuedAt)} />
       </MetaList>
       <div className="mt-auto">
         <Button variant="outline" asChild>

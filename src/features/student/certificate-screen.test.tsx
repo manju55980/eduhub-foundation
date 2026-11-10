@@ -39,13 +39,17 @@ describe("CertificateScreen", () => {
       createObjectURL: createUrl,
       revokeObjectURL: revokeUrl,
     });
-    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
 
     render(
       <CertificateScreen studentId="student-1" certificateId="cert-1" studentName="Ada Lovelace" />,
     );
 
-    expect(await screen.findByRole("heading", { name: "Certificate of Completion" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Certificate of Completion" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
     expect(screen.getAllByText("Algebra")).toHaveLength(2);
     expect(screen.getByText("cert-1")).toBeInTheDocument();
@@ -71,7 +75,9 @@ describe("CertificateScreen", () => {
       <CertificateScreen studentId="student-1" certificateId="cert-missing" studentName="Ada" />,
     );
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("This certificate is not available.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "This certificate is not available.",
+    );
     expect(screen.queryByRole("button", { name: "Print" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Download PDF" })).not.toBeInTheDocument();
   });

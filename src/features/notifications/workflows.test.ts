@@ -75,9 +75,9 @@ describe("assignment reminders", () => {
         "Essay is due in 72 hours in Algebra.",
       ],
     ]);
-    expect(planned.every((row) => row.title === reminderTitle && row.kind === "assignment_due")).toBe(
-      true,
-    );
+    expect(
+      planned.every((row) => row.title === reminderTitle && row.kind === "assignment_due"),
+    ).toBe(true);
     expect(planned[0]?.body).not.toMatch(/email|phone|@/);
   });
 
@@ -130,9 +130,9 @@ describe("assignment reminders", () => {
     expect(store.inserted[1]?.dedupe_key).toBe(
       `assignment_due:assignment-1:student-1:24h:${dueIn(10)}`,
     );
-    expect(store.inserted.some((row) => row.dedupe_key.includes(":72h:") && row !== store.inserted[0])).toBe(
-      false,
-    );
+    expect(
+      store.inserted.some((row) => row.dedupe_key.includes(":72h:") && row !== store.inserted[0]),
+    ).toBe(false);
   });
 
   it("upserts reminders on the dedupe key and does not read profiles", async () => {
@@ -311,9 +311,10 @@ function recordingClient(pages: Record<string, Record<string, unknown>[]>) {
         TResult2 = never,
       >(
         onfulfilled?:
-          | ((
-              value: { data: Record<string, unknown>[] | null; error: { message: string } | null },
-            ) => TResult1 | PromiseLike<TResult1>)
+          | ((value: {
+              data: Record<string, unknown>[] | null;
+              error: { message: string } | null;
+            }) => TResult1 | PromiseLike<TResult1>)
           | null,
         onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
       ): PromiseLike<TResult1 | TResult2> {
@@ -333,10 +334,7 @@ function recordingClient(pages: Record<string, Record<string, unknown>[]>) {
         select() {
           return filter(table);
         },
-        upsert(
-          rows: ReminderInsert[],
-          options: { onConflict: string; ignoreDuplicates: boolean },
-        ) {
+        upsert(rows: ReminderInsert[], options: { onConflict: string; ignoreDuplicates: boolean }) {
           upserts.push({ rows, options });
           return Promise.resolve({ data: null, error: null });
         },

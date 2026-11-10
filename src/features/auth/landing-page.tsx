@@ -266,7 +266,9 @@ export function LandingPage({ checking }: { checking: boolean }) {
                 className="rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`flex size-8 items-center justify-center rounded-md ${agent.soft}`}>
+                  <div
+                    className={`flex size-8 items-center justify-center rounded-md ${agent.soft}`}
+                  >
                     <agent.icon className={`size-4 ${agent.tone}`} />
                   </div>
                   <div>

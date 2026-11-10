@@ -11,6 +11,7 @@ import {
   type AgentCourseRef,
 } from "./agent.ts";
 import { runAgentTool, type AgentReader } from "./agent-tools.ts";
+import { enforceAiRateLimit, type AiRateDb } from "./ai-rate-limit.ts";
 import { authorizeTool, agentToolAllowlist } from "./guardrails.ts";
 import { defaultOllamaHost, withGeminiTimeout } from "./embeddings.ts";
 import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
@@ -29,6 +30,7 @@ export async function handleAgent(
     authorization: string | null;
     reader: AgentReader;
     fetchImpl: typeof fetch;
+    rateLimit?: AiRateDb;
     syncEnrolment?: (userId: string, courseId: string) => Promise<void>;
   },
 ) {
@@ -64,6 +66,11 @@ export async function handleAgent(
   }
 
   if (!deps.geminiKey?.trim()) return jsonResponse({ ok: false, message: missingAiMessage });
+
+  const allowance = await enforceAiRateLimit(deps.rateLimit, "ai-agent");
+  if (!allowance.ok) {
+    return jsonResponse({ ok: false, message: allowance.message }, allowance.status);
+  }
 
   const allowedIds = new Set<string>();
   const toolResults: unknown[] = [];

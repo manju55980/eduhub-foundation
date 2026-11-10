@@ -186,10 +186,12 @@ describe("shared controls", () => {
       </>,
     );
 
-    expect(screen.getByText("Loading courses…").parentElement?.className).toContain("shadow-raised");
-    expect(screen.getByText("You have no courses yet.").closest(".rounded-xl")?.className).toContain(
+    expect(screen.getByText("Loading courses…").parentElement?.className).toContain(
       "shadow-raised",
     );
+    expect(
+      screen.getByText("You have no courses yet.").closest(".rounded-xl")?.className,
+    ).toContain("shadow-raised");
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent("Could not load courses.");
     expect(alert.className).toContain("border-destructive/30");
@@ -222,7 +224,12 @@ describe("shared controls", () => {
   it("filters with the existing search field and an outline mark-read action", () => {
     render(
       <>
-        <FilterToolbar id="course-search" value="" placeholder="Search courses" onChange={() => {}} />
+        <FilterToolbar
+          id="course-search"
+          value=""
+          placeholder="Search courses"
+          onChange={() => {}}
+        />
         <NotificationList
           notifications={[
             {
@@ -244,8 +251,8 @@ describe("shared controls", () => {
     const markRead = screen.getByRole("button", { name: "Mark read" });
     expect(markRead.className).toContain("border-input");
     expect(markRead.className).not.toContain("bg-primary");
-    expect(screen.getByText("Essay is due soon in Algebra.").nextElementSibling?.className).toContain(
-      "text-xs",
-    );
+    expect(
+      screen.getByText("Essay is due soon in Algebra.").nextElementSibling?.className,
+    ).toContain("text-xs");
   });
 });

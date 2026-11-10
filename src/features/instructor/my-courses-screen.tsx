@@ -215,10 +215,7 @@ function DraftCourseCard({
   }
 
   return (
-    <form
-      className={cn(panelClass, "flex h-full flex-col space-y-4 p-4")}
-      onSubmit={handleSave}
-    >
+    <form className={cn(panelClass, "flex h-full flex-col space-y-4 p-4")} onSubmit={handleSave}>
       <CourseDetailsLink role="instructor" from="courses" courseId={course.id}>
         <h2 className="text-base font-medium text-foreground [overflow-wrap:anywhere]">
           {course.title ?? ""}

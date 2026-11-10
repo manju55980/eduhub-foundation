@@ -4,7 +4,14 @@ import { Save } from "lucide-react";
 import { ChoiceButton, FilterToolbar, matchesQuery } from "@/components/app-shell/management";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, PageSection, RecordList, panelClass, recordGridClass } from "@/components/app-shell/record-card";
+import {
+  MetaItem,
+  MetaList,
+  PageSection,
+  RecordList,
+  panelClass,
+  recordGridClass,
+} from "@/components/app-shell/record-card";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
@@ -54,10 +61,7 @@ export function SubmissionsScreen() {
 
   return (
     <PageSection>
-      <PageHeader
-        title="Submissions"
-        description="Review submitted work and record a grade."
-      />
+      <PageHeader title="Submissions" description="Review submitted work and record a grade." />
       <SaveNotice
         tone="instructor"
         saved={notice.saved}

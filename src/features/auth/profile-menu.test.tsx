@@ -49,7 +49,12 @@ describe("ProfileMenu", () => {
     }
 
     render(
-      <ProfileMenu role="student" email="ada@example.com" fullName="Ada Lovelace" userId="user-1" />,
+      <ProfileMenu
+        role="student"
+        email="ada@example.com"
+        fullName="Ada Lovelace"
+        userId="user-1"
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Open profile" }));
 
@@ -70,7 +75,12 @@ describe("ProfileMenu", () => {
 
   it("does not save an email that fails validation", async () => {
     render(
-      <ProfileMenu role="instructor" email="ada@example.com" fullName="Ada Lovelace" userId="user-1" />,
+      <ProfileMenu
+        role="instructor"
+        email="ada@example.com"
+        fullName="Ada Lovelace"
+        userId="user-1"
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Open profile" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit Profile" }));
@@ -111,7 +121,12 @@ describe("ProfileMenu", () => {
     saveProfile.mockResolvedValue({ ok: false, message: "update failed" });
 
     render(
-      <ProfileMenu role="student" email="ada@example.com" fullName="Ada Lovelace" userId="user-1" />,
+      <ProfileMenu
+        role="student"
+        email="ada@example.com"
+        fullName="Ada Lovelace"
+        userId="user-1"
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Open profile" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit Profile" }));
@@ -133,7 +148,12 @@ describe("ProfileMenu", () => {
     });
 
     render(
-      <ProfileMenu role="student" email="ada@example.com" fullName="Ada Lovelace" userId="user-1" />,
+      <ProfileMenu
+        role="student"
+        email="ada@example.com"
+        fullName="Ada Lovelace"
+        userId="user-1"
+      />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Open profile" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit Profile" }));

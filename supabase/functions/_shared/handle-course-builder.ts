@@ -4,7 +4,8 @@ import {
   parseBuilderRequest,
   parseCoursePreview,
 } from "./course-preview.ts";
-import { completeJson, invalidAiMessage } from "./gemini.ts";
+import { enforceAiRateLimit, type AiRateDb } from "./ai-rate-limit.ts";
+import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { authorizeTool, isToolShaped, noToolAllowlist, toolName } from "./guardrails.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
 import { learningVideoQuery, searchLearningVideos } from "./learning-videos.ts";
@@ -27,6 +28,7 @@ export async function handleCourseBuilder(
     authorization: string | null;
     reader: RoleReader;
     fetchImpl: typeof fetch;
+    rateLimit?: AiRateDb;
   },
 ) {
   if (request.method === "OPTIONS") return emptyResponse(204);
@@ -58,6 +60,13 @@ export async function handleCourseBuilder(
 
   const access = builderAccess(role.role);
   if (!access.ok) return jsonResponse({ ok: false, message: access.message }, 403);
+
+  if (!deps.geminiKey?.trim()) return jsonResponse({ ok: false, message: missingAiMessage });
+
+  const allowance = await enforceAiRateLimit(deps.rateLimit, "ai-course-builder");
+  if (!allowance.ok) {
+    return jsonResponse({ ok: false, message: allowance.message }, allowance.status);
+  }
 
   const prompt = builderPrompt(parsed);
   const completion = await completeJson(

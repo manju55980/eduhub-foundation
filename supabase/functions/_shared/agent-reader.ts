@@ -27,10 +27,7 @@ export type AgentDb = {
     }>;
   };
   from: (table: string) => {
-    select: (
-      columns: string,
-      options?: { count?: "exact"; head?: boolean },
-    ) => AgentFilter;
+    select: (columns: string, options?: { count?: "exact"; head?: boolean }) => AgentFilter;
     insert: (row: Record<string, unknown>) => Promise<QueryResult>;
   };
   rpc: (fn: string, args: Record<string, unknown>) => Promise<QueryResult>;

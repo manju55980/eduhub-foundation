@@ -3,7 +3,11 @@ import { listCategories } from "@/features/categories/categories-api";
 import { compareLessons } from "@/features/instructor/lesson-draft";
 import { supabase } from "@/integrations/supabase/client";
 
-import { toCourseDetail, type CourseDetailLesson, type CourseEnrollmentDetail } from "./course-details";
+import {
+  toCourseDetail,
+  type CourseDetailLesson,
+  type CourseEnrollmentDetail,
+} from "./course-details";
 
 export async function getCourseDetails(
   courseId: string,
@@ -63,7 +67,8 @@ export async function getCourseDetails(
       .eq("course_id", courseId)
       .eq("student_id", options.studentId)
       .maybeSingle();
-    if (enrollmentResult.error) return { ok: false as const, message: enrollmentResult.error.message };
+    if (enrollmentResult.error)
+      return { ok: false as const, message: enrollmentResult.error.message };
     if (enrollmentResult.data) {
       enrollment = {
         progress: enrollmentResult.data.progress,

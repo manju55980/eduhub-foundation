@@ -1,5 +1,6 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import { bindAiRateLimit } from "../_shared/ai-rate-limit.ts";
 import { handleStudy } from "../_shared/handle-study.ts";
 import { bindStudyReader } from "../_shared/study-reader.ts";
 
@@ -15,6 +16,11 @@ Deno.serve((request) => {
   const authorization = request.headers.get("Authorization");
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
 
+  const userClient = createClient(supabaseUrl ?? "", publishableKey ?? "", {
+    global: { headers: authorization ? { Authorization: authorization } : {} },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
   return handleStudy(request, {
     supabaseUrl,
     publishableKey,
@@ -22,11 +28,9 @@ Deno.serve((request) => {
     authorization,
     fetchImpl: fetch,
     reader: bindStudyReader(
-      createClient(supabaseUrl ?? "", publishableKey ?? "", {
-        global: { headers: authorization ? { Authorization: authorization } : {} },
-        auth: { persistSession: false, autoRefreshToken: false },
-      }),
+      userClient,
       authorization?.startsWith("Bearer ") ? authorization.slice("Bearer ".length).trim() : "",
     ),
+    rateLimit: bindAiRateLimit(userClient),
   });
 });

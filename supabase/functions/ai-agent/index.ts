@@ -1,8 +1,13 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { bindAgentReader } from "../_shared/agent-reader.ts";
+import { bindAiRateLimit } from "../_shared/ai-rate-limit.ts";
 import { handleAgent } from "../_shared/handle-agent.ts";
-import { bindStudentDb, syncSavedEnrolment } from "../_shared/student-integrations.ts";
+import {
+  bindStudentDb,
+  integrationSecretsFromEnv,
+  syncSavedEnrolment,
+} from "../_shared/student-integrations.ts";
 import type { EventWriteClient } from "../_shared/student-integrations.ts";
 
 declare const Deno: {
@@ -33,16 +38,13 @@ Deno.serve((request) => {
     authorization,
     fetchImpl: fetch,
     reader: bindAgentReader(userClient, token),
+    rateLimit: bindAiRateLimit(userClient),
     syncEnrolment: (userId, courseId) =>
       syncSavedEnrolment(
         bindStudentDb(userClient as EventWriteClient),
         userId,
         courseId,
-        {
-          resendKey: Deno.env.get("RESEND_API_KEY"),
-          resendFrom: Deno.env.get("RESEND_FROM"),
-          hubspotToken: Deno.env.get("HUBSPOT_ACCESS_TOKEN"),
-        },
+        integrationSecretsFromEnv((name) => Deno.env.get(name)),
         fetch,
       ),
   });

@@ -41,13 +41,7 @@ const roleAreas = [
     href: "/student",
     description:
       "Browse the catalogue, keep your enrolled courses together, submit assignments and track your grades.",
-    items: [
-      "Browse courses",
-      "My courses",
-      "Assignments",
-      "My grades",
-      "My profile",
-    ],
+    items: ["Browse courses", "My courses", "Assignments", "My grades", "My profile"],
   },
   {
     name: "Instructor",
@@ -57,13 +51,7 @@ const roleAreas = [
     href: "/instructor",
     description:
       "Create courses, publish lessons, review submissions and record the grades that reach your students.",
-    items: [
-      "Instructor dashboard",
-      "Create a course",
-      "My courses",
-      "Submissions",
-      "My profile",
-    ],
+    items: ["Instructor dashboard", "Create a course", "My courses", "Submissions", "My profile"],
   },
   {
     name: "Admin",
@@ -73,13 +61,7 @@ const roleAreas = [
     href: "/admin",
     description:
       "Review submitted courses, manage users and categories, and keep an eye on enrolments across the platform.",
-    items: [
-      "Admin dashboard",
-      "Course approvals",
-      "Manage users",
-      "Manage categories",
-      "Reports",
-    ],
+    items: ["Admin dashboard", "Course approvals", "Manage users", "Manage categories", "Reports"],
   },
 ] as const;
 
@@ -121,9 +103,7 @@ export function EduHubLanding() {
             <div className="flex size-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
               <GraduationCap className="size-5" />
             </div>
-            <span className="text-lg font-semibold tracking-tight text-foreground">
-              EduHub
-            </span>
+            <span className="text-lg font-semibold tracking-tight text-foreground">EduHub</span>
           </div>
           <span className="hidden rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-muted-foreground sm:inline-block">
             Sign-in arrives in the next phase
@@ -142,8 +122,8 @@ export function EduHubLanding() {
             Courses, submissions and grades — in one calm place.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            EduHub gives students, instructors and admins their own clear
-            spaces, so every part of a course has a natural home.
+            EduHub gives students, instructors and admins their own clear spaces, so every part of a
+            course has a natural home.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <a
@@ -185,9 +165,7 @@ export function EduHubLanding() {
                 >
                   <role.icon className={`size-6 ${role.tone}`} />
                 </div>
-                <h3 className="mt-5 text-lg font-semibold text-foreground">
-                  {role.name}
-                </h3>
+                <h3 className="mt-5 text-lg font-semibold text-foreground">{role.name}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {role.description}
                 </p>
@@ -217,16 +195,11 @@ export function EduHubLanding() {
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">
               How a course moves through EduHub
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              One shared workflow, five steps.
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">One shared workflow, five steps.</p>
           </div>
           <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {flow.map((step, index) => (
-              <li
-                key={step.title}
-                className="rounded-2xl border border-border bg-card p-5"
-              >
+              <li key={step.title} className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-center justify-between">
                   <div className="flex size-9 items-center justify-center rounded-xl bg-secondary">
                     <step.icon className="size-4.5 text-muted-foreground" />
@@ -235,12 +208,8 @@ export function EduHubLanding() {
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <h3 className="mt-4 text-sm font-semibold text-foreground">
-                  {step.title}
-                </h3>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  {step.detail}
-                </p>
+                <h3 className="mt-4 text-sm font-semibold text-foreground">{step.title}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{step.detail}</p>
               </li>
             ))}
           </ol>
@@ -248,8 +217,8 @@ export function EduHubLanding() {
 
         {/* Footer */}
         <footer className="mt-auto border-t border-border py-6 text-center text-xs text-muted-foreground">
-          EduHub — a course-to-grade learning platform. Sign-in and account
-          access will be added in the next phase.
+          EduHub — a course-to-grade learning platform. Sign-in and account access will be added in
+          the next phase.
         </footer>
       </div>
     </div>

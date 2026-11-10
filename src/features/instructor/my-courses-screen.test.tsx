@@ -64,9 +64,7 @@ describe("MyCoursesScreen", () => {
 
     render(<MyCoursesScreen />);
 
-    expect(
-      await screen.findByRole("heading", { name: "My Courses" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "My Courses" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Create Course" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Submit for approval" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();

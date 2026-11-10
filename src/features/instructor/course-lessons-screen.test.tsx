@@ -35,9 +35,7 @@ describe("CourseLessonsScreen", () => {
     render(<CourseLessonsScreen courseId="missing" />);
 
     expect(await screen.findByText("This course is not available.")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "My Courses" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "My Courses" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save lesson" })).not.toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
   });
@@ -67,10 +65,9 @@ describe("CourseLessonsScreen", () => {
     expect(screen.getByRole("heading", { name: "Welcome" })).toBeInTheDocument();
     expect(screen.getByText("Start here.")).toBeInTheDocument();
     expect(screen.getByText("Order 1")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Welcome" }).closest("article")?.parentElement).toHaveClass(
-      "grid",
-      "lg:grid-cols-2",
-    );
+    expect(
+      screen.getByRole("heading", { name: "Welcome" }).closest("article")?.parentElement,
+    ).toHaveClass("grid", "lg:grid-cols-2");
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
 

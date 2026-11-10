@@ -30,6 +30,7 @@ export const roleNavigation = {
     { label: "Manage Users", to: "/admin/users" },
     { label: "Manage Categories", to: "/admin/categories" },
     { label: "All Enrollments", to: "/admin/enrollments" },
+    { label: "Campaigns", to: "/admin/campaigns" },
     { label: "Reports", to: "/admin/reports" },
   ],
 } as const;

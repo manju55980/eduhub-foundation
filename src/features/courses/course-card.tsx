@@ -10,7 +10,11 @@ import {
   type CoursePreviewLesson,
   type CoursePreviewProgress,
 } from "./course-preview";
-import type { AdminDetailSource, InstructorDetailSource, StudentDetailSource } from "./course-details";
+import type {
+  AdminDetailSource,
+  InstructorDetailSource,
+  StudentDetailSource,
+} from "./course-details";
 
 type CourseCardTarget =
   | { role: "student"; from: StudentDetailSource; studentId?: string; enrolled?: boolean }

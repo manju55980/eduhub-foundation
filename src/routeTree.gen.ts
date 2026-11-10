@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InstructorRouteRouteImport } from './routes/instructor/route'
 import { Route as StudentRouteRouteImport } from './routes/student/route'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminCampaignsRouteImport } from './routes/admin/campaigns'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminEnrollmentsRouteImport } from './routes/admin/enrollments'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
@@ -73,6 +74,11 @@ const StudentRouteRoute = StudentRouteRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminCampaignsRoute = AdminCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
@@ -235,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/instructor': typeof InstructorRouteRouteWithChildren
   '/student': typeof StudentRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/enrollments': typeof AdminEnrollmentsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -269,6 +276,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/enrollments': typeof AdminEnrollmentsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -307,6 +315,7 @@ export interface FileRoutesById {
   '/instructor': typeof InstructorRouteRouteWithChildren
   '/student': typeof StudentRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/enrollments': typeof AdminEnrollmentsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -346,6 +355,7 @@ export interface FileRouteTypes {
     | '/instructor'
     | '/student'
     | '/auth'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/enrollments'
     | '/admin/reports'
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/enrollments'
     | '/admin/reports'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/instructor'
     | '/student'
     | '/auth'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/enrollments'
     | '/admin/reports'
@@ -499,6 +511,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/campaigns': {
+      id: '/admin/campaigns'
+      path: '/campaigns'
+      fullPath: '/admin/campaigns'
+      preLoaderRoute: typeof AdminCampaignsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/categories': {
@@ -708,6 +727,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteRouteChildren {
+  AdminCampaignsRoute: typeof AdminCampaignsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminEnrollmentsRoute: typeof AdminEnrollmentsRoute
   AdminReportsRoute: typeof AdminReportsRoute
@@ -720,6 +740,7 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminCampaignsRoute: AdminCampaignsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminEnrollmentsRoute: AdminEnrollmentsRoute,
   AdminReportsRoute: AdminReportsRoute,

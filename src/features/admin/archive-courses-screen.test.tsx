@@ -58,10 +58,9 @@ describe("ArchiveCoursesScreen", () => {
     render(<ArchiveCoursesScreen />);
 
     expect(await screen.findByRole("button", { name: "Archive" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Archive" }).closest("article")?.parentElement).toHaveClass(
-      "grid",
-      "lg:grid-cols-2",
-    );
+    expect(
+      screen.getByRole("button", { name: "Archive" }).closest("article")?.parentElement,
+    ).toHaveClass("grid", "lg:grid-cols-2");
     expect(screen.getByText("Beginner")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("");
     expect(screen.getByText("Instructor").parentElement?.querySelector("dd")?.textContent).toBe("");

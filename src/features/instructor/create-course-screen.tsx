@@ -7,7 +7,12 @@ import { SaveNotice } from "@/features/instructor/save-notice";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/app-shell/page-header";
-import { formColumnsClass, PageSection, panelClass, selectFieldClass } from "@/components/app-shell/record-card";
+import {
+  formColumnsClass,
+  PageSection,
+  panelClass,
+  selectFieldClass,
+} from "@/components/app-shell/record-card";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 

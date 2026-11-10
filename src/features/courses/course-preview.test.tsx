@@ -64,7 +64,9 @@ describe("Course preview", () => {
           { id: "lesson-2", title: "Components and Props", completed: false },
         ]}
         actions={<a href="/student/my-courses/course-1?from=my-courses">Continue Learning</a>}
-        previewActions={<a href="/student/my-courses/course-1?from=my-courses">Continue Learning</a>}
+        previewActions={
+          <a href="/student/my-courses/course-1?from=my-courses">Continue Learning</a>
+        }
       />,
     );
 
@@ -74,7 +76,9 @@ describe("Course preview", () => {
 
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveClass("overflow-y-auto");
-    expect(screen.getAllByRole("heading", { name: "React Fundamentals" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("heading", { name: "React Fundamentals" }).length).toBeGreaterThan(
+      0,
+    );
     expect(screen.getByText("Technical")).toBeInTheDocument();
     expect(screen.getByText("Beginner")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Overview" })).toBeInTheDocument();
@@ -116,7 +120,9 @@ describe("Course preview", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByText("Lessons are available after you enroll.")).toBeInTheDocument();
     expect(screen.queryByText("Hidden lesson")).not.toBeInTheDocument();
-    expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Enroll" })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("dialog")).getByRole("button", { name: "Enroll" }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Close preview" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
@@ -165,10 +171,9 @@ describe("Course preview", () => {
     expect(screen.getByText("Proofs")).toBeInTheDocument();
     expect(screen.getByText("Start with axioms.")).toBeInTheDocument();
     expect(screen.getByText("Science")).toBeInTheDocument();
-    expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Lessons" })).toHaveAttribute(
-      "href",
-      "/instructor/courses/course-3/lessons",
-    );
+    expect(
+      within(screen.getByRole("dialog")).getByRole("link", { name: "Lessons" }),
+    ).toHaveAttribute("href", "/instructor/courses/course-3/lessons");
     expect(loadDetails).toHaveBeenCalledWith("course-3", {
       includeLessons: true,
       includeInstructor: true,
@@ -209,7 +214,9 @@ describe("Course preview", () => {
     fireEvent.click(screen.getByRole("button", { name: "Quick preview" }));
     expect(await screen.findByText("By Ada Lovelace")).toBeInTheDocument();
     expect(screen.getByText("This course has no lessons yet.")).toBeInTheDocument();
-    expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Approve" })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("dialog")).getByRole("button", { name: "Approve" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Close preview" })).toBeInTheDocument();
   });
 });

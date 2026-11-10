@@ -1,7 +1,12 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
-import { formColumnsClass, PageSection, panelClass, selectFieldClass } from "@/components/app-shell/record-card";
+import {
+  formColumnsClass,
+  PageSection,
+  panelClass,
+  selectFieldClass,
+} from "@/components/app-shell/record-card";
 import { cn } from "@/lib/utils";
 import { ErrorState, LoadingState } from "@/components/app-shell/page-state";
 import { CourseCard } from "@/features/courses/course-card";
@@ -245,145 +250,145 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
       {loading ? <LoadingState message="Loading categories…" /> : null}
       {!loading && !loadError ? (
         <div className={formColumnsClass}>
-        <form className={cn(panelClass, "space-y-4 p-4")} onSubmit={handleGenerate}>
-          <Field id="course-brief" label="Brief" hint="What should this course teach?">
-            <Textarea
-              id="course-brief"
-              value={brief}
-              maxLength={descriptionLimit}
-              className="min-h-28"
-              onChange={(event) => setBrief(event.target.value)}
-              disabled={pending !== null || locked || preview !== null}
-            />
-          </Field>
-          <Field
-            id="course-level"
-            label="Level"
-            hint="Select the appropriate level for your course."
-          >
-            <select
+          <form className={cn(panelClass, "space-y-4 p-4")} onSubmit={handleGenerate}>
+            <Field id="course-brief" label="Brief" hint="What should this course teach?">
+              <Textarea
+                id="course-brief"
+                value={brief}
+                maxLength={descriptionLimit}
+                className="min-h-28"
+                onChange={(event) => setBrief(event.target.value)}
+                disabled={pending !== null || locked || preview !== null}
+              />
+            </Field>
+            <Field
               id="course-level"
-              className={selectFieldClass}
-              value={level}
-              disabled={pending !== null || locked || preview !== null}
-              onChange={(event) => setLevel(event.target.value)}
+              label="Level"
+              hint="Select the appropriate level for your course."
             >
-              <option value="">Choose a level</option>
-              {courseLevels.map((item) => (
-                <option key={item} value={item}>
-                  {levelLabels[item]}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field
-            id="lesson-count"
-            label="Lessons"
-            hint="How many lessons to generate, from 1 to 6."
-          >
-            <Input
+              <select
+                id="course-level"
+                className={selectFieldClass}
+                value={level}
+                disabled={pending !== null || locked || preview !== null}
+                onChange={(event) => setLevel(event.target.value)}
+              >
+                <option value="">Choose a level</option>
+                {courseLevels.map((item) => (
+                  <option key={item} value={item}>
+                    {levelLabels[item]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field
               id="lesson-count"
-              type="number"
-              min={1}
-              max={maxLessons}
-              step={1}
-              value={lessonCount}
-              onChange={(event) => setLessonCount(event.target.value)}
-              disabled={pending !== null || locked || preview !== null}
-            />
-          </Field>
-          <Field
-            id="assignment-count"
-            label="Assignments"
-            hint="How many assignments to generate, from 0 to 4."
-          >
-            <Input
+              label="Lessons"
+              hint="How many lessons to generate, from 1 to 6."
+            >
+              <Input
+                id="lesson-count"
+                type="number"
+                min={1}
+                max={maxLessons}
+                step={1}
+                value={lessonCount}
+                onChange={(event) => setLessonCount(event.target.value)}
+                disabled={pending !== null || locked || preview !== null}
+              />
+            </Field>
+            <Field
               id="assignment-count"
-              type="number"
-              min={0}
-              max={maxAssignments}
-              step={1}
-              value={assignmentCount}
-              onChange={(event) => setAssignmentCount(event.target.value)}
-              disabled={pending !== null || locked || preview !== null}
-            />
-          </Field>
-          <Field
-            id="course-difficulty"
-            label="Difficulty"
-            hint="Optional. A note beyond the course level, such as a slower pace."
-            required={false}
-          >
-            <Input
+              label="Assignments"
+              hint="How many assignments to generate, from 0 to 4."
+            >
+              <Input
+                id="assignment-count"
+                type="number"
+                min={0}
+                max={maxAssignments}
+                step={1}
+                value={assignmentCount}
+                onChange={(event) => setAssignmentCount(event.target.value)}
+                disabled={pending !== null || locked || preview !== null}
+              />
+            </Field>
+            <Field
               id="course-difficulty"
-              value={difficulty}
-              maxLength={120}
-              onChange={(event) => setDifficulty(event.target.value)}
-              disabled={pending !== null || locked || preview !== null}
-            />
-          </Field>
-          <Field
-            id="learning-goals"
-            label="Learning goals"
-            hint="Optional. What a learner should be able to do by the end."
-            required={false}
-          >
-            <Textarea
+              label="Difficulty"
+              hint="Optional. A note beyond the course level, such as a slower pace."
+              required={false}
+            >
+              <Input
+                id="course-difficulty"
+                value={difficulty}
+                maxLength={120}
+                onChange={(event) => setDifficulty(event.target.value)}
+                disabled={pending !== null || locked || preview !== null}
+              />
+            </Field>
+            <Field
               id="learning-goals"
-              value={goals}
-              maxLength={preferenceLimit}
-              onChange={(event) => setGoals(event.target.value)}
-              disabled={pending !== null || locked || preview !== null}
-            />
-          </Field>
-          <Field
-            id="course-projects"
-            label="Projects"
-            hint="Optional. A project the lessons and assignments should build toward."
-            required={false}
-          >
-            <Textarea
+              label="Learning goals"
+              hint="Optional. What a learner should be able to do by the end."
+              required={false}
+            >
+              <Textarea
+                id="learning-goals"
+                value={goals}
+                maxLength={preferenceLimit}
+                onChange={(event) => setGoals(event.target.value)}
+                disabled={pending !== null || locked || preview !== null}
+              />
+            </Field>
+            <Field
               id="course-projects"
-              value={projects}
-              maxLength={preferenceLimit}
-              onChange={(event) => setProjects(event.target.value)}
-              disabled={pending !== null || locked || preview !== null}
-            />
-          </Field>
-          <Field
-            id="resource-preferences"
-            label="Resource preferences"
-            hint="Optional. Topics or formats to prefer when suggesting videos."
-            required={false}
-          >
-            <Textarea
+              label="Projects"
+              hint="Optional. A project the lessons and assignments should build toward."
+              required={false}
+            >
+              <Textarea
+                id="course-projects"
+                value={projects}
+                maxLength={preferenceLimit}
+                onChange={(event) => setProjects(event.target.value)}
+                disabled={pending !== null || locked || preview !== null}
+              />
+            </Field>
+            <Field
               id="resource-preferences"
-              value={resources}
-              maxLength={preferenceLimit}
-              onChange={(event) => setResources(event.target.value)}
-              disabled={pending !== null || locked || preview !== null}
-            />
-          </Field>
-          <Field id="course-category" label="Category" hint="Optional." required={false}>
-            <CategorySelect
-              id="course-category"
-              categories={categories}
-              categoryId={categoryId}
-              onChange={setCategoryId}
-              disabled={pending !== null || locked || preview !== null}
-            />
-          </Field>
-          <Button type="submit" disabled={pending !== null || locked || preview !== null}>
-            {pending === "generate" ? "Generating…" : "Generate"}
-          </Button>
-        </form>
-        <aside className={cn(panelClass, "space-y-3 p-4")}>
-          <h2 className="text-base font-medium text-foreground">Save a draft</h2>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Review the outline, then save it as a draft. This is still a draft until you submit it
-            from My Courses.
-          </p>
-        </aside>
+              label="Resource preferences"
+              hint="Optional. Topics or formats to prefer when suggesting videos."
+              required={false}
+            >
+              <Textarea
+                id="resource-preferences"
+                value={resources}
+                maxLength={preferenceLimit}
+                onChange={(event) => setResources(event.target.value)}
+                disabled={pending !== null || locked || preview !== null}
+              />
+            </Field>
+            <Field id="course-category" label="Category" hint="Optional." required={false}>
+              <CategorySelect
+                id="course-category"
+                categories={categories}
+                categoryId={categoryId}
+                onChange={setCategoryId}
+                disabled={pending !== null || locked || preview !== null}
+              />
+            </Field>
+            <Button type="submit" disabled={pending !== null || locked || preview !== null}>
+              {pending === "generate" ? "Generating…" : "Generate"}
+            </Button>
+          </form>
+          <aside className={cn(panelClass, "space-y-3 p-4")}>
+            <h2 className="text-base font-medium text-foreground">Save a draft</h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Review the outline, then save it as a draft. This is still a draft until you submit it
+              from My Courses.
+            </p>
+          </aside>
         </div>
       ) : null}
 

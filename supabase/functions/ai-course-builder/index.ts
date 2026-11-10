@@ -1,5 +1,6 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import { bindAiRateLimit } from "../_shared/ai-rate-limit.ts";
 import { handleCourseBuilder, type RoleReader } from "../_shared/handle-course-builder.ts";
 import { studyRoleColumns } from "../_shared/study-query.ts";
 
@@ -49,5 +50,6 @@ Deno.serve((request) => {
     authorization,
     fetchImpl: fetch,
     reader,
+    rateLimit: bindAiRateLimit(supabase),
   });
 });

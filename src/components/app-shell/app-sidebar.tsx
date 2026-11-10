@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Library,
   ListChecks,
+  Mail,
   Medal,
   MessagesSquare,
   PenLine,
@@ -50,6 +51,7 @@ const navIcon: Record<string, LucideIcon> = {
   "/admin/users": Users,
   "/admin/categories": FolderTree,
   "/admin/enrollments": ListChecks,
+  "/admin/campaigns": Mail,
   "/admin/reports": Award,
 };
 

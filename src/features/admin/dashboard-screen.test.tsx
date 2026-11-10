@@ -56,9 +56,7 @@ describe("AdminDashboardScreen", () => {
 
     expect(screen.getByText("Loading dashboard…")).toBeInTheDocument();
     expect(await screen.findByText("No courses are waiting for approval.")).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Welcome back, Ada Lovelace" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Welcome back, Ada Lovelace" })).toBeInTheDocument();
     expect(screen.getByText("There are no enrollments yet.")).toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();

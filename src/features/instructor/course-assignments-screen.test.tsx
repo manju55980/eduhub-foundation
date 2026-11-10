@@ -47,15 +47,16 @@ describe("CourseAssignmentsScreen", () => {
     render(<CourseAssignmentsScreen courseId="missing" />);
 
     expect(await screen.findByText("This course is not available.")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "My Courses" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "My Courses" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save assignment" })).not.toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
   });
 
   it("shows an empty list and requires a title and description", async () => {
-    getCourse.mockResolvedValue({ ok: true, course: { id: "course-1", title: "Intro to React", status: "draft" } });
+    getCourse.mockResolvedValue({
+      ok: true,
+      course: { id: "course-1", title: "Intro to React", status: "draft" },
+    });
     listAssignments.mockResolvedValue({ ok: true, assignments: [] });
 
     render(<CourseAssignmentsScreen courseId="course-1" />);
@@ -75,7 +76,10 @@ describe("CourseAssignmentsScreen", () => {
   });
 
   it("creates an assignment for this course and stores a blank due date as null", async () => {
-    getCourse.mockResolvedValue({ ok: true, course: { id: "course-1", title: null, status: "draft" } });
+    getCourse.mockResolvedValue({
+      ok: true,
+      course: { id: "course-1", title: null, status: "draft" },
+    });
     listAssignments.mockResolvedValue({ ok: true, assignments: [] });
     create.mockResolvedValue({
       ok: true,
@@ -103,7 +107,10 @@ describe("CourseAssignmentsScreen", () => {
   });
 
   it("updates only the assignment text and due date", async () => {
-    getCourse.mockResolvedValue({ ok: true, course: { id: "course-1", title: "Intro to React", status: "draft" } });
+    getCourse.mockResolvedValue({
+      ok: true,
+      course: { id: "course-1", title: "Intro to React", status: "draft" },
+    });
     listAssignments.mockResolvedValue({ ok: true, assignments: [stored] });
     update.mockResolvedValue({ ok: true });
 
@@ -111,10 +118,9 @@ describe("CourseAssignmentsScreen", () => {
 
     expect(await screen.findByRole("heading", { name: "Essay" })).toBeInTheDocument();
     expect(screen.getByText("Write two pages.")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Essay" }).closest("article")?.parentElement).toHaveClass(
-      "grid",
-      "lg:grid-cols-2",
-    );
+    expect(
+      screen.getByRole("heading", { name: "Essay" }).closest("article")?.parentElement,
+    ).toHaveClass("grid", "lg:grid-cols-2");
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     fireEvent.change(screen.getAllByLabelText(/Title/)[1]!, { target: { value: "Revised essay" } });
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -136,7 +142,10 @@ describe("CourseAssignmentsScreen", () => {
   });
 
   it("does not offer save when assignments fail to load", async () => {
-    getCourse.mockResolvedValue({ ok: true, course: { id: "course-1", title: "Intro to React", status: "draft" } });
+    getCourse.mockResolvedValue({
+      ok: true,
+      course: { id: "course-1", title: "Intro to React", status: "draft" },
+    });
     listAssignments.mockResolvedValue({ ok: false, message: "Could not load assignments." });
 
     render(<CourseAssignmentsScreen courseId="course-1" />);

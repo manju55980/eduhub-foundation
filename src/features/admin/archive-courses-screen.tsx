@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { MetaItem, MetaList, PageSection, RecordList, recordGridClass } from "@/components/app-shell/record-card";
+import {
+  MetaItem,
+  MetaList,
+  PageSection,
+  RecordList,
+  recordGridClass,
+} from "@/components/app-shell/record-card";
 import { StatusBadge } from "@/components/app-shell/status-badge";
 import { Button } from "@/components/ui/button";
 import { SaveNotice } from "@/features/instructor/save-notice";
@@ -44,11 +50,7 @@ export function ArchiveCoursesScreen() {
 
   return (
     <PageSection>
-      <PageHeader
-        title="Archive Courses"
-        backTo="/admin/courses"
-        backLabel="Manage Courses"
-      />
+      <PageHeader title="Archive Courses" backTo="/admin/courses" backLabel="Manage Courses" />
       <SaveNotice
         tone="admin"
         saved={notice.saved}

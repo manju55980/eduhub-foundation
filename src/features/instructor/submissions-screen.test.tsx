@@ -36,9 +36,7 @@ describe("SubmissionsScreen", () => {
 
     expect(screen.getByText("Loading submissions…")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save grade" })).not.toBeInTheDocument();
-    expect(
-      await screen.findByRole("heading", { name: "Submissions" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Submissions" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "To Grade" })).toHaveAttribute("data-state", "active");
     expect(screen.getByText("No submissions to grade.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save grade" })).not.toBeInTheDocument();
@@ -69,9 +67,9 @@ describe("SubmissionsScreen", () => {
 
     const gradedCard = (await screen.findByRole("heading", { name: "Quiz" })).closest("article");
     expect(gradedCard).not.toBeNull();
-    expect(within(gradedCard as HTMLElement).getByRole("spinbutton", { name: /^Grade / })).toHaveValue(
-      8,
-    );
+    expect(
+      within(gradedCard as HTMLElement).getByRole("spinbutton", { name: /^Grade / }),
+    ).toHaveValue(8);
     expect(
       within(gradedCard as HTMLElement).getByRole("textbox", { name: "Feedback" }),
     ).toHaveValue("Clear.");
@@ -84,10 +82,12 @@ describe("SubmissionsScreen", () => {
     render(<SubmissionsScreen />);
 
     expect(await screen.findByRole("heading", { name: "Essay" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Essay" }).closest("article")?.querySelector("dl")).toHaveClass(
-      "grid-cols-1",
+    expect(
+      screen.getByRole("heading", { name: "Essay" }).closest("article")?.querySelector("dl"),
+    ).toHaveClass("grid-cols-1");
+    expect(screen.getByRole("button", { name: "Save grade" }).closest("form")).toHaveClass(
+      "space-y-4",
     );
-    expect(screen.getByRole("button", { name: "Save grade" }).closest("form")).toHaveClass("space-y-4");
     expect(screen.getByText("Archived course")).toBeInTheDocument();
     expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
     expect(screen.getByText("My essay.")).toBeInTheDocument();
@@ -125,9 +125,9 @@ describe("SubmissionsScreen", () => {
     const gradedCard = (await screen.findByRole("heading", { name: "Essay" })).closest("article");
     expect(gradedCard).not.toBeNull();
     expect(within(gradedCard as HTMLElement).getByText("Graded")).toBeInTheDocument();
-    expect(within(gradedCard as HTMLElement).getByRole("spinbutton", { name: /^Grade / })).toHaveValue(
-      8,
-    );
+    expect(
+      within(gradedCard as HTMLElement).getByRole("spinbutton", { name: /^Grade / }),
+    ).toHaveValue(8);
     expect(within(gradedCard as HTMLElement).getByText("My essay.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Submissions" })).toBeInTheDocument();
   });

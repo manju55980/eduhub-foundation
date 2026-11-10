@@ -72,7 +72,8 @@ export function readSeedRunOptions(env: Record<string, string | undefined>) {
     delayMs: boundedInt(env["RAG_EMBED_DELAY_MS"], defaultDelayMs, 0, seedDelayLimitMs),
     maxAttempts: boundedInt(env["RAG_EMBED_MAX_ATTEMPTS"], defaultMaxAttempts, 1, 6),
     recordLimit: boundedInt(env["RAG_EMBED_RECORD_LIMIT"], defaultRecordLimit, 1, recordLimitMax),
-    replaceExisting: env["RAG_EMBED_REPLACE_ALL"] === "true" || env["RAG_EMBED_REPLACE_ALL"] === "1",
+    replaceExisting:
+      env["RAG_EMBED_REPLACE_ALL"] === "true" || env["RAG_EMBED_REPLACE_ALL"] === "1",
     writeChunks: env["RAG_EMBED_WRITE"] !== "false",
   };
 }

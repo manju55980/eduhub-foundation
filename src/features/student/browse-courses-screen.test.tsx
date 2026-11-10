@@ -134,19 +134,17 @@ describe("BrowseCoursesScreen", () => {
   });
 
   it("stays on the catalogue and switches the card to open course after enroll", async () => {
-    listCourses
-      .mockResolvedValueOnce(loaded([course]))
-      .mockResolvedValue(
-        loaded([
-          {
-            ...course,
-            enrolled: true,
-            progress: 0,
-            completedLessons: 0,
-            lessonCount: 1,
-          },
-        ]),
-      );
+    listCourses.mockResolvedValueOnce(loaded([course])).mockResolvedValue(
+      loaded([
+        {
+          ...course,
+          enrolled: true,
+          progress: 0,
+          completedLessons: 0,
+          lessonCount: 1,
+        },
+      ]),
+    );
     enroll.mockResolvedValue({ ok: true });
 
     render(<BrowseCoursesScreen studentId="student-1" />);

@@ -28,16 +28,16 @@ describe("rag chunks migration", () => {
   it("stores 768-dimension chunks with a cosine hnsw index", () => {
     expect(migration).toContain("create extension if not exists vector with schema extensions");
     expect(migration).toContain("create table public.rag_chunks");
-    expect(migration).toContain("source_type text not null check (source_type in ('course', 'lesson', 'faq'))");
+    expect(migration).toContain(
+      "source_type text not null check (source_type in ('course', 'lesson', 'faq'))",
+    );
     expect(migration).toContain("source_key text not null");
     expect(migration).toContain("body text not null");
     expect(migration).toContain("embedding extensions.vector(768)");
     expect(migration).toContain(
       "create unique index rag_chunks_source_key_uidx\n  on public.rag_chunks (source_key);",
     );
-    expect(migration).toContain(
-      "using hnsw (embedding extensions.vector_cosine_ops);",
-    );
+    expect(migration).toContain("using hnsw (embedding extensions.vector_cosine_ops);");
     expect(migration).toContain("source_type = 'lesson'");
     expect(migration).toContain("and lesson_id is not null");
     expect(migration).toContain("grant select on table public.rag_chunks to authenticated");
@@ -58,10 +58,10 @@ describe("rag chunks migration", () => {
     expect(policy).toContain("public.is_course_owner(course_id)");
     expect(policy).toContain("source_type = 'course'");
     expect(policy).toContain("public.is_published_course(course_id)");
-    expect(policy).toContain(
-      "source_type = 'lesson'\n          and public.is_enrolled(course_id)",
+    expect(policy).toContain("source_type = 'lesson'\n          and public.is_enrolled(course_id)");
+    expect(policy).not.toContain(
+      "is_published_course(course_id)\n          and source_type = 'lesson'",
     );
-    expect(policy).not.toContain("is_published_course(course_id)\n          and source_type = 'lesson'");
   });
 
   it("searches as the caller and stops at 10 rows", () => {

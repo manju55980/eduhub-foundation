@@ -1,7 +1,15 @@
+import {
+  createEmailProvider,
+  deliveryEventKey,
+  normalizeResendDelivery,
+  resendEmailUrl,
+  type NormalizedDeliveryEvent,
+} from "./email-provider.ts";
 import { isServiceRoleKey } from "./user-client.ts";
 import { jsonResponse, emptyResponse } from "./http.ts";
 
-export const resendEmailUrl = "https://api.resend.com/emails";
+export { deliveryEventKey, resendEmailUrl };
+
 export const hubspotUpsertUrl = "https://api.hubapi.com/crm/objects/2026-09/contacts/batch/upsert";
 export const signatureWindowMs = 5 * 60 * 1000;
 export const integrationTimeoutMs = 20_000;
@@ -14,22 +22,30 @@ export const invalidRequestMessage = "The request was not valid.";
 export const webhookSignatureMessage = "The webhook signature was not valid.";
 export const requestFailedMessage = "The request could not be completed.";
 
-export const deliveryEventTypes = [
-  "email.sent",
-  "email.delivered",
-  "email.bounced",
-  "email.complained",
-] as const;
-
-export type DeliveryEventType = (typeof deliveryEventTypes)[number];
 export type StudentEmailAction = "enrolment" | "completion" | "profile";
 export type OutboundEmail = "enrolment" | "certificate";
 
 export type IntegrationSecrets = {
+  emailProvider?: string | undefined;
+  emailFrom?: string | undefined;
   resendKey?: string | undefined;
   resendFrom?: string | undefined;
+  smtp2goKey?: string | undefined;
   hubspotToken?: string | undefined;
 };
+
+export function integrationSecretsFromEnv(
+  read: (name: string) => string | undefined,
+): IntegrationSecrets {
+  return {
+    emailProvider: read("EMAIL_PROVIDER"),
+    emailFrom: read("EMAIL_FROM"),
+    resendKey: read("RESEND_API_KEY"),
+    resendFrom: read("RESEND_FROM"),
+    smtp2goKey: read("SMTP2GO_API_KEY"),
+    hubspotToken: read("HUBSPOT_ACCESS_TOKEN"),
+  };
+}
 
 export type OutboundStore = {
   claim: (
@@ -43,7 +59,7 @@ export type OutboundStore = {
 export type DeliveryStore = {
   record: (input: {
     eventKey: string;
-    status: DeliveryEventType;
+    status: NormalizedDeliveryEvent;
     providerEmailId: string | null;
   }) => Promise<{ ok: true; stored: boolean } | { ok: false }>;
 };
@@ -125,10 +141,6 @@ export function hubspotContactBody(email: string, fullName: string) {
 
 export function emailClaimKey(send: OutboundEmail, enrollmentId: string) {
   return send === "enrolment" ? `enrolment:${enrollmentId}` : `certificate:${enrollmentId}`;
-}
-
-export function deliveryEventKey(svixId: string) {
-  return `delivery:${svixId}`;
 }
 
 export async function syncStudent(input: {
@@ -227,25 +239,6 @@ export async function verifySvixSignature(input: {
   return candidates.some((candidate) => timingSafeEqual(candidate, expected));
 }
 
-export function deliveryFromPayload(
-  payload: unknown,
-): { type: DeliveryEventType; emailId: string | null } | null {
-  if (!payload || typeof payload !== "object" || !("type" in payload)) return null;
-  const type = payload.type;
-  if (typeof type !== "string" || !isDeliveryEvent(type)) return null;
-  let emailId: string | null = null;
-  if (
-    "data" in payload &&
-    payload.data &&
-    typeof payload.data === "object" &&
-    "email_id" in payload.data
-  ) {
-    const value = payload.data.email_id;
-    if (typeof value === "string" && value.trim()) emailId = value.trim();
-  }
-  return { type, emailId };
-}
-
 export async function handleStudentEmail(
   request: Request,
   deps: {
@@ -329,11 +322,21 @@ export async function handleStudentEmail(
   return jsonResponse({ ok: true, emailed: result.emailed, synced: result.synced });
 }
 
+export type CampaignDelivery = {
+  apply: (input: {
+    providerEmailId: string | null;
+    nextStatus: "opened" | "bounced" | "failed" | null;
+    suppressReason: "complaint" | "unsubscribe" | null;
+    suppressEmail: string | null;
+  }) => Promise<{ ok: true } | { ok: false }>;
+};
+
 export async function handleResendWebhook(
   request: Request,
   deps: {
     webhookSecret: string | undefined;
     store: DeliveryStore | null;
+    campaigns?: CampaignDelivery | null;
     fetchImpl?: typeof fetch;
     nowMs?: number;
   },
@@ -364,16 +367,32 @@ export async function handleResendWebhook(
   } catch {
     return jsonResponse({ ok: true, stored: false });
   }
-  const delivery = deliveryFromPayload(parsed);
+  const delivery = normalizeResendDelivery(parsed);
   const svixId = (request.headers.get("svix-id") ?? "").trim();
   if (!delivery || !svixId || svixId.length > 200) {
     return jsonResponse({ ok: true, stored: false });
   }
 
+  const nextStatus =
+    delivery.event === "opened" || delivery.event === "bounced" || delivery.event === "failed"
+      ? delivery.event
+      : null;
+  if (deps.campaigns && (nextStatus || delivery.suppressReason)) {
+    const applied = await deps.campaigns.apply({
+      providerEmailId: delivery.providerEmailId,
+      nextStatus,
+      suppressReason: delivery.suppressReason,
+      suppressEmail: delivery.suppressEmail,
+    });
+    if (!applied.ok) return jsonResponse({ ok: false, message: requestFailedMessage }, 500);
+  }
+
+  if (!delivery.event) return jsonResponse({ ok: true, stored: false });
+
   const saved = await deps.store.record({
-    eventKey: deliveryEventKey(svixId),
-    status: delivery.type,
-    providerEmailId: delivery.emailId,
+    eventKey: deliveryEventKey("resend", svixId),
+    status: delivery.event,
+    providerEmailId: delivery.providerEmailId,
   });
   if (!saved.ok) return jsonResponse({ ok: false, message: requestFailedMessage }, 500);
   return jsonResponse({ ok: true, stored: saved.stored });
@@ -474,32 +493,24 @@ async function sendClaimedEmail(
   },
   store: OutboundStore,
 ) {
-  const resendKey = input.secrets.resendKey?.trim() ?? "";
-  const resendFrom = input.secrets.resendFrom?.trim() ?? "";
-  if (!resendKey || !resendFrom) return false;
+  const provider = createEmailProvider(input.secrets, input.fetchImpl);
+  if (!provider) return false;
   const claimKey = emailClaimKey(input.send, input.enrollmentId);
   const claim = await store.claim(input.studentId, claimKey);
   if (!claim.ok || !claim.id) return false;
 
   const title = oneLine(input.courseTitle, "this course");
-  const sent = await postJson(
-    input.fetchImpl,
-    resendEmailUrl,
-    resendKey,
-    {
-      from: resendFrom,
-      to: [input.email],
-      subject: input.send === "enrolment" ? "You are enrolled" : "You completed a course",
-      text:
-        input.send === "enrolment" ? `You are enrolled in ${title}.` : `You completed ${title}.`,
-    },
-    claimKey,
-  );
+  const sent = await provider.send({
+    to: input.email,
+    subject: input.send === "enrolment" ? "You are enrolled" : "You completed a course",
+    text: input.send === "enrolment" ? `You are enrolled in ${title}.` : `You completed ${title}.`,
+    idempotencyKey: claimKey,
+  });
   if (!sent.ok) {
     if (sent.status !== 409) await store.release(claim.id);
     return false;
   }
-  await store.markSent(claim.id, sent.id);
+  await store.markSent(claim.id, sent.providerEmailId);
   return true;
 }
 
@@ -545,8 +556,7 @@ async function postJson(
     });
     const parsed = await readJson(response);
     const id = parsed && typeof parsed["id"] === "string" ? parsed["id"].trim() : "";
-    if (!response.ok || (url === resendEmailUrl && !id))
-      return { ok: false, status: response.status };
+    if (!response.ok) return { ok: false, status: response.status };
     return { ok: true, id, status: response.status, body: parsed };
   } catch {
     return { ok: false, status: 0 };
@@ -625,10 +635,6 @@ function bearerToken(authorization: string | null) {
   const token = header.slice("Bearer ".length).trim();
   if (token.split(".").length !== 3) return null;
   return token;
-}
-
-function isDeliveryEvent(value: string): value is DeliveryEventType {
-  return (deliveryEventTypes as readonly string[]).includes(value);
 }
 
 function hasErrors(body: Record<string, unknown>) {

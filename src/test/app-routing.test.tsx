@@ -48,6 +48,7 @@ describe("App routing", () => {
       "/admin/users",
       "/admin/categories",
       "/admin/enrollments",
+      "/admin/campaigns",
       "/admin/reports",
     ]) {
       const matches = router.matchRoutes(path);

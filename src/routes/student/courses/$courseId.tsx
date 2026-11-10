@@ -1,9 +1,6 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 
-import {
-  isStudentDetailSource,
-  studentDetailReturn,
-} from "@/features/courses/course-details";
+import { isStudentDetailSource, studentDetailReturn } from "@/features/courses/course-details";
 import { CourseDetailsScreen } from "@/features/courses/course-details-screen";
 
 const studentRoute = getRouteApi("/student");

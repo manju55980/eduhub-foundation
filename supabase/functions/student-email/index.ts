@@ -1,6 +1,10 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-import { bindStudentDb, handleStudentEmail } from "../_shared/student-integrations.ts";
+import {
+  bindStudentDb,
+  handleStudentEmail,
+  integrationSecretsFromEnv,
+} from "../_shared/student-integrations.ts";
 import type { EventWriteClient } from "../_shared/student-integrations.ts";
 
 declare const Deno: {
@@ -27,11 +31,7 @@ Deno.serve((request) => {
     supabaseUrl,
     publishableKey,
     authorization,
-    secrets: {
-      resendKey: Deno.env.get("RESEND_API_KEY"),
-      resendFrom: Deno.env.get("RESEND_FROM"),
-      hubspotToken: Deno.env.get("HUBSPOT_ACCESS_TOKEN"),
-    },
+    secrets: integrationSecretsFromEnv((name) => Deno.env.get(name)),
     fetchImpl: fetch,
     reader: {
       ...db,

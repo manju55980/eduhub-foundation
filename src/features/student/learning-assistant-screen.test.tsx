@@ -58,7 +58,10 @@ describe("LearningAssistantScreen", () => {
 
     expect(await screen.findByText(/Algebra is a fit./)).toBeInTheDocument();
     expect(screen.getByText(/You are enrolled in this course\./)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Algebra" })).toHaveAttribute("href", "?from=assistant");
+    expect(screen.getByRole("link", { name: "Algebra" })).toHaveAttribute(
+      "href",
+      "?from=assistant",
+    );
     expect(screen.getByRole("link", { name: "Algebra" }).className).toContain("hover:underline");
     expect(
       screen.queryByText(

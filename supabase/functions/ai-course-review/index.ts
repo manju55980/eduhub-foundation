@@ -1,5 +1,6 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+import { bindAiRateLimit } from "../_shared/ai-rate-limit.ts";
 import { handleCourseReview } from "../_shared/handle-course-review.ts";
 import { bindReviewReader, type ReviewDb } from "../_shared/review-reader.ts";
 
@@ -18,18 +19,18 @@ Deno.serve((request) => {
     ? authorization.slice("Bearer ".length).trim()
     : "";
 
+  const userClient = createClient(supabaseUrl ?? "", publishableKey ?? "", {
+    global: { headers: authorization ? { Authorization: authorization } : {} },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
   return handleCourseReview(request, {
     supabaseUrl,
     publishableKey,
     geminiKey,
     authorization,
     fetchImpl: fetch,
-    reader: bindReviewReader(
-      createClient(supabaseUrl ?? "", publishableKey ?? "", {
-        global: { headers: authorization ? { Authorization: authorization } : {} },
-        auth: { persistSession: false, autoRefreshToken: false },
-      }) as ReviewDb,
-      token,
-    ),
+    reader: bindReviewReader(userClient as ReviewDb, token),
+    rateLimit: bindAiRateLimit(userClient),
   });
 });
