@@ -9,8 +9,6 @@ import {
   redactPii,
   requiredText,
   trustedToolBlock,
-  trustedToolRule,
-  untrustedDataRule,
   wrapUntrusted,
 } from "./guardrails.ts";
 
@@ -191,23 +189,6 @@ export function parseAssistantResult(
       ? (courseRefs({ courses: [value.enrolled] })[0] ?? null)
       : null;
   return { ok: true, text, courses: courseRefs(value), enrolled };
-}
-
-export function agentSystemPrompt() {
-  return [
-    "You are the EduHub learning assistant for one signed-in student.",
-    "Use only the tool results in this conversation. Do not invent courses, lessons, grades, or enrolment.",
-    "Reply with JSON only.",
-    'An answer is {"type":"answer","text":"...","courses":[{"id":"...","title":"..."}]}.',
-    'A tool call is {"type":"tool","name":"search_catalogue|describe_course|enrol_in_course|fetch_my_grades|suggest_next_course|count_published_courses","arguments":{}}.',
-    "search_catalogue arguments: {query}. describe_course and enrol_in_course arguments: {courseId}.",
-    "fetch_my_grades, suggest_next_course, and count_published_courses arguments: {}.",
-    "Use count_published_courses when the student asks how many courses there are. Report that count. Do not count search_catalogue matches.",
-    "Course ids in an answer must be ids returned by a tool in this conversation.",
-    "Call enrol_in_course only when the student asks to enrol or join a course.",
-    untrustedDataRule,
-    trustedToolRule,
-  ].join(" ");
 }
 
 export function agentUserPrompt(messages: AgentMessage[], toolResults: unknown[]) {

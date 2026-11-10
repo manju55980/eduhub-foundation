@@ -329,6 +329,7 @@ describe("learning assistant", () => {
       },
     });
     const responses = [
+      routeReply("tutor"),
       modelReply({ type: "tool", name: "search_catalogue", arguments: { query: "algebra" } }),
       modelReply({
         type: "answer",
@@ -386,6 +387,7 @@ describe("learning assistant", () => {
       deps(
         reader,
         sequential([
+          routeReply("enrolment"),
           modelReply({ type: "tool", name: "enrol_in_course", arguments: { courseId } }),
           modelReply({ type: "answer", text: "I have not enrolled you.", courses: [] }),
         ]),
@@ -394,6 +396,7 @@ describe("learning assistant", () => {
     expect(await answered.json()).toMatchObject({ ok: true, text: "I have not enrolled you." });
 
     let gradeCalls = 0;
+    let gradeChats = 0;
     const limited = await handleAgent(
       post({ messages: [{ role: "user", content: "Show my grades" }] }),
       deps(
@@ -403,7 +406,12 @@ describe("learning assistant", () => {
             return { ok: true, grades: [] };
           },
         }),
-        async () => modelReply({ type: "tool", name: "fetch_my_grades", arguments: {} }),
+        async () => {
+          gradeChats += 1;
+          return gradeChats === 1
+            ? routeReply("enrolment")
+            : modelReply({ type: "tool", name: "fetch_my_grades", arguments: {} });
+        },
       ),
     );
     expect(limited.status).toBe(200);
@@ -433,6 +441,7 @@ describe("learning assistant", () => {
       deps(
         reader,
         sequential([
+          routeReply("tutor"),
           modelReply({ type: "tool", name: "describe_course", arguments: { courseId } }),
           modelReply({ type: "answer", text: "Here is the description.", courses: [] }),
         ]),
@@ -469,7 +478,8 @@ describe("learning assistant", () => {
           if (String(input).includes("/api/embed")) return embedResponse();
           chats += 1;
           if (chats === 1) await wait(embeddingTimeoutMs + 1_000, init?.signal);
-          return chats === 1 ? searchReply() : answerReply();
+          if (chats === 1) return routeReply("tutor");
+          return chats === 2 ? searchReply() : answerReply();
         }),
       );
       await vi.advanceTimersByTimeAsync(embeddingTimeoutMs + 1_000);
@@ -514,7 +524,8 @@ describe("learning assistant", () => {
         deps(searchReader, async (input, init) => {
           if (!String(input).includes("/api/embed")) {
             chats += 1;
-            return chats === 1 ? searchReply() : answerReply();
+            if (chats === 1) return routeReply("tutor");
+            return chats === 2 ? searchReply() : answerReply();
           }
           embedSignal = init?.signal;
           await wait(agentChatTimeoutMs + 1_000, init?.signal);
@@ -558,6 +569,10 @@ function catalogueReader() {
     };
   };
   return reader;
+}
+
+function routeReply(agent: "tutor" | "advisor" | "enrolment") {
+  return modelReply({ agent, confidence: 0.9, task: "Help this student." });
 }
 
 function searchReply() {

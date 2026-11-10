@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  agentSystemPrompt,
   catalogueCountErrorMessage,
   publishedCourseCountMessage,
   studentOnlyAgentMessage,
 } from "../../supabase/functions/_shared/agent.ts";
+import { specialistSystemPrompt } from "../../supabase/functions/_shared/agent-team.ts";
 import { bindAgentReader, type AgentDb } from "../../supabase/functions/_shared/agent-reader.ts";
 import { runAgentTool, type AgentReader } from "../../supabase/functions/_shared/agent-tools.ts";
 import { handleAgent } from "../../supabase/functions/_shared/handle-agent.ts";
@@ -48,8 +48,8 @@ describe("published course count", () => {
     expect(publishedCourseCountMessage(0)).toBe("There are no published courses.");
     expect(publishedCourseCountMessage(1)).toBe("There is 1 published course.");
     expect(publishedCourseCountMessage(12)).toBe("There are 12 published courses.");
-    expect(agentSystemPrompt()).toContain("count_published_courses");
-    expect(agentSystemPrompt()).toContain("Do not count search_catalogue matches.");
+    expect(specialistSystemPrompt("advisor")).toContain("count_published_courses");
+    expect(specialistSystemPrompt("advisor")).toContain("Do not count search_catalogue matches.");
   });
 
   it("counts published courses with an exact head query", async () => {
@@ -98,6 +98,7 @@ describe("published course count", () => {
   it("answers a total-course question from the count and keeps other roles out", async () => {
     const prompts: string[] = [];
     const responses = [
+      modelReply({ agent: "advisor", confidence: 0.9, task: "Count published courses." }),
       modelReply({ type: "tool", name: "count_published_courses", arguments: {} }),
       modelReply({
         type: "answer",
@@ -123,7 +124,7 @@ describe("published course count", () => {
       text: "There are 4 published courses.",
       courses: [],
     });
-    expect(prompts[1]).toContain("There are 4 published courses.");
+    expect(prompts[2]).toContain("There are 4 published courses.");
     expect(prompts.join("\n")).not.toContain("match_knowledge");
 
     let counted = false;

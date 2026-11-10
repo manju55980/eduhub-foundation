@@ -651,8 +651,10 @@ function agentFetch(): typeof fetch {
     calls += 1;
     const value =
       calls === 1
-        ? { type: "tool", name: "enrol_in_course", arguments: { courseId } }
-        : { type: "answer", text: "You are enrolled.", courses: [] };
+        ? { agent: "enrolment", confidence: 0.91, task: "Enrol the student." }
+        : calls === 2
+          ? { type: "tool", name: "enrol_in_course", arguments: { courseId } }
+          : { type: "answer", text: "You are enrolled.", courses: [] };
     return new Response(
       JSON.stringify({
         candidates: [{ content: { parts: [{ text: JSON.stringify(value) }] } }],

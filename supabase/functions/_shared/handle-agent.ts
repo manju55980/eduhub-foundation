@@ -1,6 +1,4 @@
 import {
-  agentSystemPrompt,
-  agentUserPrompt,
   enrolRequested,
   filterAnswerCourses,
   parseAgentMessages,
@@ -8,11 +6,22 @@ import {
   assistantToolLimit,
   studentOnlyAgentMessage,
   unfinishedAgentMessage,
-  type AgentCourseRef,
 } from "./agent.ts";
 import { runAgentTool, type AgentReader } from "./agent-tools.ts";
+import {
+  createAgentMemory,
+  lowConfidenceEnrolmentMessage,
+  parseSupervisorRoute,
+  rememberTool,
+  selectSpecialist,
+  specialistSystemPrompt,
+  specialistTools,
+  specialistUserPrompt,
+  supervisorSystemPrompt,
+  supervisorUserPrompt,
+} from "./agent-team.ts";
 import { enforceAiRateLimit, type AiRateDb } from "./ai-rate-limit.ts";
-import { authorizeTool, agentToolAllowlist } from "./guardrails.ts";
+import { authorizeTool } from "./guardrails.ts";
 import { defaultOllamaHost, withGeminiTimeout } from "./embeddings.ts";
 import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
@@ -72,17 +81,37 @@ export async function handleAgent(
     return jsonResponse({ ok: false, message: allowance.message }, allowance.status);
   }
 
-  const allowedIds = new Set<string>();
-  const toolResults: unknown[] = [];
-  let enrolled: AgentCourseRef | null = null;
   const fetchImpl = withGeminiTimeout(deps.fetchImpl, agentChatTimeoutMs);
+  const routed = await completeJson(
+    {
+      apiKey: deps.geminiKey,
+      system: supervisorSystemPrompt(),
+      user: supervisorUserPrompt(parsed.messages),
+    },
+    fetchImpl,
+  );
+  if (!routed.ok) return jsonResponse({ ok: false, message: routed.message });
+  const route = parseSupervisorRoute(routed.value);
+  if (!route.ok) return jsonResponse({ ok: false, message: invalidAiMessage });
+  const selected = selectSpecialist(route, parsed.messages);
+  if (selected.kind === "refuse") {
+    return jsonResponse({
+      ok: true,
+      text: lowConfidenceEnrolmentMessage,
+      courses: [],
+      enrolled: null,
+    });
+  }
+
+  const allowlist = specialistTools(selected.agent);
+  const memory = createAgentMemory(parsed.messages);
 
   for (let round = 0; round <= assistantToolLimit; round += 1) {
     const completion = await completeJson(
       {
         apiKey: deps.geminiKey,
-        system: agentSystemPrompt(),
-        user: agentUserPrompt(parsed.messages, toolResults),
+        system: specialistSystemPrompt(selected.agent),
+        user: specialistUserPrompt(memory, route.task),
       },
       fetchImpl,
     );
@@ -94,11 +123,11 @@ export async function handleAgent(
       return jsonResponse({
         ok: true,
         text: reply.text,
-        courses: filterAnswerCourses(reply.courses, allowedIds),
-        enrolled,
+        courses: filterAnswerCourses(reply.courses, new Set(memory.courseIds)),
+        enrolled: memory.enrolled,
       });
     }
-    if (!authorizeTool(reply.name, agentToolAllowlist)) {
+    if (!authorizeTool(reply.name, allowlist)) {
       return jsonResponse({ ok: false, message: invalidAiMessage });
     }
     if (round >= assistantToolLimit) {
@@ -121,9 +150,7 @@ export async function handleAgent(
         // The enrolment is already saved.
       }
     }
-    for (const courseId of tool.run.courseIds) allowedIds.add(courseId);
-    if (tool.run.enrolled) enrolled = tool.run.enrolled;
-    toolResults.push({ name: tool.run.name, result: tool.run.payload });
+    rememberTool(memory, tool.run);
   }
 
   return jsonResponse({ ok: false, message: unfinishedAgentMessage });
