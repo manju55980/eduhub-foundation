@@ -5,6 +5,7 @@ import {
   sanitizeAiDetail,
   type CompletionResult,
 } from "./gemini.ts";
+import { reportLoggedFailure } from "./sentry.ts";
 
 export const defaultOllamaLevelModel = "llama3.2";
 export const ollamaChatTimeoutMs = 120_000;
@@ -64,14 +65,12 @@ export async function completeOllamaJson(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Network request failed.";
-    console.error(
-      JSON.stringify({
-        source: "ollama-chat",
-        status: null,
-        kind: "network",
-        detail: sanitizeAiDetail(message),
-      }),
-    );
+    reportLoggedFailure({
+      source: "ollama-chat",
+      status: null,
+      kind: "network",
+      detail: sanitizeAiDetail(message),
+    });
     return {
       ok: false,
       message: failedAiMessage,
@@ -86,14 +85,12 @@ export async function completeOllamaJson(
     const body = await response.text();
     const retryAfterMs = retryAfterHeaderMs(response.headers.get("retry-after"));
     const kind = ollamaFailureKind(response.status);
-    console.error(
-      JSON.stringify({
-        source: "ollama-chat",
-        status: response.status,
-        kind,
-        detail: sanitizeAiDetail(body).slice(0, 180),
-      }),
-    );
+    reportLoggedFailure({
+      source: "ollama-chat",
+      status: response.status,
+      kind,
+      detail: sanitizeAiDetail(body).slice(0, 180),
+    });
     return {
       ok: false,
       message: failedAiMessage,
@@ -112,14 +109,12 @@ export async function completeOllamaJson(
   }
 
   if (ollamaErrorText(payload)) {
-    console.error(
-      JSON.stringify({
-        source: "ollama-chat",
-        status: response.status,
-        kind: "fatal",
-        detail: sanitizeAiDetail(ollamaErrorText(payload) ?? "").slice(0, 180),
-      }),
-    );
+    reportLoggedFailure({
+      source: "ollama-chat",
+      status: response.status,
+      kind: "fatal",
+      detail: sanitizeAiDetail(ollamaErrorText(payload) ?? "").slice(0, 180),
+    });
     return {
       ok: false,
       message: failedAiMessage,

@@ -1,4 +1,5 @@
 import { redactPii } from "./guardrails.ts";
+import { reportLoggedFailure } from "./sentry.ts";
 
 export const geminiModel = "gemini-3.5-flash-lite";
 export const missingAiMessage = "AI is not configured.";
@@ -44,15 +45,13 @@ function redactionPhrases(values: string[]) {
 }
 
 export function logAiFailure(entry: AiFailureLog) {
-  console.error(
-    JSON.stringify({
-      source: "gemini",
-      status: entry.status,
-      errorType: entry.errorType,
-      errorCode: entry.errorCode,
-      detail: entry.detail,
-    }),
-  );
+  reportLoggedFailure({
+    source: "gemini",
+    status: entry.status,
+    errorType: entry.errorType,
+    errorCode: entry.errorCode,
+    detail: entry.detail,
+  });
 }
 
 export type CompletionFailureKind = "quota" | "rate_limit" | "server" | "network" | "fatal";

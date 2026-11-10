@@ -1,4 +1,5 @@
 import { failedAiMessage, invalidAiMessage, missingAiMessage, sanitizeAiDetail } from "./gemini.ts";
+import { reportLoggedFailure } from "./sentry.ts";
 
 export const embeddingModel = "gemini-embedding-001";
 export const ollamaEmbeddingModel = "nomic-embed-text";
@@ -171,14 +172,12 @@ export async function embedTexts(
       headerDelay === null
         ? failure.retryAfterMs
         : Math.max(headerDelay, failure.retryAfterMs ?? 0);
-    console.error(
-      JSON.stringify({
-        source: "gemini-embed",
-        status: response.status,
-        kind: failure.kind,
-        detail: sanitizeAiDetail(body, [apiKey]),
-      }),
-    );
+    reportLoggedFailure({
+      source: "gemini-embed",
+      status: response.status,
+      kind: failure.kind,
+      detail: sanitizeAiDetail(body, [apiKey]),
+    });
     return {
       ok: false,
       message: embedFailureMessage(failure.kind),
@@ -344,14 +343,12 @@ async function embedOllamaOnce(
       headerDelay === null
         ? failure.retryAfterMs
         : Math.max(headerDelay, failure.retryAfterMs ?? 0);
-    console.error(
-      JSON.stringify({
-        source: "ollama-embed",
-        status: response.status,
-        kind,
-        detail: body.slice(0, 180),
-      }),
-    );
+    reportLoggedFailure({
+      source: "ollama-embed",
+      status: response.status,
+      kind,
+      detail: body.slice(0, 180),
+    });
     return {
       ok: false as const,
       message: embedFailureMessage(kind),

@@ -1,3 +1,5 @@
+import { reportLoggedFailure } from "./sentry.ts";
+
 export const searchLearningVideosTool = "search_learning_videos";
 export const missingVideoMessage = "Video suggestions are not configured.";
 export const unavailableVideoMessage = "Video suggestions are unavailable right now.";
@@ -51,7 +53,7 @@ export async function searchLearningVideos(
   }
 
   if (!response.ok) {
-    console.error(JSON.stringify({ source: "youtube", status: response.status }));
+    reportLoggedFailure({ source: "youtube", status: response.status });
     return { ok: false, message: unavailableVideoMessage };
   }
 
