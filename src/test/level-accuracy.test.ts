@@ -518,15 +518,15 @@ describe("model-specific level progress", () => {
 describe("published level reports", () => {
   it("records the completed Gemini baseline and not the Ollama report", () => {
     const report = readFileSync(resolve(root, "docs/assessment-2/level-accuracy.md"), "utf8");
-    expect(report).toContain("| Provider | `gemini` |");
+    expect(markdownRow(report, "Provider")).toEqual(["Provider", "`gemini`"]);
     expect(report).toContain("`gemini-3.5-flash-lite`");
-    expect(report).toContain("| Classified | 40 |");
-    expect(report).toContain("| Test count | 40 |");
-    expect(report).toContain("| Coverage | 1.000 (100.0%) |");
-    expect(report).toContain("| Accuracy | 1.000 (100.0%) |");
-    expect(report).toContain("| Precision (macro) | 1.000 |");
-    expect(report).toContain("| Recall (macro) | 1.000 |");
-    expect(report).toContain("| F1 (macro) | 1.000 |");
+    expect(markdownRow(report, "Classified")).toEqual(["Classified", "40"]);
+    expect(markdownRow(report, "Test count")).toEqual(["Test count", "40"]);
+    expect(markdownRow(report, "Coverage")).toEqual(["Coverage", "1.000 (100.0%)"]);
+    expect(markdownRow(report, "Accuracy")).toEqual(["Accuracy", "1.000 (100.0%)"]);
+    expect(markdownRow(report, "Precision (macro)")).toEqual(["Precision (macro)", "1.000"]);
+    expect(markdownRow(report, "Recall (macro)")).toEqual(["Recall (macro)", "1.000"]);
+    expect(markdownRow(report, "F1 (macro)")).toEqual(["F1 (macro)", "1.000"]);
     expect(report).not.toContain("(Ollama)");
   });
 
@@ -543,14 +543,33 @@ describe("published level reports", () => {
     expect(comparison).toContain("same 40 held-out rows");
     expect(comparison).toContain("`gemini-3.5-flash-lite`");
     expect(comparison).toContain("`llama3.2`");
-    expect(comparison).toContain("| Precision (macro) | 1.000 | 1.000 |");
-    expect(comparison).toContain("| Recall (macro) | 1.000 | 1.000 |");
-    expect(comparison).toContain("| F1 (macro) | 1.000 | 1.000 |");
-    expect(gemini).toContain("| Test count | 40 |");
-    expect(ollama).toContain("| Test count | 40 |");
-    expect(ollama).toContain("| F1 (macro) | 1.000 |");
+    expect(markdownRow(comparison, "Precision (macro)")).toEqual([
+      "Precision (macro)",
+      "1.000",
+      "1.000",
+    ]);
+    expect(markdownRow(comparison, "Recall (macro)")).toEqual(["Recall (macro)", "1.000", "1.000"]);
+    expect(markdownRow(comparison, "F1 (macro)")).toEqual(["F1 (macro)", "1.000", "1.000"]);
+    expect(markdownRow(gemini, "Test count")).toEqual(["Test count", "40"]);
+    expect(markdownRow(ollama, "Test count")).toEqual(["Test count", "40"]);
+    expect(markdownRow(ollama, "F1 (macro)")).toEqual(["F1 (macro)", "1.000"]);
   });
 });
+
+function markdownRow(markdown: string, label: string) {
+  const row = markdown
+    .split(/\r?\n/)
+    .filter((line) => line.trim().startsWith("|"))
+    .map((line) =>
+      line
+        .split("|")
+        .slice(1, -1)
+        .map((cell) => cell.trim()),
+    )
+    .find((cells) => cells[0] === label);
+  expect(row, label).toBeTruthy();
+  return row ?? [];
+}
 
 function prediction(
   id: string,

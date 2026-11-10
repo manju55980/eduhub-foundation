@@ -25,6 +25,7 @@ describe("roleNavigation", () => {
       "Manage Users",
       "Manage Categories",
       "All Enrollments",
+      "Campaigns",
       "Reports",
     ]);
   });
