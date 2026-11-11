@@ -13,6 +13,7 @@ import {
   lowConfidenceEnrolmentMessage,
   parseSupervisorRoute,
   rememberTool,
+  routeAdvisorTool,
   selectSpecialist,
   specialistSystemPrompt,
   specialistTools,
@@ -127,20 +128,24 @@ export async function handleAgent(
         enrolled: memory.enrolled,
       });
     }
-    if (!authorizeTool(reply.name, allowlist)) {
+    const toolName =
+      selected.agent === "advisor" ? routeAdvisorTool(reply.name, parsed.messages) : reply.name;
+    if (!authorizeTool(toolName, allowlist)) {
       return jsonResponse({ ok: false, message: invalidAiMessage });
     }
     if (round >= assistantToolLimit) {
       return jsonResponse({ ok: false, message: unfinishedAgentMessage });
     }
 
-    const tool = await runAgentTool(reply.name, reply.arguments, {
+    const latestUser = [...parsed.messages].reverse().find((message) => message.role === "user");
+    const tool = await runAgentTool(toolName, reply.arguments, {
       userId: user.userId,
       enrolRequested: enrolRequested(parsed.messages),
       apiKey: deps.geminiKey,
       ollamaHost: deps.ollamaHost?.trim() || defaultOllamaHost,
       fetchImpl,
       reader: deps.reader,
+      catalogueText: latestUser?.content ?? "",
     });
     if (!tool.ok) return jsonResponse({ ok: false, message: tool.message });
     if (reply.name === "enrol_in_course" && tool.run.enrolled && deps.syncEnrolment) {

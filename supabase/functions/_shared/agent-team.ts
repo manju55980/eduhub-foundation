@@ -30,6 +30,7 @@ export const tutorTools = [
 ] as const satisfies readonly AgentToolName[];
 
 export const advisorTools = [
+  "latest_published_course",
   "search_catalogue",
   "suggest_next_course",
   "count_published_courses",
@@ -85,12 +86,80 @@ export function parseSupervisorRoute(
   return { ok: true, agent, confidence, task };
 }
 
+const categoryStopWords = new Set([
+  "latest",
+  "newest",
+  "published",
+  "course",
+  "courses",
+  "what",
+  "which",
+  "when",
+  "where",
+  "the",
+  "for",
+  "and",
+  "with",
+  "from",
+  "into",
+  "about",
+  "this",
+  "that",
+  "your",
+  "have",
+  "does",
+  "show",
+  "please",
+  "there",
+]);
+
+export function latestPublishedRequested(messages: AgentMessage[]) {
+  const latestUser = [...messages].reverse().find((message) => message.role === "user");
+  if (!latestUser) return false;
+  return (
+    /\b(latest|newest)\b/i.test(latestUser.content) && /\bpublished\b/i.test(latestUser.content)
+  );
+}
+
+export function routeAdvisorTool(name: string, messages: AgentMessage[]) {
+  if (name === "search_catalogue" && latestPublishedRequested(messages)) {
+    return "latest_published_course";
+  }
+  return name;
+}
+
+export function categoryNeedles(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length >= 3 && !categoryStopWords.has(word));
+}
+
+export function matchLatestPublished<
+  T extends { id: string; createdAt: string; categoryName: string | null },
+>(courses: T[], categoryText: string) {
+  const ordered = [...courses].sort((left, right) => {
+    if (left.createdAt === right.createdAt) return left.id.localeCompare(right.id);
+    return right.createdAt.localeCompare(left.createdAt);
+  });
+  const needles = categoryNeedles(categoryText);
+  if (needles.length === 0) return ordered;
+  return ordered.filter((course) => {
+    const name = course.categoryName?.toLowerCase() ?? "";
+    if (!name) return false;
+    return needles.some((word) => name.includes(word) || word.includes(name));
+  });
+}
+
 export function selectSpecialist(
   route: { agent: SpecialistName; confidence: number },
   messages: AgentMessage[],
 ): { kind: "refuse" } | { kind: "run"; agent: SpecialistName } {
   if (route.agent === "enrolment" && isLowConfidence(route.confidence)) return { kind: "refuse" };
   if (enrolRequested(messages)) return { kind: "run", agent: "enrolment" };
+  if (latestPublishedRequested(messages)) return { kind: "run", agent: "advisor" };
   return { kind: "run", agent: route.agent };
 }
 
@@ -100,7 +169,7 @@ export function supervisorSystemPrompt() {
     "Choose one specialist. Do not call a tool and do not answer the student.",
     'Reply with JSON only: {"agent":"tutor|advisor|enrolment","confidence":0.0,"task":"..."}.',
     "confidence is a number from 0 to 1. tutor explains a lesson the student can see.",
-    "advisor recommends a course, a learning path, or how many published courses there are.",
+    "advisor recommends a course, a learning path, how many published courses there are, or the latest published course.",
     "enrolment enrols the student or reads that student's grades.",
     "A direct request to enrol or join is enrolment.",
     untrustedDataRule,
@@ -127,7 +196,8 @@ export function specialistSystemPrompt(agent: SpecialistName) {
   if (agent === "advisor") {
     return [
       "You are the EduHub advisor for one signed-in student. Recommend a course or a learning path.",
-      "Tools: search_catalogue {query}, suggest_next_course {}, count_published_courses {}.",
+      "Tools: latest_published_course {category}, search_catalogue {query}, suggest_next_course {}, count_published_courses {}.",
+      "Use latest_published_course when the student asks for the latest or newest published course. Pass the category name when they name one. Do not use search_catalogue for that question.",
       "Use count_published_courses when the student asks how many courses there are. Report that count. Do not count search_catalogue matches.",
       ...shared,
     ].join(" ");

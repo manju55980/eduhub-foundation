@@ -40,6 +40,7 @@ function reader(publishedCount: AgentReader["publishedCount"]): AgentReader {
     grades: () => fail("grades"),
     catalogue: () => fail("catalogue"),
     publishedCount,
+    latestPublished: () => fail("latestPublished"),
   };
 }
 

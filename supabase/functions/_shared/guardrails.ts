@@ -14,6 +14,7 @@ export const agentToolAllowlist = [
   "fetch_my_grades",
   "suggest_next_course",
   "count_published_courses",
+  "latest_published_course",
 ] as const;
 
 const courseIdPattern =

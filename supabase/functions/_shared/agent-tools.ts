@@ -1,3 +1,4 @@
+import { matchLatestPublished } from "./agent-team.ts";
 import { notAvailableMessage } from "./study.ts";
 import {
   courseIdFromArgs,
@@ -43,6 +44,13 @@ export type AgentLesson = {
   content: string | null;
 };
 
+export type PublishedCourseListing = {
+  id: string;
+  title: string | null;
+  createdAt: string;
+  categoryName: string | null;
+};
+
 export type AgentGrade = {
   assignmentTitle: string | null;
   courseTitle: string | null;
@@ -84,6 +92,9 @@ export type AgentReader = {
     | { ok: false; message: string }
   >;
   publishedCount: () => Promise<{ ok: true; count: number } | { ok: false; message: string }>;
+  latestPublished: () => Promise<
+    { ok: true; courses: PublishedCourseListing[] } | { ok: false; message: string }
+  >;
 };
 
 export type ToolRun = {
@@ -103,6 +114,7 @@ export async function runAgentTool(
     ollamaHost?: string;
     fetchImpl: typeof fetch;
     reader: AgentReader;
+    catalogueText?: string;
   },
 ): Promise<{ ok: true; run: ToolRun } | { ok: false; message: string }> {
   if (name === "search_catalogue") return searchCatalogue(args, context);
@@ -110,6 +122,7 @@ export async function runAgentTool(
   if (name === "enrol_in_course") return enrolInCourse(args, context);
   if (name === "fetch_my_grades") return fetchGrades(context);
   if (name === "count_published_courses") return countPublishedCourses(context);
+  if (name === "latest_published_course") return latestPublishedCourse(args, context);
   return suggestCourse(context);
 }
 
@@ -243,6 +256,36 @@ async function fetchGrades(context: {
   const grades = await context.reader.grades(context.userId);
   if (!grades.ok) return { ok: false, message: failedAiMessage };
   return { ok: true, run: toolRun("fetch_my_grades", { grades: grades.grades }, [], null) };
+}
+
+async function latestPublishedCourse(
+  args: Record<string, unknown>,
+  context: { reader: AgentReader; catalogueText?: string },
+): Promise<{ ok: true; run: ToolRun } | { ok: false; message: string }> {
+  const fields = readToolArguments(args, [
+    { key: "category", type: "text" },
+    { key: "query", type: "text" },
+  ]);
+  const listed = await context.reader.latestPublished();
+  if (!listed.ok) return { ok: false, message: failedAiMessage };
+  const categoryText = [fields["category"], fields["query"], context.catalogueText]
+    .filter((value): value is string => Boolean(value))
+    .join(" ");
+  const courses = matchLatestPublished(listed.courses, categoryText).map((course) => ({
+    id: course.id,
+    title: course.title ?? "",
+    createdAt: course.createdAt,
+    category: course.categoryName,
+  }));
+  return {
+    ok: true,
+    run: toolRun(
+      "latest_published_course",
+      { courses },
+      courses.map((course) => course.id),
+      null,
+    ),
+  };
 }
 
 async function countPublishedCourses(context: {

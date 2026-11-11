@@ -323,7 +323,14 @@ async function embedOllamaOnce(
       }),
       signal: timeout.signal,
     });
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Network request failed.";
+    reportLoggedFailure({
+      source: "ollama-embed",
+      status: null,
+      kind: "network",
+      detail: sanitizeAiDetail(message, [host]),
+    });
     return {
       ok: false as const,
       message: failedAiMessage,

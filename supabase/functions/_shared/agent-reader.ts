@@ -4,7 +4,13 @@ import {
   type SuggestCourse,
   type SuggestEnrollment,
 } from "./agent.ts";
-import type { AgentCourseDetail, AgentGrade, AgentMatch, AgentReader } from "./agent-tools.ts";
+import type {
+  AgentCourseDetail,
+  AgentGrade,
+  AgentMatch,
+  AgentReader,
+  PublishedCourseListing,
+} from "./agent-tools.ts";
 import { failedAiMessage } from "./gemini.ts";
 import { notAvailableMessage } from "./study.ts";
 
@@ -195,6 +201,21 @@ export function bindAgentReader(db: AgentDb, token: string): AgentReader {
       }
       return { ok: true, count: counted.count };
     },
+    async latestPublished() {
+      const published = await db
+        .from("courses")
+        .select("id, title, status, created_at, categories(name)")
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
+      if (published.error) return { ok: false, message: failedAiMessage };
+      const rows = Array.isArray(published.data) ? published.data.filter(isRecord) : [];
+      return {
+        ok: true,
+        courses: rows
+          .map(publishedListing)
+          .filter((course): course is PublishedCourseListing => Boolean(course)),
+      };
+    },
   };
 }
 
@@ -255,6 +276,25 @@ function enrollmentDetail(
     level: course ? rowText(course, "level") : null,
     categoryId: course ? rowText(course, "category_id") : null,
   };
+}
+
+function publishedListing(row: Record<string, unknown>): PublishedCourseListing | null {
+  const id = rowText(row, "id");
+  if (!id || rowText(row, "status") !== "published") return null;
+  return {
+    id,
+    title: rowText(row, "title"),
+    createdAt: rowText(row, "created_at") ?? "",
+    categoryName: categoryName(row["categories"]),
+  };
+}
+
+function categoryName(value: unknown) {
+  if (Array.isArray(value)) {
+    const first = value.find(isRecord);
+    return first ? rowText(first, "name") : null;
+  }
+  return rowText(value, "name");
 }
 
 function publishedCourse(row: Record<string, unknown>): SuggestCourse | null {

@@ -68,6 +68,7 @@ function reader(overrides: Partial<AgentReader> = {}): AgentReader & { calls: st
     grades: () => fail("grades"),
     catalogue: () => fail("catalogue"),
     publishedCount: () => fail("publishedCount"),
+    latestPublished: () => fail("latestPublished"),
     ...overrides,
   };
 }

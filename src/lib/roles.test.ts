@@ -9,6 +9,7 @@ describe("roleNavigation", () => {
       "My Courses",
       "Learning Assistant",
       "Assignments",
+      "Calendar",
       "My Grades",
       "My Certificates",
     ]);
@@ -17,6 +18,7 @@ describe("roleNavigation", () => {
       "Create Course",
       "AI Course Builder",
       "My Courses",
+      "Calendar",
       "Submissions",
     ]);
     expect(roleNavigation.admin.map((item) => item.label)).toEqual([

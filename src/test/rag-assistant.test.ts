@@ -87,6 +87,7 @@ function baseReader(overrides: Partial<AgentReader> = {}): AgentReader & { calls
     },
     catalogue: () => fail("catalogue"),
     publishedCount: () => fail("publishedCount"),
+    latestPublished: () => fail("latestPublished"),
     ...overrides,
   };
 }

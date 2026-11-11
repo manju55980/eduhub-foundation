@@ -350,5 +350,6 @@ function idleAgentReader(): AgentReader & { calls: string[] } {
     grades: () => fail("grades"),
     catalogue: () => fail("catalogue"),
     publishedCount: () => fail("count"),
+    latestPublished: () => fail("latestPublished"),
   };
 }

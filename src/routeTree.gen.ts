@@ -21,11 +21,13 @@ import { Route as AdminEnrollmentsRouteImport } from './routes/admin/enrollments
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as InstructorIndexRouteImport } from './routes/instructor/index'
+import { Route as InstructorCalendarRouteImport } from './routes/instructor/calendar'
 import { Route as InstructorProfileRouteImport } from './routes/instructor/profile'
 import { Route as InstructorSubmissionsRouteImport } from './routes/instructor/submissions'
 import { Route as StudentIndexRouteImport } from './routes/student/index'
 import { Route as StudentAssignmentsRouteImport } from './routes/student/assignments'
 import { Route as StudentAssistantRouteImport } from './routes/student/assistant'
+import { Route as StudentCalendarRouteImport } from './routes/student/calendar'
 import { Route as StudentGradesRouteImport } from './routes/student/grades'
 import { Route as StudentProfileRouteImport } from './routes/student/profile'
 import { Route as AdminCoursesIndexRouteImport } from './routes/admin/courses/index'
@@ -106,6 +108,11 @@ const InstructorIndexRoute = InstructorIndexRouteImport.update({
   path: '/',
   getParentRoute: () => InstructorRouteRoute,
 } as any)
+const InstructorCalendarRoute = InstructorCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => InstructorRouteRoute,
+} as any)
 const InstructorProfileRoute = InstructorProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -129,6 +136,11 @@ const StudentAssignmentsRoute = StudentAssignmentsRouteImport.update({
 const StudentAssistantRoute = StudentAssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
+  getParentRoute: () => StudentRouteRoute,
+} as any)
+const StudentCalendarRoute = StudentCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => StudentRouteRoute,
 } as any)
 const StudentGradesRoute = StudentGradesRouteImport.update({
@@ -246,10 +258,12 @@ export interface FileRoutesByFullPath {
   '/admin/enrollments': typeof AdminEnrollmentsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/instructor/calendar': typeof InstructorCalendarRoute
   '/instructor/profile': typeof InstructorProfileRoute
   '/instructor/submissions': typeof InstructorSubmissionsRoute
   '/student/assignments': typeof StudentAssignmentsRoute
   '/student/assistant': typeof StudentAssistantRoute
+  '/student/calendar': typeof StudentCalendarRoute
   '/student/grades': typeof StudentGradesRoute
   '/student/profile': typeof StudentProfileRoute
   '/admin/': typeof AdminIndexRoute
@@ -281,10 +295,12 @@ export interface FileRoutesByTo {
   '/admin/enrollments': typeof AdminEnrollmentsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/instructor/calendar': typeof InstructorCalendarRoute
   '/instructor/profile': typeof InstructorProfileRoute
   '/instructor/submissions': typeof InstructorSubmissionsRoute
   '/student/assignments': typeof StudentAssignmentsRoute
   '/student/assistant': typeof StudentAssistantRoute
+  '/student/calendar': typeof StudentCalendarRoute
   '/student/grades': typeof StudentGradesRoute
   '/student/profile': typeof StudentProfileRoute
   '/admin': typeof AdminIndexRoute
@@ -320,10 +336,12 @@ export interface FileRoutesById {
   '/admin/enrollments': typeof AdminEnrollmentsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/instructor/calendar': typeof InstructorCalendarRoute
   '/instructor/profile': typeof InstructorProfileRoute
   '/instructor/submissions': typeof InstructorSubmissionsRoute
   '/student/assignments': typeof StudentAssignmentsRoute
   '/student/assistant': typeof StudentAssistantRoute
+  '/student/calendar': typeof StudentCalendarRoute
   '/student/grades': typeof StudentGradesRoute
   '/student/profile': typeof StudentProfileRoute
   '/admin/': typeof AdminIndexRoute
@@ -360,10 +378,12 @@ export interface FileRouteTypes {
     | '/admin/enrollments'
     | '/admin/reports'
     | '/admin/users'
+    | '/instructor/calendar'
     | '/instructor/profile'
     | '/instructor/submissions'
     | '/student/assignments'
     | '/student/assistant'
+    | '/student/calendar'
     | '/student/grades'
     | '/student/profile'
     | '/admin/'
@@ -395,10 +415,12 @@ export interface FileRouteTypes {
     | '/admin/enrollments'
     | '/admin/reports'
     | '/admin/users'
+    | '/instructor/calendar'
     | '/instructor/profile'
     | '/instructor/submissions'
     | '/student/assignments'
     | '/student/assistant'
+    | '/student/calendar'
     | '/student/grades'
     | '/student/profile'
     | '/admin'
@@ -433,10 +455,12 @@ export interface FileRouteTypes {
     | '/admin/enrollments'
     | '/admin/reports'
     | '/admin/users'
+    | '/instructor/calendar'
     | '/instructor/profile'
     | '/instructor/submissions'
     | '/student/assignments'
     | '/student/assistant'
+    | '/student/calendar'
     | '/student/grades'
     | '/student/profile'
     | '/admin/'
@@ -555,6 +579,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstructorIndexRouteImport
       parentRoute: typeof InstructorRouteRoute
     }
+    '/instructor/calendar': {
+      id: '/instructor/calendar'
+      path: '/calendar'
+      fullPath: '/instructor/calendar'
+      preLoaderRoute: typeof InstructorCalendarRouteImport
+      parentRoute: typeof InstructorRouteRoute
+    }
     '/instructor/profile': {
       id: '/instructor/profile'
       path: '/profile'
@@ -588,6 +619,13 @@ declare module '@tanstack/react-router' {
       path: '/assistant'
       fullPath: '/student/assistant'
       preLoaderRoute: typeof StudentAssistantRouteImport
+      parentRoute: typeof StudentRouteRoute
+    }
+    '/student/calendar': {
+      id: '/student/calendar'
+      path: '/calendar'
+      fullPath: '/student/calendar'
+      preLoaderRoute: typeof StudentCalendarRouteImport
       parentRoute: typeof StudentRouteRoute
     }
     '/student/grades': {
@@ -757,6 +795,7 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 )
 
 interface InstructorRouteRouteChildren {
+  InstructorCalendarRoute: typeof InstructorCalendarRoute
   InstructorProfileRoute: typeof InstructorProfileRoute
   InstructorSubmissionsRoute: typeof InstructorSubmissionsRoute
   InstructorIndexRoute: typeof InstructorIndexRoute
@@ -770,6 +809,7 @@ interface InstructorRouteRouteChildren {
 }
 
 const InstructorRouteRouteChildren: InstructorRouteRouteChildren = {
+  InstructorCalendarRoute: InstructorCalendarRoute,
   InstructorProfileRoute: InstructorProfileRoute,
   InstructorSubmissionsRoute: InstructorSubmissionsRoute,
   InstructorIndexRoute: InstructorIndexRoute,
@@ -791,6 +831,7 @@ const InstructorRouteRouteWithChildren = InstructorRouteRoute._addFileChildren(
 interface StudentRouteRouteChildren {
   StudentAssignmentsRoute: typeof StudentAssignmentsRoute
   StudentAssistantRoute: typeof StudentAssistantRoute
+  StudentCalendarRoute: typeof StudentCalendarRoute
   StudentGradesRoute: typeof StudentGradesRoute
   StudentProfileRoute: typeof StudentProfileRoute
   StudentIndexRoute: typeof StudentIndexRoute
@@ -805,6 +846,7 @@ interface StudentRouteRouteChildren {
 const StudentRouteRouteChildren: StudentRouteRouteChildren = {
   StudentAssignmentsRoute: StudentAssignmentsRoute,
   StudentAssistantRoute: StudentAssistantRoute,
+  StudentCalendarRoute: StudentCalendarRoute,
   StudentGradesRoute: StudentGradesRoute,
   StudentProfileRoute: StudentProfileRoute,
   StudentIndexRoute: StudentIndexRoute,

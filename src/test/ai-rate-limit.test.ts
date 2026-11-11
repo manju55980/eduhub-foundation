@@ -152,6 +152,7 @@ function agentReader(role: string): AgentReader {
     grades: unused,
     catalogue: unused,
     publishedCount: unused,
+    latestPublished: unused,
   };
 }
 

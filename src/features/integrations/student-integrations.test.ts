@@ -685,5 +685,6 @@ function enrolReader(): AgentReader {
     grades: unused,
     catalogue: unused,
     publishedCount: unused,
+    latestPublished: unused,
   };
 }
