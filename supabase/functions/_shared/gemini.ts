@@ -2,6 +2,7 @@ import { redactPii } from "./guardrails.ts";
 import { reportLoggedFailure } from "./sentry.ts";
 
 export const geminiModel = "gemini-3.5-flash-lite";
+export const geminiFallbackModel = "gemini-2.5-flash";
 export const missingAiMessage = "AI is not configured.";
 export const failedAiMessage = "The AI request failed.";
 export const invalidAiMessage = "The AI response was not valid.";
@@ -14,7 +15,10 @@ export type AiFailureLog = {
 };
 
 const detailLimit = 180;
-const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`;
+
+export function geminiGenerateUrl(model = geminiModel) {
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+}
 
 export function sanitizeAiDetail(value: string, redactions: string[] = []) {
   let detail = value;
@@ -87,7 +91,7 @@ export function classifyGeminiHttpFailure(status: number, detail: string) {
 }
 
 export async function completeJson(
-  input: { apiKey: string | undefined; system: string; user: string; temperature?: number },
+  input: ChatInput,
   fetchImpl: typeof fetch,
   log: (entry: AiFailureLog) => void = logAiFailure,
 ): Promise<{ ok: true; value: unknown } | { ok: false; message: string }> {
@@ -96,8 +100,65 @@ export async function completeJson(
   return { ok: false, message: result.message };
 }
 
+export async function completeChat(
+  input: ChatInput,
+  fetchImpl: typeof fetch,
+  options: {
+    attempts?: number;
+    fallbackModel?: string;
+    sleep?: (ms: number) => Promise<void>;
+    log?: (entry: AiFailureLog) => void;
+  } = {},
+): Promise<{ ok: true; value: unknown } | { ok: false; message: string }> {
+  const attempts = Math.min(3, Math.max(1, options.attempts ?? 2));
+  const sleep = options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+  const log = options.log ?? logAiFailure;
+  let latest: CompletionResult | null = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    latest = await completeJsonDetailed(input, fetchImpl, log);
+    if (latest.ok) return latest;
+    if (!busyGeminiFailure(latest) || attempt + 1 >= attempts) break;
+    await sleep(chatRetryDelayMs(latest.retryAfterMs));
+  }
+  const fallback = options.fallbackModel?.trim();
+  if (
+    fallback &&
+    fallback !== (input.model?.trim() || geminiModel) &&
+    latest &&
+    busyGeminiFailure(latest)
+  ) {
+    const retried = await completeJsonDetailed({ ...input, model: fallback }, fetchImpl, log);
+    if (retried.ok) return retried;
+    return { ok: false, message: retried.message };
+  }
+  return { ok: false, message: latest?.message ?? failedAiMessage };
+}
+
+function busyGeminiFailure(
+  result: CompletionResult,
+): result is Extract<CompletionResult, { failure: "infrastructure" }> {
+  return (
+    !result.ok &&
+    result.failure === "infrastructure" &&
+    (result.kind === "server" || result.kind === "rate_limit")
+  );
+}
+
+function chatRetryDelayMs(retryAfterMs: number | null) {
+  if (retryAfterMs === null) return 1000;
+  return Math.min(Math.max(retryAfterMs, 0), 2000);
+}
+
+type ChatInput = {
+  apiKey: string | undefined;
+  system: string;
+  user: string;
+  temperature?: number;
+  model?: string;
+};
+
 export async function completeJsonDetailed(
-  input: { apiKey: string | undefined; system: string; user: string; temperature?: number },
+  input: ChatInput,
   fetchImpl: typeof fetch,
   log: (entry: AiFailureLog) => void = logAiFailure,
 ): Promise<CompletionResult> {
@@ -116,7 +177,7 @@ export async function completeJsonDetailed(
 
   let response: Response;
   try {
-    response = await fetchImpl(geminiUrl, {
+    response = await fetchImpl(geminiGenerateUrl(input.model), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

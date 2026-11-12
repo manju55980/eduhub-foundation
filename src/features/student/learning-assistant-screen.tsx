@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  assistantContentLimit,
   enrolledSentence,
   questionRequiredMessage,
 } from "../../../supabase/functions/_shared/agent.ts";
@@ -16,6 +17,19 @@ import { askLearningAssistant } from "./learning-assistant-api";
 
 const emptyPrompt =
   "Ask about a course, a recommendation, your grades, or the next course to take.";
+
+function assistantRequestMessage(message: ChatMessage) {
+  if (message.role !== "assistant" || message.courses.length === 0) {
+    return { role: message.role, content: message.content };
+  }
+  const listed = message.courses
+    .map((course) => `${course.title || "Untitled course"} id ${course.id}`)
+    .join("; ");
+  return {
+    role: message.role,
+    content: `${message.content}\nCourses: ${listed}`.slice(0, assistantContentLimit),
+  };
+}
 
 type ChatCourse = { id: string; title: string };
 type ChatMessage = {
@@ -45,9 +59,7 @@ export function LearningAssistantScreen() {
     setPending(true);
     setError("");
 
-    const result = await askLearningAssistant(
-      history.map(({ role, content: text }) => ({ role, content: text })),
-    );
+    const result = await askLearningAssistant(history.map(assistantRequestMessage));
     setPending(false);
     if (!result.ok) {
       setMessages((current) => current.slice(0, -1));

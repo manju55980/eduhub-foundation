@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  completeChat,
   completeJson,
+  geminiFallbackModel,
+  geminiGenerateUrl,
   geminiModel,
   sanitizeAiDetail,
   type AiFailureLog,
@@ -16,6 +19,12 @@ function completionInput() {
     system: "Reply with JSON only.",
     user: `Lesson:\n${lessonText}\nQuestion: How do leaves eat?`,
   };
+}
+
+function geminiError(status: number, errorStatus: string, message: string) {
+  return new Response(JSON.stringify({ error: { code: status, message, status: errorStatus } }), {
+    status,
+  });
 }
 
 function geminiText(value: unknown) {
@@ -34,9 +43,7 @@ describe("Gemini failure logs", () => {
       return new Response(JSON.stringify(geminiText({ explanation: "Because." })), { status: 200 });
     });
 
-    expect(requestUrl).toBe(
-      `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`,
-    );
+    expect(requestUrl).toBe(geminiGenerateUrl(geminiModel));
     expect(requestUrl).not.toContain(apiKey);
     expect(apiKeyHeader).toBe(apiKey);
     expect(geminiModel).toBe("gemini-3.5-flash-lite");
@@ -104,6 +111,49 @@ describe("Gemini failure logs", () => {
 
     expect(result.ok).toBe(true);
     expect(log).not.toHaveBeenCalled();
+  });
+
+  it("retries a busy model once and then calls the fallback model", async () => {
+    const urls: string[] = [];
+    const result = await completeChat(
+      completionInput(),
+      async (input) => {
+        urls.push(String(input));
+        if (urls.length < 3) return geminiError(503, "UNAVAILABLE", "high demand");
+        return new Response(JSON.stringify(geminiText({ explanation: "Because." })), {
+          status: 200,
+        });
+      },
+      { fallbackModel: geminiFallbackModel, sleep: async () => undefined, log: () => undefined },
+    );
+
+    expect(result.ok).toBe(true);
+    expect(urls).toEqual([
+      geminiGenerateUrl(geminiModel),
+      geminiGenerateUrl(geminiModel),
+      geminiGenerateUrl(geminiFallbackModel),
+    ]);
+  });
+
+  it("does not retry a rejected key", async () => {
+    let calls = 0;
+    const result = await completeChat(
+      completionInput(),
+      async () => {
+        calls += 1;
+        return geminiError(401, "UNAUTHENTICATED", "API key not valid.");
+      },
+      {
+        fallbackModel: geminiFallbackModel,
+        sleep: async () => {
+          throw new Error("sleep");
+        },
+        log: () => undefined,
+      },
+    );
+
+    expect(result).toEqual({ ok: false, message: "The AI request failed." });
+    expect(calls).toBe(1);
   });
 
   it("redacts a raw response body that is only the API key", () => {

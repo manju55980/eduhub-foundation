@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -68,6 +68,35 @@ describe("LearningAssistantScreen", () => {
         "Ask about a course, a recommendation, your grades, or the next course to take.",
       ),
     ).not.toBeInTheDocument();
+  });
+
+  it("sends an earlier course id with the next question", async () => {
+    const courseId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    ask.mockResolvedValue({
+      ok: true,
+      text: "Algebra is a fit.",
+      courses: [{ id: courseId, title: "Algebra" }],
+      enrolled: null,
+    });
+
+    render(<LearningAssistantScreen />);
+    fireEvent.change(screen.getByLabelText(/Question/), { target: { value: "Suggest a course" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    expect(await screen.findByText("Algebra is a fit.")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/Question/), {
+      target: { value: "Enrol me in Algebra" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() => expect(ask).toHaveBeenCalledTimes(2));
+    const second = ask.mock.calls[1]?.[0];
+    expect(second?.[1]).toMatchObject({
+      role: "assistant",
+      content: expect.stringContaining(courseId),
+    });
+    expect(screen.getAllByText("Algebra is a fit.")).toHaveLength(2);
+    expect(screen.queryByText(courseId)).not.toBeInTheDocument();
   });
 
   it("keeps an error inline and disables sending while a request is open", async () => {

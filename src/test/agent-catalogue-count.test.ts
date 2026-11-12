@@ -7,7 +7,11 @@ import {
 } from "../../supabase/functions/_shared/agent.ts";
 import { specialistSystemPrompt } from "../../supabase/functions/_shared/agent-team.ts";
 import { bindAgentReader, type AgentDb } from "../../supabase/functions/_shared/agent-reader.ts";
-import { runAgentTool, type AgentReader } from "../../supabase/functions/_shared/agent-tools.ts";
+import {
+  matchPublishedTitle,
+  runAgentTool,
+  type AgentReader,
+} from "../../supabase/functions/_shared/agent-tools.ts";
 import { handleAgent } from "../../supabase/functions/_shared/handle-agent.ts";
 
 const publishableKey = `header.${btoa(JSON.stringify({ role: "anon" }))}.sig`;
@@ -148,6 +152,85 @@ describe("published course count", () => {
     expect(denied.status).toBe(403);
     expect(await denied.json()).toMatchObject({ ok: false, message: studentOnlyAgentMessage });
     expect(counted).toBe(false);
+  });
+});
+
+describe("enrol by course title", () => {
+  const courseId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+  it("enrols the one published course whose title matches", async () => {
+    expect(matchPublishedTitle([{ id: courseId, title: "Intro to Algebra" }], "algebra")).toEqual({
+      id: courseId,
+      title: "Intro to Algebra",
+    });
+    let enrolled = "";
+    const agentReader = reader(async () => {
+      throw new Error("count");
+    });
+    agentReader.latestPublished = async () => ({
+      ok: true,
+      courses: [
+        {
+          id: courseId,
+          title: "Algebra",
+          createdAt: "2026-11-01T00:00:00.000Z",
+          categoryName: null,
+        },
+      ],
+    });
+    agentReader.enrol = async (_userId, id) => {
+      enrolled = id;
+      return { ok: true, title: "Algebra", courseId: id, already: false };
+    };
+
+    const tool = await runAgentTool(
+      "enrol_in_course",
+      { title: "Algebra" },
+      { ...toolContext(agentReader), enrolRequested: true },
+    );
+
+    expect(enrolled).toBe(courseId);
+    expect(tool).toMatchObject({
+      ok: true,
+      run: { enrolled: { id: courseId, title: "Algebra" } },
+    });
+  });
+
+  it("does not insert when two published titles match", async () => {
+    const agentReader = reader(async () => {
+      throw new Error("count");
+    });
+    agentReader.latestPublished = async () => ({
+      ok: true,
+      courses: [
+        {
+          id: courseId,
+          title: "Algebra Basics",
+          createdAt: "2026-11-01T00:00:00.000Z",
+          categoryName: null,
+        },
+        {
+          id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+          title: "Algebra II",
+          createdAt: "2026-11-02T00:00:00.000Z",
+          categoryName: null,
+        },
+      ],
+    });
+
+    const tool = await runAgentTool(
+      "enrol_in_course",
+      { title: "algebra" },
+      { ...toolContext(agentReader), enrolRequested: true },
+    );
+
+    expect(tool).toMatchObject({
+      ok: true,
+      run: {
+        payload: { message: "More than one course matches. Name one course." },
+        enrolled: null,
+      },
+    });
   });
 });
 

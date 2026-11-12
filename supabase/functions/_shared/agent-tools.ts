@@ -208,6 +208,71 @@ async function describeCourse(
   };
 }
 
+export function matchPublishedTitle(
+  courses: Array<{ id: string; title: string | null }>,
+  query: string,
+): { id: string; title: string } | { ambiguous: true; titles: string[] } | null {
+  const needle = foldTitle(query);
+  if (needle.length < 3) return null;
+  const named = courses.flatMap((course) => {
+    const title = course.title?.trim() ?? "";
+    return title ? [{ id: course.id, title, folded: foldTitle(title) }] : [];
+  });
+  const exact = named.filter((course) => course.folded === needle);
+  const exactMatch = oneTitle(exact);
+  if (exactMatch) return exactMatch;
+  if (exact.length > 1) return { ambiguous: true, titles: exact.map((course) => course.title) };
+  const partial = named.filter(
+    (course) => course.folded.includes(needle) || needle.includes(course.folded),
+  );
+  const partialMatch = oneTitle(partial);
+  if (partialMatch) return partialMatch;
+  if (partial.length > 1) return { ambiguous: true, titles: partial.map((course) => course.title) };
+  return null;
+}
+
+function oneTitle(courses: Array<{ id: string; title: string }>) {
+  const course = courses[0];
+  if (courses.length !== 1 || !course) return null;
+  return { id: course.id, title: course.title };
+}
+
+const severalCoursesMessage = "More than one course matches. Name one course.";
+
+async function resolveEnrolCourse(
+  args: Record<string, unknown>,
+  reader: AgentReader,
+): Promise<
+  | { ok: true; courseId: string }
+  | { ok: true; payload: Record<string, unknown> }
+  | { ok: false; message: string }
+> {
+  const courseId = courseIdFromArgs(args);
+  if (courseId) return { ok: true, courseId };
+  const title =
+    readToolArguments(args, [{ key: "title", type: "text" }])["title"] ||
+    (typeof args["courseId"] === "string" ? args["courseId"].trim() : "");
+  if (!title) return { ok: true, payload: { message: notAvailableMessage } };
+  const listed = await reader.latestPublished();
+  if (!listed.ok) return { ok: false, message: failedAiMessage };
+  const match = matchPublishedTitle(listed.courses, title);
+  if (!match) return { ok: true, payload: { message: notAvailableMessage } };
+  if ("ambiguous" in match) {
+    return {
+      ok: true,
+      payload: { message: severalCoursesMessage, courses: match.titles },
+    };
+  }
+  return { ok: true, courseId: match.id };
+}
+
+function foldTitle(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 async function enrolInCourse(
   args: Record<string, unknown>,
   context: { userId: string; enrolRequested: boolean; reader: AgentReader },
@@ -223,14 +288,15 @@ async function enrolInCourse(
       ),
     };
   }
-  const courseId = courseIdFromArgs(args);
-  if (!courseId) {
+  const resolved = await resolveEnrolCourse(args, context.reader);
+  if (!resolved.ok) return resolved;
+  if (!("courseId" in resolved)) {
     return {
       ok: true,
-      run: toolRun("enrol_in_course", { message: notAvailableMessage }, [], null),
+      run: toolRun("enrol_in_course", resolved.payload, [], null),
     };
   }
-  const enrolled = await context.reader.enrol(context.userId, courseId);
+  const enrolled = await context.reader.enrol(context.userId, resolved.courseId);
   if (!enrolled.ok) {
     return {
       ok: true,

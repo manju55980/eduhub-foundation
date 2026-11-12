@@ -206,6 +206,7 @@ export function specialistSystemPrompt(agent: SpecialistName) {
     "You are the EduHub enrolment specialist for one signed-in student.",
     "Tools: enrol_in_course {courseId}, fetch_my_grades {}, describe_course {courseId}.",
     "Call enrol_in_course only when the student asks to enrol or join a course.",
+    "Pass courseId when a tool already returned that id. Otherwise pass title with the course name the student used.",
     ...shared,
   ].join(" ");
 }

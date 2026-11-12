@@ -24,7 +24,7 @@ import {
 import { enforceAiRateLimit, type AiRateDb } from "./ai-rate-limit.ts";
 import { authorizeTool } from "./guardrails.ts";
 import { defaultOllamaHost, withGeminiTimeout } from "./embeddings.ts";
-import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
+import { completeChat, geminiFallbackModel, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
 import { resolveUserClient } from "./user-client.ts";
 
@@ -83,13 +83,14 @@ export async function handleAgent(
   }
 
   const fetchImpl = withGeminiTimeout(deps.fetchImpl, agentChatTimeoutMs);
-  const routed = await completeJson(
+  const routed = await completeChat(
     {
       apiKey: deps.geminiKey,
       system: supervisorSystemPrompt(),
       user: supervisorUserPrompt(parsed.messages),
     },
     fetchImpl,
+    { fallbackModel: geminiFallbackModel },
   );
   if (!routed.ok) return jsonResponse({ ok: false, message: routed.message });
   const route = parseSupervisorRoute(routed.value);
@@ -108,13 +109,14 @@ export async function handleAgent(
   const memory = createAgentMemory(parsed.messages);
 
   for (let round = 0; round <= assistantToolLimit; round += 1) {
-    const completion = await completeJson(
+    const completion = await completeChat(
       {
         apiKey: deps.geminiKey,
         system: specialistSystemPrompt(selected.agent),
         user: specialistUserPrompt(memory, route.task),
       },
       fetchImpl,
+      { fallbackModel: geminiFallbackModel },
     );
     if (!completion.ok) return jsonResponse({ ok: false, message: completion.message });
 
