@@ -1,10 +1,13 @@
 import { withGeminiTimeout } from "./embeddings.ts";
 import {
-  failedAiMessage,
   invalidAiMessage,
   sanitizeAiDetail,
+  unreachableAiMessage,
   type CompletionResult,
 } from "./gemini.ts";
+
+export const ollamaUnconfiguredMessage = "The local model is not configured.";
+export const ollamaRejectedMessage = "The local model rejected the request.";
 import { reportLoggedFailure } from "./sentry.ts";
 
 export const defaultOllamaLevelModel = "llama3.2";
@@ -40,7 +43,7 @@ export async function completeOllamaJson(
   if (!host || !input.model.trim()) {
     return {
       ok: false,
-      message: failedAiMessage,
+      message: ollamaUnconfiguredMessage,
       failure: "infrastructure",
       kind: "fatal",
       retryable: false,
@@ -73,7 +76,7 @@ export async function completeOllamaJson(
     });
     return {
       ok: false,
-      message: failedAiMessage,
+      message: unreachableAiMessage,
       failure: "infrastructure",
       kind: "network",
       retryable: true,
@@ -93,7 +96,7 @@ export async function completeOllamaJson(
     });
     return {
       ok: false,
-      message: failedAiMessage,
+      message: ollamaRejectedMessage,
       failure: "infrastructure",
       kind,
       retryable: kind === "rate_limit" || kind === "server",
@@ -117,7 +120,7 @@ export async function completeOllamaJson(
     });
     return {
       ok: false,
-      message: failedAiMessage,
+      message: ollamaRejectedMessage,
       failure: "infrastructure",
       kind: "fatal",
       retryable: false,

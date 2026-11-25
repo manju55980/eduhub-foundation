@@ -12,7 +12,7 @@ export const recordGridClass = "lg:grid-cols-2";
 export const formColumnsClass =
   "grid items-start gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)] lg:gap-4";
 export const selectFieldClass =
-  "h-9 min-w-0 rounded-md border border-input bg-transparent px-3 text-sm text-foreground shadow-none transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50";
+  "h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-none transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50";
 
 export function PageSection({ children, className }: { children: ReactNode; className?: string }) {
   return <section className={cn(pageFrameClass, className)}>{children}</section>;

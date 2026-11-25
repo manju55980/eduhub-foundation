@@ -23,6 +23,16 @@ vi.mock("./course-review-api", () => ({
   requestCourseReview: vi.fn(),
 }));
 
+vi.mock("@/features/ai/ai-thread-api", () => ({
+  listAiThreads: vi.fn(async () => ({
+    ok: true,
+    threads: [{ id: "thread-1", title: "New chat", updatedAt: "2026-11-24T00:00:00.000Z" }],
+  })),
+  createAiThread: vi.fn(),
+  loadAiMessages: vi.fn(async () => ({ ok: true, messages: [] })),
+  clearAiMessages: vi.fn(async () => ({ ok: true })),
+}));
+
 vi.mock("@/features/instructor/course-materials-api", () => ({
   listMaterialsForCourses: vi.fn(async () => ({ ok: true, materials: [] })),
   createMaterialDownloadUrl: vi.fn(),
@@ -190,11 +200,14 @@ describe("ApproveCoursesScreen", () => {
 
     render(<ApproveCoursesScreen />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Review with AI" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Review with AI" })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Review with AI" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Reviewing…" })).toBeDisabled());
     expect(screen.getByRole("button", { name: "Approve" })).toBeEnabled();
     expect(requestReview).toHaveBeenCalledTimes(1);
-    expect(requestReview).toHaveBeenCalledWith("course-1");
+    expect(requestReview).toHaveBeenCalledWith("course-1", "thread-1");
 
     resolveReview({ ok: false, message: "The AI request failed." });
     expect(await screen.findByRole("alert")).toHaveTextContent("The AI request failed.");
@@ -231,7 +244,9 @@ describe("ApproveCoursesScreen", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not load reviews.");
     expect(screen.getByRole("button", { name: "Approve" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Review with AI" })).toBeEnabled();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Review with AI" })).toBeEnabled();
+    });
   });
 });
 

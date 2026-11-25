@@ -1,6 +1,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { bindAiRateLimit } from "../_shared/ai-rate-limit.ts";
+import { bindAiThreads } from "../_shared/ai-thread.ts";
 import { handleCourseReview } from "../_shared/handle-course-review.ts";
 import { bindReviewReader, type ReviewDb } from "../_shared/review-reader.ts";
 
@@ -32,5 +33,6 @@ Deno.serve((request) => {
     fetchImpl: fetch,
     reader: bindReviewReader(userClient as ReviewDb, token),
     rateLimit: bindAiRateLimit(userClient),
+    threads: bindAiThreads(userClient),
   });
 });

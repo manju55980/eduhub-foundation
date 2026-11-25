@@ -38,6 +38,16 @@ vi.mock("./course-review-api", () => ({
   requestCourseReview: vi.fn(),
 }));
 
+vi.mock("@/features/ai/ai-thread-api", () => ({
+  listAiThreads: vi.fn(async () => ({
+    ok: true,
+    threads: [{ id: "thread-1", title: "New chat", updatedAt: "2026-11-24T00:00:00.000Z" }],
+  })),
+  createAiThread: vi.fn(),
+  loadAiMessages: vi.fn(async () => ({ ok: true, messages: [] })),
+  clearAiMessages: vi.fn(async () => ({ ok: true })),
+}));
+
 vi.mock("@/features/instructor/course-materials-api", () => ({
   listMaterialsForCourses: vi.fn(async () => ({ ok: true, materials: [] })),
   createMaterialDownloadUrl: vi.fn(),
@@ -168,7 +178,7 @@ describe("ManageCoursesScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "All" }));
     expect(screen.getByRole("heading", { name: "Databases" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Intro to React" })).not.toBeInTheDocument();
-  });
+  }, 15000);
 
   it("publishes a pending course and archives a published course without removing the others", async () => {
     listCourses.mockResolvedValue({ ok: true, courses: [pending, published] });

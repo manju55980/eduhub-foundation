@@ -3,12 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { readFunctionResult } from "@/features/ai/function-result";
 import { parseStudyReply, parseStudyRequest } from "../../../supabase/functions/_shared/study.ts";
 
-export async function askStudyCompanion(courseId: string, question: string) {
+export async function askStudyCompanion(courseId: string, question: string, threadId?: string) {
   const parsed = parseStudyRequest({ courseId, question });
   if (!parsed.ok) return parsed;
 
   const { data, error } = await supabase.functions.invoke("ai-study", {
-    body: { courseId: parsed.courseId, question: parsed.question },
+    body: {
+      courseId: parsed.courseId,
+      question: parsed.question,
+      ...(threadId ? { threadId } : {}),
+    },
   });
   const result = await readFunctionResult(data, error);
   if (!result.ok) return result;

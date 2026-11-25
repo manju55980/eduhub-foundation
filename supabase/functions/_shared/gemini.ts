@@ -6,6 +6,14 @@ export const geminiFallbackModel = "gemini-2.5-flash";
 export const missingAiMessage = "AI is not configured.";
 export const failedAiMessage = "The AI request failed.";
 export const invalidAiMessage = "The AI response was not valid.";
+export const busyAiMessage = "The AI model is busy. Try again in a few minutes.";
+export const rejectedAiKeyMessage = "The AI key was rejected.";
+export const unavailableModelMessage = "The AI model is not available.";
+export const unreachableAiMessage = "The AI service could not be reached.";
+export const aiServiceErrorMessage = "The AI service returned an error.";
+export const aiQuotaMessage = "The AI quota is exhausted.";
+export const aiProviderRateLimitMessage = "The AI service is rate limited. Try again later.";
+export const rejectedAiRequestMessage = "The AI request was rejected.";
 
 export type AiFailureLog = {
   status: number | null;
@@ -202,7 +210,7 @@ export async function completeJsonDetailed(
     });
     return {
       ok: false,
-      message: failedAiMessage,
+      message: unreachableAiMessage,
       failure: "infrastructure",
       kind: "network",
       retryable: true,
@@ -217,7 +225,11 @@ export async function completeJsonDetailed(
     const classified = classifyGeminiHttpFailure(response.status, failure.detail);
     return {
       ok: false,
-      message: failedAiMessage,
+      message: publicGeminiMessage({
+        status: failure.status,
+        errorType: failure.errorType,
+        detail: failure.detail,
+      }),
       failure: "infrastructure",
       kind: classified.kind,
       retryable: classified.retryable,
@@ -240,6 +252,30 @@ export async function completeJsonDetailed(
   } catch {
     return { ok: false, message: invalidAiMessage, failure: "invalid" };
   }
+}
+
+export function publicGeminiMessage(input: {
+  status: number | null;
+  errorType: string | null;
+  detail: string;
+}) {
+  const text = `${input.errorType ?? ""} ${input.detail}`.toLowerCase();
+  if (input.status === null) return unreachableAiMessage;
+  if (input.status === 503 || text.includes("unavailable") || text.includes("high demand")) {
+    return busyAiMessage;
+  }
+  if (
+    input.status === 429 &&
+    (text.includes("quota") || text.includes("billing") || text.includes("plan"))
+  ) {
+    return aiQuotaMessage;
+  }
+  if (input.status === 429) return aiProviderRateLimitMessage;
+  if (input.status === 401 || input.status === 403) return rejectedAiKeyMessage;
+  if (input.status === 404) return unavailableModelMessage;
+  if (input.status >= 500) return aiServiceErrorMessage;
+  if (input.status >= 400) return rejectedAiRequestMessage;
+  return failedAiMessage;
 }
 
 function retryAfterHeaderMs(header: string | null) {

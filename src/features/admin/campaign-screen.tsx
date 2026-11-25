@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { DataCell, DataRow, DataTable } from "@/components/app-shell/data-table";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/app-shell/page-state";
-import { PageSection } from "@/components/app-shell/record-card";
+import { PageSection, selectFieldClass } from "@/components/app-shell/record-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -123,7 +123,7 @@ export function CampaignScreen() {
           <Label htmlFor="campaign-segment">Segment</Label>
           <select
             id="campaign-segment"
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className={`w-full ${selectFieldClass}`}
             value={segment}
             onChange={(event) => setSegment(event.target.value as CampaignSegment)}
           >

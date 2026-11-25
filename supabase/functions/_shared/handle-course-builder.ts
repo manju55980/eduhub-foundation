@@ -5,6 +5,13 @@ import {
   parseCoursePreview,
 } from "./course-preview.ts";
 import { enforceAiRateLimit, type AiRateDb } from "./ai-rate-limit.ts";
+import {
+  contextContentLimit,
+  openThreadTurn,
+  persistThreadTurn,
+  readThreadId,
+  type AiThreadStore,
+} from "./ai-thread.ts";
 import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { authorizeTool, isToolShaped, noToolAllowlist, toolName } from "./guardrails.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
@@ -29,6 +36,7 @@ export async function handleCourseBuilder(
     reader: RoleReader;
     fetchImpl: typeof fetch;
     rateLimit?: AiRateDb;
+    threads?: AiThreadStore;
   },
 ) {
   if (request.method === "OPTIONS") return emptyResponse(204);
@@ -61,6 +69,16 @@ export async function handleCourseBuilder(
   const access = builderAccess(role.role);
   if (!access.ok) return jsonResponse({ ok: false, message: access.message }, 403);
 
+  const threadRef = readThreadId(body);
+  if (!threadRef.ok) return jsonResponse({ ok: false, message: threadRef.message });
+  const turn = await openThreadTurn(deps.threads, {
+    threadId: threadRef.threadId,
+    surface: "course_builder",
+    courseId: null,
+    slots: 2,
+  });
+  if (!turn.ok) return jsonResponse({ ok: false, message: turn.message }, turn.status);
+
   if (!deps.geminiKey?.trim()) return jsonResponse({ ok: false, message: missingAiMessage });
 
   const allowance = await enforceAiRateLimit(deps.rateLimit, "ai-course-builder");
@@ -68,7 +86,7 @@ export async function handleCourseBuilder(
     return jsonResponse({ ok: false, message: allowance.message }, allowance.status);
   }
 
-  const prompt = builderPrompt(parsed);
+  const prompt = builderPrompt(parsed, turn.active ? turn.messages : []);
   const completion = await completeJson(
     { apiKey: deps.geminiKey, system: prompt.system, user: prompt.user },
     deps.fetchImpl,
@@ -96,10 +114,36 @@ export async function handleCourseBuilder(
     deps.fetchImpl,
   );
 
+  const categoryId = readCategoryId(body);
+  const saved = await persistThreadTurn(deps.threads, turn.active, {
+    threadId: threadRef.threadId ?? "",
+    surface: "course_builder",
+    courseId: null,
+    slots: 2,
+    userContent: parsed.brief.slice(0, contextContentLimit),
+    assistantContent: `${preview.preview.title}. ${preview.preview.description}`.slice(
+      0,
+      contextContentLimit,
+    ),
+    payload: {
+      preview: preview.preview,
+      videos: videos.ok ? videos.videos : [],
+      videoMessage: videos.message,
+      level: parsed.level,
+      categoryId,
+    },
+  });
+  if (!saved.ok) return jsonResponse({ ok: false, message: saved.message }, saved.status);
+
   return jsonResponse({
     ok: true,
     preview: preview.preview,
     videos: videos.ok ? videos.videos : [],
     videoMessage: videos.message,
   });
+}
+
+function readCategoryId(body: unknown) {
+  if (!body || typeof body !== "object" || !("categoryId" in body)) return "";
+  return typeof body.categoryId === "string" ? body.categoryId.trim() : "";
 }

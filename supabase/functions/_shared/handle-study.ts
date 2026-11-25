@@ -1,4 +1,12 @@
 import { enforceAiRateLimit, type AiRateDb } from "./ai-rate-limit.ts";
+import {
+  contextContentLimit,
+  openThreadTurn,
+  persistThreadTurn,
+  readThreadId,
+  type AiThreadStore,
+  type ThreadMessage,
+} from "./ai-thread.ts";
 import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { authorizeTool, isToolShaped, noToolAllowlist, toolName } from "./guardrails.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
@@ -25,6 +33,7 @@ export async function handleStudy(
     reader: StudyReader;
     fetchImpl: typeof fetch;
     rateLimit?: AiRateDb;
+    threads?: AiThreadStore;
   },
 ) {
   if (request.method === "OPTIONS") return emptyResponse(204);
@@ -80,6 +89,17 @@ export async function handleStudy(
     return jsonResponse({ ok: false, message: noLessonContentMessage });
   }
 
+  const threadRef = readThreadId(body);
+  if (!threadRef.ok) return jsonResponse({ ok: false, message: threadRef.message });
+  const turn = await openThreadTurn(deps.threads, {
+    threadId: threadRef.threadId,
+    surface: "study",
+    courseId: parsed.courseId,
+    slots: 2,
+  });
+  if (!turn.ok) return jsonResponse({ ok: false, message: turn.message }, turn.status);
+  const history: ThreadMessage[] = turn.active ? turn.messages : [];
+
   if (!deps.geminiKey?.trim()) return jsonResponse({ ok: false, message: missingAiMessage });
 
   const allowance = await enforceAiRateLimit(deps.rateLimit, "ai-study");
@@ -91,6 +111,7 @@ export async function handleStudy(
     question: parsed.question,
     course: visibleCourse,
     lessons: lessons.lessons,
+    history,
   });
   const completion = await completeJson(
     { apiKey: deps.geminiKey, system: prompt.system, user: prompt.user },
@@ -106,6 +127,28 @@ export async function handleStudy(
 
   const reply = parseStudyReply(completion.value);
   if (!reply.ok) return jsonResponse({ ok: false, message: reply.message });
+
+  const transcript = [
+    `Explanation: ${reply.explanation}`,
+    `Example: ${reply.example}`,
+    `Practice: ${reply.practiceQuestions.join(" ")}`,
+  ]
+    .join("\n")
+    .slice(0, contextContentLimit);
+  const saved = await persistThreadTurn(deps.threads, turn.active, {
+    threadId: threadRef.threadId ?? "",
+    surface: "study",
+    courseId: parsed.courseId,
+    slots: 2,
+    userContent: parsed.question,
+    assistantContent: transcript,
+    payload: {
+      explanation: reply.explanation,
+      example: reply.example,
+      practiceQuestions: reply.practiceQuestions,
+    },
+  });
+  if (!saved.ok) return jsonResponse({ ok: false, message: saved.message }, saved.status);
 
   return jsonResponse({
     ok: true,

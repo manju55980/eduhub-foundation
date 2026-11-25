@@ -8,13 +8,13 @@ The module is `supabase/functions/_shared/guardrails.ts`. It adds no table, colu
 
 ## Who calls it
 
-| Caller | What it must do |
-| --- | --- |
-| `ai-study` | Redact and wrap the question. Empty tool allowlist. No confidence field. |
-| `ai-course-builder` | Redact and wrap the brief and the optional notes. Empty tool allowlist. No confidence field. |
-| `ai-agent` | Redact and wrap each client message. Allow only the six tools already specified. Redact email and phone patterns inside a grade tool result before that result is sent back to the model. Keep the grade value. |
-| `ai-course-review` | Redact and wrap the course text. Empty tool allowlist. Require `confidence`. |
-| Later supervisor | Same helpers, with that supervisor’s own tool allowlist. Not built in this slice. |
+| Caller              | What it must do                                                                                                                                                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ai-study`          | Redact and wrap the question. Empty tool allowlist. No confidence field.                                                                                                                                                                                 |
+| `ai-course-builder` | Redact and wrap the brief and the optional notes. Empty tool allowlist. No confidence field.                                                                                                                                                             |
+| `ai-agent`          | Redact and wrap each client message. Allow only the six tools already specified. Redact email and phone patterns inside a grade tool result before that result is sent back to the model. Keep the grade value.                                          |
+| `ai-course-review`  | Redact and wrap the course text. Empty tool allowlist. Require `confidence`.                                                                                                                                                                             |
+| `ai-tutor`          | Redact and wrap the question sent back for grading, and the answer. Empty tool allowlist. Require `confidence` on the planner, the question, and the grader, and refuse below 0.70. Course tutor behavior stays in `../student/student-course-tutor.md`. |
 
 User-facing errors stay the sentences those features already specify. A guardrail failure uses those sentences. It does not add a second error style.
 
@@ -59,12 +59,12 @@ Only the course review requires the field. Below 0.70 it stores the review and t
 
 `authorizeTool(name, allowlist)` returns true only when `name` is in that list. The check runs before any database call.
 
-| Function | Allowlist |
-| --- | --- |
-| `ai-study` | empty |
-| `ai-course-builder` | empty |
-| `ai-course-review` | empty |
-| `ai-agent` | `search_catalogue`, `describe_course`, `enrol_in_course`, `fetch_my_grades`, `suggest_next_course`, `count_published_courses` |
+| Function            | Allowlist                                                                                                                     |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `ai-study`          | empty                                                                                                                         |
+| `ai-course-builder` | empty                                                                                                                         |
+| `ai-course-review`  | empty                                                                                                                         |
+| `ai-agent`          | `search_catalogue`, `describe_course`, `enrol_in_course`, `fetch_my_grades`, `suggest_next_course`, `count_published_courses` |
 
 An empty allowlist rejects a tool-shaped reply before a read or a write. The agent still rejects an unknown name, still runs `enrol_in_course` only when the latest user message asks to enrol or join, and still drops course ids that this request’s tools did not return. Arguments that the tool does not read are ignored, which is the current agent behavior. This slice does not start rejecting those extra arguments.
 

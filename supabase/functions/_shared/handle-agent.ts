@@ -1,12 +1,26 @@
 import {
+  assistantModelContent,
   enrolRequested,
   filterAnswerCourses,
   parseAgentMessages,
   parseAgentReply,
+  assistantContentLimit,
   assistantToolLimit,
+  enrolledSentence,
+  questionRequiredMessage,
   studentOnlyAgentMessage,
   unfinishedAgentMessage,
+  type AgentCourseRef,
+  type AgentMessage,
 } from "./agent.ts";
+import {
+  openThreadTurn,
+  persistThreadTurn,
+  readThreadId,
+  readTurnContent,
+  threadMissingMessage,
+  type AiThreadStore,
+} from "./ai-thread.ts";
 import { runAgentTool, type AgentReader } from "./agent-tools.ts";
 import {
   createAgentMemory,
@@ -41,6 +55,7 @@ export async function handleAgent(
     reader: AgentReader;
     fetchImpl: typeof fetch;
     rateLimit?: AiRateDb;
+    threads?: AiThreadStore;
     syncEnrolment?: (userId: string, courseId: string) => Promise<void>;
   },
 ) {
@@ -63,8 +78,21 @@ export async function handleAgent(
     return jsonResponse({ ok: false, message: "The request was not valid." });
   }
 
-  const parsed = parseAgentMessages(body);
-  if (!parsed.ok) return jsonResponse({ ok: false, message: parsed.message });
+  const threadRef = readThreadId(body);
+  if (!threadRef.ok) return jsonResponse({ ok: false, message: threadRef.message });
+  const openThreadId = threadRef.threadId;
+
+  let legacy: AgentMessage[] | null = null;
+  let userContent = "";
+  if (openThreadId) {
+    const content = readTurnContent(body, questionRequiredMessage);
+    if (!content.ok) return jsonResponse({ ok: false, message: content.message });
+    userContent = content.content;
+  } else {
+    const parsed = parseAgentMessages(body);
+    if (!parsed.ok) return jsonResponse({ ok: false, message: parsed.message });
+    legacy = parsed.messages;
+  }
 
   const user = await deps.reader.userId();
   if (!user.ok) return jsonResponse({ ok: false, message: user.message }, 401);
@@ -77,9 +105,50 @@ export async function handleAgent(
 
   if (!deps.geminiKey?.trim()) return jsonResponse({ ok: false, message: missingAiMessage });
 
+  let messages: AgentMessage[] = legacy ?? [];
+  let active = false;
+  if (openThreadId) {
+    const turn = await openThreadTurn(deps.threads, {
+      threadId: openThreadId,
+      surface: "assistant",
+      courseId: null,
+      slots: 2,
+    });
+    if (!turn.ok) return jsonResponse({ ok: false, message: turn.message }, turn.status);
+    if (!turn.active) return jsonResponse({ ok: false, message: threadMissingMessage }, 500);
+    active = true;
+    messages = [
+      ...turn.messages.map((message) => ({ role: message.role, content: message.content })),
+      { role: "user", content: userContent },
+    ];
+  }
+
   const allowance = await enforceAiRateLimit(deps.rateLimit, "ai-agent");
   if (!allowance.ok) {
     return jsonResponse({ ok: false, message: allowance.message }, allowance.status);
+  }
+
+  async function finish(result: {
+    text: string;
+    courses: AgentCourseRef[];
+    enrolled: AgentCourseRef | null;
+  }) {
+    const visible = result.enrolled ? `${result.text}\n\n${enrolledSentence}` : result.text;
+    const saved = await persistThreadTurn(deps.threads, active, {
+      threadId: openThreadId ?? "",
+      surface: "assistant",
+      courseId: null,
+      slots: 2,
+      userContent,
+      assistantContent: assistantModelContent(visible, result.courses),
+      payload: {
+        text: visible.slice(0, assistantContentLimit),
+        courses: result.courses,
+        enrolled: result.enrolled,
+      },
+    });
+    if (!saved.ok) return jsonResponse({ ok: false, message: saved.message }, saved.status);
+    return jsonResponse({ ok: true, ...result });
   }
 
   const fetchImpl = withGeminiTimeout(deps.fetchImpl, agentChatTimeoutMs);
@@ -87,7 +156,7 @@ export async function handleAgent(
     {
       apiKey: deps.geminiKey,
       system: supervisorSystemPrompt(),
-      user: supervisorUserPrompt(parsed.messages),
+      user: supervisorUserPrompt(messages),
     },
     fetchImpl,
     { fallbackModel: geminiFallbackModel },
@@ -95,18 +164,13 @@ export async function handleAgent(
   if (!routed.ok) return jsonResponse({ ok: false, message: routed.message });
   const route = parseSupervisorRoute(routed.value);
   if (!route.ok) return jsonResponse({ ok: false, message: invalidAiMessage });
-  const selected = selectSpecialist(route, parsed.messages);
+  const selected = selectSpecialist(route, messages);
   if (selected.kind === "refuse") {
-    return jsonResponse({
-      ok: true,
-      text: lowConfidenceEnrolmentMessage,
-      courses: [],
-      enrolled: null,
-    });
+    return finish({ text: lowConfidenceEnrolmentMessage, courses: [], enrolled: null });
   }
 
   const allowlist = specialistTools(selected.agent);
-  const memory = createAgentMemory(parsed.messages);
+  const memory = createAgentMemory(messages);
 
   for (let round = 0; round <= assistantToolLimit; round += 1) {
     const completion = await completeChat(
@@ -123,15 +187,14 @@ export async function handleAgent(
     const reply = parseAgentReply(completion.value);
     if (!reply.ok) return jsonResponse({ ok: false, message: reply.message });
     if (reply.type === "answer") {
-      return jsonResponse({
-        ok: true,
+      return finish({
         text: reply.text,
         courses: filterAnswerCourses(reply.courses, new Set(memory.courseIds)),
         enrolled: memory.enrolled,
       });
     }
     const toolName =
-      selected.agent === "advisor" ? routeAdvisorTool(reply.name, parsed.messages) : reply.name;
+      selected.agent === "advisor" ? routeAdvisorTool(reply.name, messages) : reply.name;
     if (!authorizeTool(toolName, allowlist)) {
       return jsonResponse({ ok: false, message: invalidAiMessage });
     }
@@ -139,10 +202,10 @@ export async function handleAgent(
       return jsonResponse({ ok: false, message: unfinishedAgentMessage });
     }
 
-    const latestUser = [...parsed.messages].reverse().find((message) => message.role === "user");
+    const latestUser = [...messages].reverse().find((message) => message.role === "user");
     const tool = await runAgentTool(toolName, reply.arguments, {
       userId: user.userId,
-      enrolRequested: enrolRequested(parsed.messages),
+      enrolRequested: enrolRequested(messages),
       apiKey: deps.geminiKey,
       ollamaHost: deps.ollamaHost?.trim() || defaultOllamaHost,
       fetchImpl,

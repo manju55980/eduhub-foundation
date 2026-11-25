@@ -110,7 +110,7 @@ const agents = [
     soft: "bg-student-soft",
     tone: "text-foreground",
     detail:
-      "On an enrolled course, ask one question. The answer is an explanation, an example, and practice questions. Nothing is saved.",
+      "On an enrolled course, ask one question. The answer is an explanation, an example, and practice questions. The chat is saved.",
   },
   {
     audience: "Student",
@@ -119,7 +119,7 @@ const agents = [
     soft: "bg-student-soft",
     tone: "text-foreground",
     detail:
-      "Ask about a published course, a recommendation, your grades, or the next course. Course answers come from the stored catalogue. It can enrol you in a published course. The chat is not stored.",
+      "Ask about a published course, a recommendation, your grades, or the next course. Course answers come from the stored catalogue. It can enrol you in a published course. The chat is saved.",
   },
   {
     audience: "Instructor",

@@ -2,6 +2,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { bindAgentReader } from "../_shared/agent-reader.ts";
 import { bindAiRateLimit } from "../_shared/ai-rate-limit.ts";
+import { bindAiThreads } from "../_shared/ai-thread.ts";
 import { handleAgent } from "../_shared/handle-agent.ts";
 import {
   bindStudentDb,
@@ -39,6 +40,7 @@ Deno.serve((request) => {
     fetchImpl: fetch,
     reader: bindAgentReader(userClient, token),
     rateLimit: bindAiRateLimit(userClient),
+    threads: bindAiThreads(userClient),
     syncEnrolment: (userId, courseId) =>
       syncSavedEnrolment(
         bindStudentDb(userClient as EventWriteClient),

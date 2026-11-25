@@ -8,10 +8,10 @@ This feature adds the Edge Function `ai-course-review` and the `course_reviews` 
 
 ## Where it appears
 
-| Screen | What is added |
-| --- | --- |
-| `/admin/courses/approvals` | On each pending card: the course’s materials, the newest review if one exists, and “Review with AI”. Approve stays on the card. |
-| `/admin/courses` | The same block, only on a card whose status is `pending`. Archive is unchanged. Draft, published, and archived cards do not offer review. |
+| Screen                     | What is added                                                                                                                             |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `/admin/courses/approvals` | On each pending card: the course’s materials, the newest review if one exists, and “Review with AI”. Approve stays on the card.           |
+| `/admin/courses`           | The same block, only on a card whose status is `pending`. Archive is unchanged. Draft, published, and archived cards do not offer review. |
 
 The control is not on Admin Dashboard, course details, or any instructor or student screen. Opening the page does not call the function.
 
@@ -30,7 +30,7 @@ The prompt is built with the guardrails in `../ai/ai-guardrails.md`. It includes
 - that course’s assignments: `title`, `description`, and `due_date`
 - that course’s materials: `file_name` and `mime_type`
 
-It does not include file bytes, `profiles.email`, `profiles.phone`, `profiles.full_name`, grades, submissions, enrollments, or any other course. The tool allowlist is empty. A reply that asks for a tool is invalid and is not stored.
+It does not include file bytes, `profiles.email`, `profiles.phone`, `profiles.full_name`, grades, submissions, enrollments, or any other course. The tool allowlist is empty. The review row stays in `course_reviews`. The same turn is also saved on that admin’s `course_review` chat for the course. A reply that asks for a tool is invalid and is not stored. Review with AI needs 2 free slots. At 8 messages it is disabled until Clear or New chat.
 
 The model is `gemini-3.5-flash-lite`, through `completeJson`. The reply is JSON:
 

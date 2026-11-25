@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  aiLimitCheckMessage,
   consumeAiRequest,
   type AiFeature,
   type AiRateDb,
@@ -12,7 +13,6 @@ import { handleCourseBuilder } from "../../supabase/functions/_shared/handle-cou
 import { handleCourseReview } from "../../supabase/functions/_shared/handle-course-review.ts";
 import { handleStudy } from "../../supabase/functions/_shared/handle-study.ts";
 import type { AgentReader } from "../../supabase/functions/_shared/agent-tools.ts";
-import { failedAiMessage } from "../../supabase/functions/_shared/gemini.ts";
 import type { ReviewReader } from "../../supabase/functions/_shared/review-reader.ts";
 import type { StudyReader } from "../../supabase/functions/_shared/study-reader.ts";
 
@@ -22,7 +22,7 @@ const migration = readFileSync(
   "utf8",
 ).replace(/\r\n/g, "\n");
 
-const limits: Record<AiFeature, number> = {
+const limits: Record<Exclude<AiFeature, "ai-tutor">, number> = {
   "ai-study": 30,
   "ai-agent": 20,
   "ai-course-builder": 10,
@@ -261,7 +261,7 @@ describe("AI request limit helper", () => {
       rateDb({ data: null, error: { message: "relation does not exist" } }, calls),
       "ai-course-builder",
     );
-    expect(failed).toEqual({ ok: false, status: 500, message: failedAiMessage });
+    expect(failed).toEqual({ ok: false, status: 500, message: aiLimitCheckMessage });
 
     const malformed = await consumeAiRequest(
       rateDb({ data: { allowed: true }, error: null }, calls),

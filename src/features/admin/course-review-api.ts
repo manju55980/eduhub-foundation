@@ -29,9 +29,9 @@ export async function listNewestCourseReviews(courseIds: string[]) {
   return { ok: true as const, reviews: newestCourseReviews(reviews) };
 }
 
-export async function requestCourseReview(courseId: string) {
+export async function requestCourseReview(courseId: string, threadId?: string) {
   const { data, error } = await supabase.functions.invoke("ai-course-review", {
-    body: { courseId },
+    body: { courseId, ...(threadId ? { threadId } : {}) },
   });
   const result = await readFunctionResult(data, error);
   if (!result.ok) return result;

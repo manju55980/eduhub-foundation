@@ -1,12 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  busyAiMessage,
   completeChat,
   completeJson,
   geminiFallbackModel,
   geminiGenerateUrl,
   geminiModel,
+  publicGeminiMessage,
+  rejectedAiKeyMessage,
   sanitizeAiDetail,
+  unreachableAiMessage,
   type AiFailureLog,
 } from "../../../supabase/functions/_shared/gemini.ts";
 
@@ -67,7 +71,7 @@ describe("Gemini failure logs", () => {
       (entry) => logs.push(entry),
     );
 
-    expect(result).toEqual({ ok: false, message: "The AI request failed." });
+    expect(result).toEqual({ ok: false, message: rejectedAiKeyMessage });
     expect(logs).toEqual([
       {
         status: 401,
@@ -91,7 +95,7 @@ describe("Gemini failure logs", () => {
       (entry) => logs.push(entry),
     );
 
-    expect(result).toEqual({ ok: false, message: "The AI request failed." });
+    expect(result).toEqual({ ok: false, message: unreachableAiMessage });
     expect(logs).toHaveLength(1);
     expect(logs[0]).toMatchObject({ status: null, errorType: "network", errorCode: null });
     expect(logs[0]?.detail).toContain("connect failed");
@@ -152,8 +156,18 @@ describe("Gemini failure logs", () => {
       },
     );
 
-    expect(result).toEqual({ ok: false, message: "The AI request failed." });
+    expect(result).toEqual({ ok: false, message: rejectedAiKeyMessage });
     expect(calls).toBe(1);
+  });
+
+  it("turns a busy model into a message the page can show", () => {
+    expect(
+      publicGeminiMessage({
+        status: 503,
+        errorType: "UNAVAILABLE",
+        detail: "This model is currently experiencing high demand.",
+      }),
+    ).toBe(busyAiMessage);
   });
 
   it("redacts a raw response body that is only the API key", () => {

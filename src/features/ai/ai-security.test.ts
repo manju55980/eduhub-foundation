@@ -349,7 +349,7 @@ describe("AI security checks", () => {
         ),
       );
       const failedText = await failed.text();
-      expect(failedText).toContain("The AI request failed.");
+      expect(failedText).toContain("The AI service returned an error.");
       expect(failedText).not.toContain(apiKey);
       const logged = errorSpy.mock.calls.map((call) => call.map(String).join(" ")).join("\n");
       expect(logged).toContain('"status":500');

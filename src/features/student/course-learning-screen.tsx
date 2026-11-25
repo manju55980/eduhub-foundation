@@ -19,6 +19,7 @@ import {
   type LearningCourse,
   type LearningLesson,
 } from "./course-learning-api";
+import { CourseTutorCard } from "./course-tutor-card";
 import { StudyCompanionCard } from "./study-companion-card";
 import { LessonProgressSummary } from "./lesson-progress";
 import { externalVideoUrl } from "./video-url";
@@ -233,6 +234,9 @@ export function CourseLearningScreen({
       ) : null}
       {enrolled && !loadError && !loading ? (
         <StudyCompanionCard courseId={courseId} lessons={lessons} />
+      ) : null}
+      {enrolled && !loadError && !loading && lessons.length > 0 ? (
+        <CourseTutorCard courseId={courseId} lessonCount={lessons.length} />
       ) : null}
     </section>
   );

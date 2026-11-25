@@ -226,7 +226,10 @@ describe("latest published course", () => {
         },
       );
       await settleEdgeReports();
-      expect(result).toMatchObject({ ok: false, message: "The AI request failed." });
+      expect(result).toMatchObject({
+        ok: false,
+        message: "Retrieval is unavailable because the embedding service is not connected.",
+      });
       expect(logged[0]).toContain('"source":"ollama-embed"');
       expect(logged[0]).toContain('"status":null');
       expect(logged[0]).toContain('"kind":"network"');

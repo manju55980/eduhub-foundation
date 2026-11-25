@@ -10,6 +10,11 @@ export const embeddingDimensions = 768;
 export const ollamaEmbedTimeoutMs = 120_000;
 export const embeddingTimeoutMs = 20_000;
 export const embeddingQuotaMessage = "The embedding quota is exhausted.";
+export const embeddingOfflineMessage =
+  "Retrieval is unavailable because the embedding service is not connected.";
+export const embeddingRejectedMessage = "The embedding service rejected the request.";
+export const embeddingModelMessage = "The embedding model is not available.";
+export const knowledgeReadMessage = "Course search could not read the knowledge base.";
 export const embeddingRetryLimit = 6;
 export const embeddingBackoffCapMs = 30_000;
 
@@ -131,7 +136,9 @@ export function embedBackoffMs(attempt: number, baseDelayMs: number, retryAfterM
 }
 
 export function embedFailureMessage(kind: EmbedFailureKind) {
-  return kind === "quota" ? embeddingQuotaMessage : failedAiMessage;
+  if (kind === "quota") return embeddingQuotaMessage;
+  if (kind === "rate_limit") return "The embedding service is rate limited. Try again later.";
+  return embeddingRejectedMessage;
 }
 
 export async function embedTexts(
@@ -159,7 +166,7 @@ export async function embedTexts(
       signal: timeout.signal,
     });
   } catch {
-    return { ok: false, message: failedAiMessage, kind: "fatal", retryAfterMs: null };
+    return { ok: false, message: embeddingOfflineMessage, kind: "fatal", retryAfterMs: null };
   } finally {
     timeout.cancel();
   }
@@ -221,6 +228,16 @@ export async function embedTextsWithRetry(
     await options.sleep(embedBackoffMs(attempt, options.baseDelayMs, latest.retryAfterMs));
   }
   return latest;
+}
+
+export function ollamaEmbedMessage(status: number, body: string, kind: EmbedFailureKind) {
+  const text = body.toLowerCase();
+  if (status === 404 || (text.includes("model") && text.includes("not found"))) {
+    return embeddingModelMessage;
+  }
+  if (kind === "quota") return embeddingQuotaMessage;
+  if (kind === "rate_limit") return "The embedding service is rate limited. Try again later.";
+  return embeddingRejectedMessage;
 }
 
 function retryDelayFromBody(body: string) {
@@ -333,7 +350,7 @@ async function embedOllamaOnce(
     });
     return {
       ok: false as const,
-      message: failedAiMessage,
+      message: embeddingOfflineMessage,
       kind: "fatal" as const,
       retryAfterMs: null,
     };
@@ -358,7 +375,7 @@ async function embedOllamaOnce(
     });
     return {
       ok: false as const,
-      message: embedFailureMessage(kind),
+      message: ollamaEmbedMessage(response.status, body, kind),
       kind,
       retryAfterMs,
     };

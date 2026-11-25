@@ -11,7 +11,9 @@ import type {
   AgentReader,
   PublishedCourseListing,
 } from "./agent-tools.ts";
+import { knowledgeReadMessage } from "./embeddings.ts";
 import { failedAiMessage } from "./gemini.ts";
+import { fuseChunks, hybridCandidateLimit } from "./hybrid-search.ts";
 import { notAvailableMessage } from "./study.ts";
 
 type QueryError = { message: string; code?: string } | null;
@@ -62,9 +64,26 @@ export function bindAgentReader(db: AgentDb, token: string): AgentReader {
         query_embedding: queryEmbedding,
         match_count: 5,
       });
-      if (error) return { ok: false, message: failedAiMessage };
+      if (error) return { ok: false, message: knowledgeReadMessage };
       const rows = Array.isArray(data) ? data : [];
       return { ok: true, matches: rows.filter(isRecord).map(matchRow) };
+    },
+    async retrieveHybrid(queryEmbedding, queryText) {
+      const vector = await db.rpc("match_knowledge", {
+        query_embedding: queryEmbedding,
+        match_count: hybridCandidateLimit,
+      });
+      if (vector.error) return { ok: false, message: knowledgeReadMessage };
+      const text = await db.rpc("search_knowledge_text", {
+        query_text: queryText,
+        match_count: hybridCandidateLimit,
+      });
+      const vectorRows = Array.isArray(vector.data)
+        ? vector.data.filter(isRecord).map(matchRow)
+        : [];
+      const textRows =
+        text.error || !Array.isArray(text.data) ? [] : text.data.filter(isRecord).map(matchRow);
+      return { ok: true, matches: fuseChunks(vectorRows, textRows, queryText) };
     },
     async course(courseId) {
       const { data, error } = await db

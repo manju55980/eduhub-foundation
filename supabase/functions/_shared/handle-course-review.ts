@@ -6,6 +6,13 @@ import {
   reviewPrompt,
 } from "./course-review.ts";
 import { enforceAiRateLimit, type AiRateDb } from "./ai-rate-limit.ts";
+import {
+  contextContentLimit,
+  openThreadTurn,
+  persistThreadTurn,
+  readThreadId,
+  type AiThreadStore,
+} from "./ai-thread.ts";
 import { completeJson, invalidAiMessage, missingAiMessage } from "./gemini.ts";
 import { authorizeTool, isToolShaped, noToolAllowlist, toolName } from "./guardrails.ts";
 import { emptyResponse, jsonResponse } from "./http.ts";
@@ -22,6 +29,7 @@ export async function handleCourseReview(
     reader: ReviewReader;
     fetchImpl: typeof fetch;
     rateLimit?: AiRateDb;
+    threads?: AiThreadStore;
   },
 ) {
   if (request.method === "OPTIONS") return emptyResponse(204);
@@ -61,6 +69,16 @@ export async function handleCourseReview(
     return jsonResponse({ ok: false, message: notWaitingMessage });
   }
 
+  const threadRef = readThreadId(body);
+  if (!threadRef.ok) return jsonResponse({ ok: false, message: threadRef.message });
+  const turn = await openThreadTurn(deps.threads, {
+    threadId: threadRef.threadId,
+    surface: "course_review",
+    courseId: parsed.courseId,
+    slots: 2,
+  });
+  if (!turn.ok) return jsonResponse({ ok: false, message: turn.message }, turn.status);
+
   const lessons = await deps.reader.lessons(parsed.courseId);
   if (!lessons.ok) return jsonResponse({ ok: false, message: lessons.message });
   const assignments = await deps.reader.assignments(parsed.courseId);
@@ -80,6 +98,7 @@ export async function handleCourseReview(
     lessons: lessons.lessons,
     assignments: assignments.assignments,
     materials: materials.materials,
+    history: turn.active ? turn.messages : [],
   });
   const completion = await completeJson(
     { apiKey: deps.geminiKey, system: prompt.system, user: prompt.user },
@@ -104,6 +123,23 @@ export async function handleCourseReview(
     findings: reply.review.findings,
   });
   if (!saved.ok) return jsonResponse({ ok: false, message: saved.message });
+
+  const recorded = await persistThreadTurn(deps.threads, turn.active, {
+    threadId: threadRef.threadId ?? "",
+    surface: "course_review",
+    courseId: parsed.courseId,
+    slots: 2,
+    userContent: "Review this course",
+    assistantContent: saved.review.summary.slice(0, contextContentLimit),
+    payload: {
+      recommendation: saved.review.recommendation,
+      confidence: saved.review.confidence,
+      lowConfidence: saved.review.lowConfidence,
+      summary: saved.review.summary,
+      findings: saved.review.findings,
+    },
+  });
+  if (!recorded.ok) return jsonResponse({ ok: false, message: recorded.message }, recorded.status);
 
   return jsonResponse({
     ok: true,

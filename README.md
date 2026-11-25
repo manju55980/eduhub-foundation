@@ -11,6 +11,7 @@ Assessment 3 work is in the repository. Tracks that are not built are listed at 
 - [Product](specs/product.md)
 - [Architecture](specs/architecture.md) — schema and repository shape. Its note that course materials are unimplemented is out of date.
 - [Assessment 3](specs/assessment-3/assessment-3.md)
+- [Assessment 4](specs/assessment-4/assessment-4.md) — adaptive tutor brief. Specified, not built.
 - [Constitution](specs/constitution.md)
 - [Coding standards](specs/coding-standards.md)
 - [Supabase guide](specs/guides/supabase.md)
@@ -61,7 +62,7 @@ One request is a supervisor and one specialist:
 
 `enrol_in_course` still runs only when the latest message asks to enrol or join. A latest or newest published-course question is handled by the advisor. If the model calls `search_catalogue` for that question, the server runs `latest_published_course` instead. That tool reads published courses, with category name, through the student JWT, ordered by `created_at` descending. A word such as “tech” matches a category name such as Technology.
 
-Shared memory lasts for one request. It holds the latest 8 messages (1,000 characters each), the supervisor task, tool results, and course ids returned by those tools. The transcript is not stored. Leaving the page drops it. One specialist runs per message. Study Companion on an enrolled course stays a separate `ai-study` call.
+Each signed-in user’s chats are saved in `ai_threads` and `ai_messages`. A chat holds the latest 8 messages (1,000 characters each). The next send is blocked when those messages would not fit, until the user clears that chat or starts a new one. One specialist runs per message. Study Companion, Course Tutor, Course Builder, and admin course review each keep their own chats. Study Companion stays a separate `ai-study` call.
 
 Guardrails in `supabase/functions/_shared/guardrails.ts` redact email and phone patterns, wrap untrusted text, and allow only each function’s tools. Course review requires a confidence from 0 to 1. Below 0.7 the review is stored and labelled “Low confidence”; Approve stays available. Study Companion, Course Builder, and the assistant answer do not require a confidence field.
 
@@ -92,13 +93,13 @@ RAG is still vector search over `rag_chunks`. The Assessment 2 report [docs/asse
 | Extreme, with an expected key |      15 | 0.133 | 0.080 |             0.820 |
 | Extreme, out of corpus        |      15 |     — |     — |             0.493 |
 
-Hybrid search, re-ranking, faithfulness, and answer relevance are not implemented. Those numbers are the Assessment 2 baseline, not a new side-by-side.
+Those numbers are the Assessment 2 baseline. The hybrid side-by-side is `docs/assessment-4/hybrid-rag.md`.
 
 ## CI, Sentry, and rate limits
 
 CI is the workflow above. Sentry is initialized for the browser (`@sentry/react`), the Vercel server (`@sentry/node`), and Edge Functions (`@sentry/deno`) only when the matching DSN is set. Events omit prompts, cookies, headers, and request bodies. Sending was not rechecked for this note.
 
-`supabase/migrations/20261109010000_ai_request_limits.sql` adds hourly limits: study 30, assistant 20, course builder 10, and course review 10. The handlers call `consume_ai_request`. Generated `types.ts` does not list that RPC, so this note does not claim the migration is applied. Until it is, a deployed function that calls it fails closed and does not call Gemini.
+`supabase/migrations/20261109010000_ai_request_limits.sql` adds hourly limits: study 30, assistant 20, course builder 10, and course review 10. `supabase/migrations/20261123010000_ai_tutor_rate_limit.sql` adds the course tutor at 20. The handlers call `consume_ai_request`. Generated `types.ts` does not list that RPC, so this note does not claim either migration is applied. Until the function the handler calls is present, a deployed function fails closed and does not call Gemini.
 
 ## Assignment reminders
 
@@ -118,7 +119,12 @@ Course completion still writes `lesson_completions`, sets the enrolment complete
 ## Not finished for Assessment 3
 
 - Google Calendar.
-- A stored transcript or memory that survives a refresh.
 - Hybrid RAG, re-ranking, faithfulness, answer relevance, and a labelled agent task-success eval.
 - A fine-tuned model in the assistant.
 - An `assessment-3` git tag, a GitHub Release, a demo, and a Dev Control Tower filing. The `assessment-2` tag is the only assessment tag in this clone. Dev Control Tower was not filed for Assessment 2 either.
+
+## Assessment 4
+
+The brief is [specs/assessment-4/assessment-4.md](specs/assessment-4/assessment-4.md), copied from the attached PDF. The PDF titles itself “Assessment 3 — Next-level challenge”. This repo keeps that file as Assessment 4 because [Assessment 3](specs/assessment-3/assessment-3.md) is already the 27 October brief.
+
+The course tutor is a card on the enrolled course. `ai-tutor` asks one question from that course, then grades the student’s answer. It does not replace the current assistant or Study Companion. Catalogue search and the tutor merge vector rows with full-text rows. The side-by-side scores are in [docs/assessment-4/hybrid-rag.md](docs/assessment-4/hybrid-rag.md). After a graded answer, the next tutor question is harder when the verdict is supported and easier when it is partial or unsupported. The completion webhook is not built. CI runs `scripts/eval-gate.ts` after the tests. The gate fails when All-row faithfulness is below 1.000 or either classifier macro F1 is below 0.80. The level classifier is still an offline script. `resend-webhook` still records mail delivery, not a course-completion CRM write. CI does not run an eval gate. The assigned date and the due date are blank on the PDF. The timeline it does state is one week.

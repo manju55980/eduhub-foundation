@@ -22,7 +22,7 @@ import {
   prefixedEmbedText,
 } from "../../supabase/functions/_shared/embeddings.ts";
 import { agentChatTimeoutMs, handleAgent } from "../../supabase/functions/_shared/handle-agent.ts";
-import { failedAiMessage } from "../../supabase/functions/_shared/gemini.ts";
+import { unreachableAiMessage } from "../../supabase/functions/_shared/gemini.ts";
 import {
   courseChunk,
   faqChunkCount,
@@ -506,7 +506,7 @@ describe("learning assistant", () => {
       await vi.advanceTimersByTimeAsync(agentChatTimeoutMs);
       expect(await (await response).json()).toMatchObject({
         ok: false,
-        message: failedAiMessage,
+        message: unreachableAiMessage,
       });
       expect(reader.calls).toEqual(["user", "role"]);
     } finally {

@@ -1,3 +1,4 @@
+import { withThreadHistory, type ThreadMessage } from "./ai-thread.ts";
 import {
   redactPii,
   requiredText,
@@ -60,6 +61,7 @@ export function studyPrompt(input: {
   question: string;
   course: { title: string | null; description: string | null };
   lessons: StudyLesson[];
+  history?: ThreadMessage[];
 }) {
   const lessons = input.lessons
     .filter((lesson) => (lesson.content ?? "").trim().length > 0)
@@ -69,6 +71,13 @@ export function studyPrompt(input: {
     })
     .join("\n\n");
 
+  const user = [
+    `Course title:\n${wrapUntrusted("course", redactPii((input.course.title ?? "").trim()))}`,
+    `Course description:\n${wrapUntrusted("course", redactPii((input.course.description ?? "").trim()))}`,
+    `Lessons:\n${wrapUntrusted("course", redactPii(lessons))}`,
+    `Question:\n${wrapUntrusted("user", redactPii(input.question))}`,
+  ].join("\n\n");
+
   return {
     system: [
       "You help a student with one course. Use only the course title, description, and lesson text in the user message.",
@@ -77,12 +86,7 @@ export function studyPrompt(input: {
       'Reply with JSON only: {"explanation": string, "example": string, "practiceQuestions": string[]}.',
       untrustedDataRule,
     ].join(" "),
-    user: [
-      `Course title:\n${wrapUntrusted("course", redactPii((input.course.title ?? "").trim()))}`,
-      `Course description:\n${wrapUntrusted("course", redactPii((input.course.description ?? "").trim()))}`,
-      `Lessons:\n${wrapUntrusted("course", redactPii(lessons))}`,
-      `Question:\n${wrapUntrusted("user", redactPii(input.question))}`,
-    ].join("\n\n"),
+    user: withThreadHistory(user, input.history ?? []),
   };
 }
 

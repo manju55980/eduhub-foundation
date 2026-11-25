@@ -2,17 +2,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { readFunctionResult } from "@/features/ai/function-result";
 import {
-  parseAgentMessages,
+  assistantContentLimit,
   parseAssistantResult,
-  type AgentMessage,
+  questionRequiredMessage,
 } from "../../../supabase/functions/_shared/agent.ts";
 
-export async function askLearningAssistant(messages: AgentMessage[]) {
-  const parsed = parseAgentMessages({ messages });
-  if (!parsed.ok) return parsed;
+export async function askLearningAssistant(threadId: string, content: string) {
+  const trimmed = content.trim().slice(0, assistantContentLimit);
+  if (!trimmed) return { ok: false as const, message: questionRequiredMessage };
 
   const { data, error } = await supabase.functions.invoke("ai-agent", {
-    body: { messages: parsed.messages },
+    body: { threadId, content: trimmed },
   });
   const result = await readFunctionResult(data, error);
   if (!result.ok) return result;

@@ -36,6 +36,15 @@ export type AgentCourseRef = {
   title: string;
 };
 
+export function assistantModelContent(content: string, courses: AgentCourseRef[]) {
+  const visible = content.trim();
+  if (courses.length === 0) return visible.slice(0, assistantContentLimit);
+  const listed = courses
+    .map((course) => `${course.title || "Untitled course"} id ${course.id}`)
+    .join("; ");
+  return `${visible}\nCourses: ${listed}`.slice(0, assistantContentLimit);
+}
+
 const levelRank = {
   beginner: 0,
   intermediate: 1,

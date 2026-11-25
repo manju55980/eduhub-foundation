@@ -60,9 +60,9 @@ Courses this student has joined, with progress. Open one at `/student/my-courses
 
 ### Learning Assistant — `/student/assistant`
 
-A chat for catalogue help. The page calls the `ai-agent` Edge Function. Only a student continues. The browser sends the recent messages and reads back text, matching courses, and whether an enrolment just happened.
+A chat for catalogue help. The page calls the `ai-agent` Edge Function. Only a student continues. The browser sends the new question and the chat id, and reads back text, matching courses, and whether an enrolment just happened.
 
-One message is a supervisor plus one specialist. The transcript is not stored. Leaving the page drops it. Shared memory lasts for that one request: the latest 8 messages (1,000 characters each), the supervisor task, tool results, and course ids those tools returned.
+One message is a supervisor plus one specialist. The chat is saved for that student. It holds at most 8 messages (1,000 characters each). When the next message would not fit, Send stays disabled until Clear or New chat. Past chats stay in the list.
 
 | Agent                | What it is for                                                                                                           | Tools                                                                                           |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
@@ -81,9 +81,13 @@ Demo questions that match the tools:
 
 Catalogue search embeds the question with Ollama `nomic-embed-text` (768 dimensions) and calls `match_knowledge` over `rag_chunks`. If that embed host is down, search stops and the student sees “The AI request failed.” Other tools that do not embed can still answer. Guardrails redact email and phone patterns and wrap untrusted text. The model is `gemini-3.5-flash-lite`. Each Gemini call waits up to 45 seconds.
 
+### Check an answer
+
+On an enrolled course that has at least one lesson, under Study Companion. The student does not type the question. “Give me a question” asks `ai-tutor` for one question from that course. The lesson text used to write the question stays hidden. The student writes an answer and chooses “Check my answer”. The card then shows the lesson plan, the retrieved text, and a verdict of `supported`, `partial`, or `unsupported` with citations. Confidence below 0.70, or a verdict with no citation, is refused and shows no verdict. The question and the grade are saved on that course’s chat. No submission is written. “Give me a question” needs 4 free message slots so the check still fits. This is not a sidebar item and it is not the Learning Assistant. The same embed host is required. Each of the two requests counts toward the hourly cap of 20 once `20261123010000_ai_tutor_rate_limit.sql` is applied.
+
 ### Study Companion
 
-On an enrolled course that has lesson content. One question returns an explanation, an example, and practice questions. Nothing is saved. Practice questions are not inserted into assignments. This is a separate `ai-study` call, not the Learning Assistant.
+On an enrolled course that has lesson content. One question returns an explanation, an example, and practice questions. The turn is saved on that course’s study chat. Practice questions are not inserted into assignments. This is a separate `ai-study` call, not the Learning Assistant.
 
 ### Assignments — `/student/assignments`
 
@@ -251,7 +255,7 @@ The title is “Assignment due soon”. A second run does not insert a duplicate
 | Extreme, with an expected key |      15 | 0.133 | 0.080 |             0.820 |
 | Extreme, out of corpus        |      15 |     — |     — |             0.493 |
 
-Out-of-corpus queries are rejected at cosine 0.75. Hybrid search, re-ranking, faithfulness, and answer relevance are not built. Those figures are the Assessment 2 baseline.
+Out-of-corpus queries are rejected at cosine 0.75. Those figures are the Assessment 2 baseline. The hybrid side-by-side is `docs/assessment-4/hybrid-rag.md`.
 
 ### Level classifier
 
@@ -259,7 +263,7 @@ An offline script, not a page. Gemini `gemini-3.5-flash-lite` and local Ollama `
 
 ### AI rate limits
 
-The repository migration sets hourly caps: Study Companion 30, Learning Assistant 20, Course Builder 10, course review 10. The handlers call `consume_ai_request` and fail closed when that database function is missing, which means they do not call Gemini. Confirm the migration is applied before an AI demo. If it is not, the student sees a failure instead of an answer.
+The repository migrations set hourly caps: Study Companion 30, Learning Assistant 20, Course Tutor 20, Course Builder 10, course review 10. Course Tutor’s cap is in `supabase/migrations/20261123010000_ai_tutor_rate_limit.sql`. The handlers call `consume_ai_request` and fail closed when that database function is missing, which means they do not call Gemini. Confirm the migrations are applied before an AI demo. If one is missing, the student sees a failure instead of an answer.
 
 ## Security boundaries worth saying out loud
 
@@ -278,7 +282,7 @@ About five to eight minutes. Use one course that is already published, with at l
 
 1. Landing page. Point at the three role cards and the create, publish, enrol, submit, grade path.
 2. Student. Browse, filter by category, open the course, enrol. Mention the enrolment email and the HubSpot contact.
-3. Student. Open the enrolled course, mark a lesson if you want progress on screen, and ask the Study Companion one question. Show the explanation, example, and practice questions, and say the answer is not saved.
+3. Student. Open the enrolled course, mark a lesson if you want progress on screen, and ask the Study Companion one question. Show the explanation, example, and practice questions, and the context ring.
 4. Student. Open Learning Assistant. Ask for the number of published courses, then the latest course in a category, then “enrol me in …” only if you want a second enrolment. If catalogue search is in the script, start Ollama and the tunnel first and set `OLLAMA_HOST` to that run’s URL.
 5. Student. Submit the assignment once as text or a link.
 6. Instructor. Dashboard queue, open Submissions, enter a grade from 1 to 10 and feedback.
@@ -291,10 +295,10 @@ About five to eight minutes. Use one course that is already published, with at l
 ## Do not claim these in the demo
 
 - Google Calendar sync, personal Google import, or a push webhook. The calendar is inside EduHub only.
-- A chat transcript that survives refresh.
-- Hybrid RAG, re-ranking, citations, faithfulness, or answer relevance.
+- That `20261124180000_ai_threads.sql` is already applied on the hosted database. Until it is, saved chats cannot load.
 - A fine-tuned model inside the assistant. Ollama in the live assistant is the embedding model.
 - Stripe, Slack, or any payment flow.
 - Rejecting a pending course, restoring an archived course, or deleting a course file.
 - Creating another admin, or any role change besides student to instructor.
 - That the public tunnel URL is stable. It changes when `cloudflared` restarts.
+- The course-completion webhook.

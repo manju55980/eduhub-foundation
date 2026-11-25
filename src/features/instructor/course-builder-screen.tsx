@@ -9,6 +9,9 @@ import {
 } from "@/components/app-shell/record-card";
 import { cn } from "@/lib/utils";
 import { ErrorState, LoadingState } from "@/components/app-shell/page-state";
+import { AiThreadBar } from "@/features/ai/ai-thread-panel";
+import type { AiThreadMessage } from "@/features/ai/ai-thread-api";
+import { useAiThread } from "@/features/ai/use-ai-thread";
 import { CourseCard } from "@/features/courses/course-card";
 import { InstructorCourseLinks } from "@/features/courses/course-listing";
 import { StatusBadge } from "@/components/app-shell/status-badge";
@@ -31,6 +34,7 @@ import { toDateTimeLocal } from "./assignment-draft";
 import { progressiveDueDates } from "./assignment-due-dates";
 import { generateCoursePreview, saveGeneratedCourse } from "./course-builder-api";
 import { courseLevels } from "./course-draft";
+import { contextRoom } from "../../../supabase/functions/_shared/ai-thread.ts";
 
 const levelLabels: Record<(typeof courseLevels)[number], string> = {
   beginner: "Beginner",
@@ -63,6 +67,8 @@ type CreatedDraft = {
 };
 
 export function CourseBuilderScreen({ instructorId }: { instructorId: string }) {
+  const chat = useAiThread("course_builder", null);
+  const [openedThread, setOpenedThread] = useState("");
   const [brief, setBrief] = useState("");
   const [level, setLevel] = useState("");
   const [lessonCount, setLessonCount] = useState("");
@@ -80,8 +86,14 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
   const [created, setCreated] = useState<CreatedDraft | null>(null);
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState("");
-
   const locked = created !== null && !created.complete;
+  const room = contextRoom(chat.messages.length, 2);
+
+  if (chat.ready && chat.threadId && chat.threadId !== openedThread) {
+    setOpenedThread(chat.threadId);
+    setPreview(previewFromStored(chat.messages));
+    setCreated(null);
+  }
 
   useEffect(() => {
     let active = true;
@@ -101,7 +113,7 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
 
   async function handleGenerate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pending || locked || loadError || preview) return;
+    if (pending || locked || loadError || preview || !room || !chat.threadId) return;
 
     setPending("generate");
     setSaved(false);
@@ -115,6 +127,8 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
       goals,
       projects,
       resources,
+      threadId: chat.threadId,
+      categoryId,
     });
     setPending(null);
     if (!result.ok) {
@@ -146,6 +160,21 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
         dueDate: toDateTimeLocal(dueDates[index] ?? null),
       })),
     });
+    chat.appendMessages([
+      { id: `user-${chat.messages.length}`, role: "user", content: brief.trim(), payload: {} },
+      {
+        id: `assistant-${chat.messages.length}`,
+        role: "assistant",
+        content: `${result.preview.title}. ${result.preview.description}`,
+        payload: {
+          preview: result.preview,
+          videos: result.videos,
+          videoMessage: result.videoMessage,
+          level,
+          categoryId,
+        },
+      },
+    ]);
   }
 
   async function handleSave() {
@@ -245,6 +274,17 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
         description="Describe a course. Review the outline, then save it as a draft."
         backTo="/instructor"
         backLabel="Instructor Dashboard"
+      />
+      <AiThreadBar
+        threads={chat.threads}
+        threadId={chat.threadId}
+        used={chat.messages.length}
+        onSelect={(id) => void chat.selectThread(id)}
+        onNew={() => void chat.newThread()}
+        onClear={() => {
+          void chat.clearThread();
+          setPreview(null);
+        }}
       />
       {loadError ? <ErrorState message={loadError} /> : null}
       {loading ? <LoadingState message="Loading categories…" /> : null}
@@ -378,7 +418,10 @@ export function CourseBuilderScreen({ instructorId }: { instructorId: string }) 
                 disabled={pending !== null || locked || preview !== null}
               />
             </Field>
-            <Button type="submit" disabled={pending !== null || locked || preview !== null}>
+            <Button
+              type="submit"
+              disabled={pending !== null || locked || preview !== null || !room || !chat.threadId}
+            >
               {pending === "generate" ? "Generating…" : "Generate"}
             </Button>
           </form>
@@ -635,6 +678,77 @@ export function CreatedCoursePanel({
       previewActions={<InstructorCourseLinks courseId={course.id} />}
     />
   );
+}
+
+function previewFromStored(messages: AiThreadMessage[]): PreviewFields | null {
+  const latest = [...messages].reverse().find((message) => {
+    const stored = message.payload["preview"];
+    return message.role === "assistant" && Boolean(stored) && typeof stored === "object";
+  });
+  if (!latest) return null;
+  const stored = latest.payload["preview"];
+  if (!stored || typeof stored !== "object") return null;
+  const record = stored as {
+    title?: unknown;
+    description?: unknown;
+    lessons?: unknown;
+    assignments?: unknown;
+  };
+  const lessons = Array.isArray(record.lessons)
+    ? record.lessons.flatMap((lesson) => {
+        if (!lesson || typeof lesson !== "object") return [];
+        const item = lesson as { title?: unknown; content?: unknown };
+        return [
+          {
+            title: typeof item.title === "string" ? item.title : "",
+            content: typeof item.content === "string" ? item.content : "",
+            videoUrl: "",
+          },
+        ];
+      })
+    : [];
+  const assignments = Array.isArray(record.assignments)
+    ? record.assignments.flatMap((assignment) => {
+        if (!assignment || typeof assignment !== "object") return [];
+        const item = assignment as { title?: unknown; description?: unknown };
+        return [
+          {
+            title: typeof item.title === "string" ? item.title : "",
+            description: typeof item.description === "string" ? item.description : "",
+            dueDate: "",
+          },
+        ];
+      })
+    : [];
+  const dueDates = progressiveDueDates(lessons.length, assignments.length, new Date());
+  const videos = Array.isArray(latest.payload["videos"]) ? latest.payload["videos"] : [];
+  return {
+    level: typeof latest.payload["level"] === "string" ? latest.payload["level"] : "",
+    categoryId:
+      typeof latest.payload["categoryId"] === "string" ? latest.payload["categoryId"] : "",
+    title: typeof record.title === "string" ? record.title : "",
+    description: typeof record.description === "string" ? record.description : "",
+    lessons,
+    videoMessage:
+      typeof latest.payload["videoMessage"] === "string" ? latest.payload["videoMessage"] : "",
+    videos: videos.flatMap((video) => {
+      if (!video || typeof video !== "object") return [];
+      const item = video as SuggestedVideo;
+      if (!item.url || !item.title) return [];
+      return [
+        {
+          title: item.title,
+          channel: item.channel ?? "",
+          description: item.description ?? "",
+          url: item.url,
+        },
+      ];
+    }),
+    assignments: assignments.map((assignment, index) => ({
+      ...assignment,
+      dueDate: toDateTimeLocal(dueDates[index] ?? null),
+    })),
+  };
 }
 
 function Field({

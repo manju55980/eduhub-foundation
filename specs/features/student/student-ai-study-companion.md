@@ -2,7 +2,7 @@
 
 Specifies the study companion on the enrolled-course learning view. The catalogue, enrollment, and lesson list stay in `student-browse-courses.md`. Roles and the route map stay in `product.md`. Schema and RLS stay in `architecture.md` and `supabase/migrations/20261009220000_create_lms_tables.sql`.
 
-This feature does not add a table, column, policy, route, or sidebar item.
+This feature stores each question and answer on that student’s `study` chat for the open course. It does not add a route or a sidebar item. Practice questions are not assignments and are not submissions.
 
 ## Route
 
@@ -10,9 +10,9 @@ The companion is a card on `/student/my-courses/$courseId`, under that course’
 
 ## Behavior
 
-A signed-in student asks one question about the course already open on the learning view. The card is absent unless that student is enrolled. The answer has an explanation, an example, and practice questions. Nothing is written to Supabase. Practice questions are not assignments and are not submissions.
+A signed-in student asks one question about the course already open on the learning view. The card is absent unless that student is enrolled. The answer has an explanation, an example, and practice questions. The turn is saved on that course’s study chat. Practice questions are not assignments and are not submissions.
 
-The browser calls `supabase.functions.invoke("ai-study")` with `{ courseId, question }`. The call lives in `features/student/`. The route stays thin. Do not call Gemini from the browser, and do not send `GEMINI_API_KEY` to the browser.
+The browser calls `supabase.functions.invoke("ai-study")` with `{ courseId, question, threadId }`. The call lives in `features/student/`. The route stays thin. Do not call Gemini from the browser, and do not send `GEMINI_API_KEY` to the browser.
 
 The Edge Function checks the caller’s JWT and `profiles.role`. Only `student` is allowed. It then loads that course and the caller’s enrollment with the same JWT, so RLS applies. A missing course and a course the student has not joined both return “This course is not available.” The function does not call Gemini in that case, and it does not read lessons until the enrollment check passes.
 
@@ -29,7 +29,7 @@ Follow the visual direction in `product.md`. The card heading is “Study Compan
 - **Ready.** A question field and Ask, when the enrolled course has lesson content.
 - **No lesson content.** The sentence “This course has no lesson content yet.” No Ask control.
 - **Asking.** Ask does not send a second request.
-- **Answer.** Show Explanation, Example, and Practice questions. The result can be dismissed. Dismissing it does not change the route or write a row.
+- **Answer.** Show Explanation, Example, and Practice questions in the saved chat. Ask needs 2 free slots. At 8 messages, Ask is disabled until Clear or New chat.
 - **Error.** Show the message inline. An error replaces the answer.
 
 ## Security checks

@@ -2,7 +2,7 @@
 
 Specifies how an instructor generates a course outline and saves it as a new draft. Manual course creation stays in `instructor-course-creation.md`. Lessons stay in `instructor-my-courses.md`. Assignments stay in `instructor-assignment-management.md`. Roles and the route map stay in `product.md`. Schema and RLS stay in `architecture.md` and `supabase/migrations/20261009220000_create_lms_tables.sql`.
 
-This feature does not add a table, column, or policy.
+This feature stores each generated outline on that instructor’s `course_builder` chat. Save draft still creates course, lesson, and assignment rows and does not consume a context slot.
 
 ## Route
 

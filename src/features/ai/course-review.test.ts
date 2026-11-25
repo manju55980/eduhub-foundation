@@ -11,9 +11,9 @@ import {
   type ReviewLesson,
 } from "../../../supabase/functions/_shared/course-review.ts";
 import {
+  aiServiceErrorMessage,
   invalidAiMessage,
   missingAiMessage,
-  failedAiMessage,
 } from "../../../supabase/functions/_shared/gemini.ts";
 import { isLowConfidence } from "../../../supabase/functions/_shared/guardrails.ts";
 import { handleCourseReview } from "../../../supabase/functions/_shared/handle-course-review.ts";
@@ -381,7 +381,10 @@ describe("ai-course-review", () => {
         vi.fn<typeof fetch>(async () => new Response("down", { status: 500 })),
       ),
     );
-    await expect(failed.json()).resolves.toMatchObject({ ok: false, message: failedAiMessage });
+    await expect(failed.json()).resolves.toMatchObject({
+      ok: false,
+      message: aiServiceErrorMessage,
+    });
     expect(failedReader.inserted).toEqual([]);
 
     const toolReader = reader();

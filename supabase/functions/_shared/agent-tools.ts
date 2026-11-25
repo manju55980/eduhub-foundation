@@ -17,7 +17,9 @@ import {
   embeddingLiteral,
   type EmbeddingTask,
 } from "./embeddings.ts";
+import { embeddingRejectedMessage, knowledgeReadMessage } from "./embeddings.ts";
 import { failedAiMessage } from "./gemini.ts";
+import { keywordQuery } from "./hybrid-search.ts";
 import { readToolArguments } from "./guardrails.ts";
 
 export type AgentMatch = {
@@ -65,6 +67,10 @@ export type AgentReader = {
   ) => Promise<{ ok: true; role: string | null } | { ok: false; message: string }>;
   matchKnowledge: (
     queryEmbedding: string,
+  ) => Promise<{ ok: true; matches: AgentMatch[] } | { ok: false; message: string }>;
+  retrieveHybrid?: (
+    queryEmbedding: string,
+    queryText: string,
   ) => Promise<{ ok: true; matches: AgentMatch[] } | { ok: false; message: string }>;
   course: (
     courseId: string,
@@ -144,9 +150,12 @@ async function searchCatalogue(
   }
   const embedded = await embedQuery(query, "RETRIEVAL_QUERY", context);
   if (!embedded.ok) return embedded;
-  const matches = await context.reader.matchKnowledge(embeddingLiteral(embedded.values));
-  if (!matches.ok) return { ok: false, message: failedAiMessage };
-  const courseIds = matches.matches
+  const found = context.reader.retrieveHybrid
+    ? await context.reader.retrieveHybrid(embeddingLiteral(embedded.values), keywordQuery(query))
+    : await context.reader.matchKnowledge(embeddingLiteral(embedded.values));
+  if (!found.ok) return { ok: false, message: found.message || knowledgeReadMessage };
+  const matches = found.matches.slice(0, 5);
+  const courseIds = matches
     .map((match) => match.courseId)
     .filter((courseId): courseId is string => Boolean(courseId));
   return {
@@ -154,7 +163,7 @@ async function searchCatalogue(
     run: toolRun(
       "search_catalogue",
       {
-        matches: matches.matches.map((match) => ({
+        matches: matches.map((match) => ({
           sourceType: match.sourceType,
           title: match.title,
           body: match.body,
@@ -402,7 +411,7 @@ async function embedQuery(
   );
   if (!embedded.ok) return embedded;
   const values = embedded.vectors[0];
-  if (!values) return { ok: false as const, message: failedAiMessage };
+  if (!values) return { ok: false as const, message: embeddingRejectedMessage };
   return { ok: true as const, values };
 }
 

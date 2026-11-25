@@ -1,6 +1,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { bindAiRateLimit } from "../_shared/ai-rate-limit.ts";
+import { bindAiThreads } from "../_shared/ai-thread.ts";
 import { handleStudy } from "../_shared/handle-study.ts";
 import { bindStudyReader } from "../_shared/study-reader.ts";
 
@@ -32,5 +33,6 @@ Deno.serve((request) => {
       authorization?.startsWith("Bearer ") ? authorization.slice("Bearer ".length).trim() : "",
     ),
     rateLimit: bindAiRateLimit(userClient),
+    threads: bindAiThreads(userClient),
   });
 });

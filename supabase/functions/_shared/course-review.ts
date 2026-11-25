@@ -1,3 +1,4 @@
+import { withThreadHistory, type ThreadMessage } from "./ai-thread.ts";
 import { invalidAiMessage } from "./gemini.ts";
 import {
   asRecord,
@@ -92,6 +93,7 @@ export function reviewPrompt(input: {
   lessons: ReviewLesson[];
   assignments: ReviewAssignment[];
   materials: ReviewMaterial[];
+  history?: ThreadMessage[];
 }) {
   const lessons = sortReviewLessons(input.lessons)
     .map((lesson, index) => {
@@ -110,6 +112,15 @@ export function reviewPrompt(input: {
     .map((material, index) => `${index + 1}. ${material.fileName} (${material.mimeType})`)
     .join("\n");
 
+  const user = [
+    `Level: ${redactPii(input.course.level.trim())}`,
+    `Course title:\n${wrapUntrusted("course", redactPii((input.course.title ?? "").trim()))}`,
+    `Course description:\n${wrapUntrusted("course", redactPii((input.course.description ?? "").trim()))}`,
+    `Lessons:\n${wrapUntrusted("course", redactPii(lessons || "No lessons."))}`,
+    `Assignments:\n${wrapUntrusted("course", redactPii(assignments || "No assignments."))}`,
+    `Materials:\n${wrapUntrusted("course", redactPii(materials || "No files."))}`,
+  ].join("\n\n");
+
   return {
     system: [
       "You review one pending course for an admin. Judge only the course text and the file names in the user message.",
@@ -121,14 +132,7 @@ export function reviewPrompt(input: {
       "confidence is a number from 0 to 1 inclusive.",
       untrustedDataRule,
     ].join(" "),
-    user: [
-      `Level: ${redactPii(input.course.level.trim())}`,
-      `Course title:\n${wrapUntrusted("course", redactPii((input.course.title ?? "").trim()))}`,
-      `Course description:\n${wrapUntrusted("course", redactPii((input.course.description ?? "").trim()))}`,
-      `Lessons:\n${wrapUntrusted("course", redactPii(lessons || "No lessons."))}`,
-      `Assignments:\n${wrapUntrusted("course", redactPii(assignments || "No assignments."))}`,
-      `Materials:\n${wrapUntrusted("course", redactPii(materials || "No files."))}`,
-    ].join("\n\n"),
+    user: withThreadHistory(user, input.history ?? []),
   };
 }
 

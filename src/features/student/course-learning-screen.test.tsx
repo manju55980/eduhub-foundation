@@ -38,6 +38,16 @@ vi.mock("@/features/notifications/notifications-api", async () => {
   };
 });
 
+vi.mock("@/features/ai/ai-thread-api", () => ({
+  listAiThreads: vi.fn(async () => ({
+    ok: true,
+    threads: [{ id: "thread-1", title: "New chat", updatedAt: "2026-11-24T00:00:00.000Z" }],
+  })),
+  createAiThread: vi.fn(),
+  loadAiMessages: vi.fn(async () => ({ ok: true, messages: [] })),
+  clearAiMessages: vi.fn(async () => ({ ok: true })),
+}));
+
 const loadLearning = vi.mocked(loadCourseLearning);
 const loadProgress = vi.mocked(loadLessonProgress);
 const markComplete = vi.mocked(markLessonComplete);

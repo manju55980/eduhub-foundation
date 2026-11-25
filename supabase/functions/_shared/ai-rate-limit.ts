@@ -1,15 +1,15 @@
-import { failedAiMessage } from "./gemini.ts";
-
 export const aiFeatures = [
   "ai-study",
   "ai-agent",
   "ai-course-builder",
   "ai-course-review",
+  "ai-tutor",
 ] as const;
 
 export type AiFeature = (typeof aiFeatures)[number];
 
 export const aiRateLimitedMessage = "Too many AI requests. Try again later.";
+export const aiLimitCheckMessage = "The AI limit could not be checked.";
 
 export type AiRateDb = {
   rpc: (
@@ -21,7 +21,7 @@ export type AiRateDb = {
 export async function consumeAiRequest(db: AiRateDb, feature: AiFeature) {
   const { data, error } = await db.rpc("consume_ai_request", { requested_feature: feature });
   if (error || typeof data !== "boolean") {
-    return { ok: false as const, status: 500 as const, message: failedAiMessage };
+    return { ok: false as const, status: 500 as const, message: aiLimitCheckMessage };
   }
   if (!data) {
     return { ok: false as const, status: 429 as const, message: aiRateLimitedMessage };

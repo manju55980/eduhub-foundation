@@ -21,6 +21,8 @@ export async function generateCoursePreview(input: {
   goals: string;
   projects: string;
   resources: string;
+  threadId?: string;
+  categoryId?: string;
 }) {
   const parsed = parseBuilderRequest(input);
   if (!parsed.ok) return parsed;
@@ -35,6 +37,8 @@ export async function generateCoursePreview(input: {
       goals: parsed.goals,
       projects: parsed.projects,
       resources: parsed.resources,
+      ...(input.threadId ? { threadId: input.threadId } : {}),
+      ...(input.categoryId ? { categoryId: input.categoryId } : {}),
     },
   });
   const result = await readFunctionResult(data, error);

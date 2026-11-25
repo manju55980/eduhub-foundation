@@ -1,3 +1,4 @@
+import { withThreadHistory, type ThreadMessage } from "./ai-thread.ts";
 import {
   asRecord,
   optionalText as recordText,
@@ -98,7 +99,7 @@ export function builderAccess(role: string | null) {
   return { ok: true as const };
 }
 
-export function builderPrompt(request: BuilderRequest) {
+export function builderPrompt(request: BuilderRequest, history: ThreadMessage[] = []) {
   const assignments =
     request.assignmentCount === 0
       ? "Write no assignments."
@@ -120,11 +121,14 @@ export function builderPrompt(request: BuilderRequest) {
       "Do not include a status, owner, due date, or video URL. Do not invent video or document links.",
       untrustedDataRule,
     ].join(" "),
-    user: [
-      `Level: ${request.level}`,
-      `Brief:\n${wrapUntrusted("user", redactPii(request.brief))}`,
-      ...notes.map((note) => wrapUntrusted("user", redactPii(note))),
-    ].join("\n"),
+    user: withThreadHistory(
+      [
+        `Level: ${request.level}`,
+        `Brief:\n${wrapUntrusted("user", redactPii(request.brief))}`,
+        ...notes.map((note) => wrapUntrusted("user", redactPii(note))),
+      ].join("\n"),
+      history,
+    ),
   };
 }
 

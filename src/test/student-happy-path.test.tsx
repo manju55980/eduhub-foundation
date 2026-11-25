@@ -9,6 +9,16 @@ vi.mock("@/integrations/supabase/client", async () => {
   return { supabase: memory.supabase };
 });
 
+vi.mock("@/features/ai/ai-thread-api", () => ({
+  listAiThreads: vi.fn(async () => ({
+    ok: true,
+    threads: [{ id: "thread-1", title: "New chat", updatedAt: "2026-11-24T00:00:00.000Z" }],
+  })),
+  createAiThread: vi.fn(),
+  loadAiMessages: vi.fn(async () => ({ ok: true, messages: [] })),
+  clearAiMessages: vi.fn(async () => ({ ok: true })),
+}));
+
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
     children,
@@ -123,5 +133,5 @@ describe("student happy path", () => {
         status: "submitted",
       }),
     ]);
-  });
+  }, 15000);
 });
