@@ -22,14 +22,11 @@ describe("eval gate", () => {
   });
 
   it("blocks a report below either cutoff", () => {
-    const lowFaith = hybrid.replace(
-      "| 1.000 | 1.000 | 0.478 | 0.448 |",
-      "| 0.999 | 1.000 | 0.478 | 0.448 |",
-    );
-    const lowF1 = levels.replace(
-      "| F1 (macro)        | 1.000                   | 1.000      |",
-      "| F1 (macro)        | 0.799                   | 1.000      |",
-    );
+    const lowFaith = [
+      "| Set | Queries | Vector Hit@5 | Hybrid Hit@5 | Vector MRR@5 | Hybrid MRR@5 | Vector precision | Hybrid precision | Vector faithfulness | Hybrid faithfulness | Vector relevance | Hybrid relevance |",
+      "| All | 90 | 0.773 | 0.520 | 0.512 | 0.239 | 0.512 | 0.239 | 0.999 | 1.000 | 0.478 | 0.448 |",
+    ].join("\n");
+    const lowF1 = "| F1 (macro) | 0.799 | 1.000 |";
     expect(evaluateReports(lowFaith, levels).ok).toBe(false);
     expect(evaluateReports(hybrid, lowF1).failures.join(" ")).toContain("Gemini macro F1");
     expect(evaluateReports("no table", levels).ok).toBe(false);
