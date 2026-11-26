@@ -28,7 +28,7 @@ export function PageHeader({
           {title}
         </h1>
         {description ? (
-          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
+          <p className="max-w-[65ch] text-sm leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">
             {description}
           </p>
         ) : null}

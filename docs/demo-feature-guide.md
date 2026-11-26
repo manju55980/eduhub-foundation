@@ -83,7 +83,7 @@ Catalogue search embeds the question with Ollama `nomic-embed-text` (768 dimensi
 
 ### Check an answer
 
-On an enrolled course that has at least one lesson, under Study Companion. The student does not type the question. “Give me a question” asks `ai-tutor` for one question from that course. The lesson text used to write the question stays hidden. The student writes an answer and chooses “Check my answer”. The card then shows the lesson plan, the retrieved text, and a verdict of `supported`, `partial`, or `unsupported` with citations. Confidence below 0.70, or a verdict with no citation, is refused and shows no verdict. The question and the grade are saved on that course’s chat. No submission is written. “Give me a question” needs 4 free message slots so the check still fits. This is not a sidebar item and it is not the Learning Assistant. The same embed host is required. Each of the two requests counts toward the hourly cap of 20 once `20261123010000_ai_tutor_rate_limit.sql` is applied.
+On an enrolled course that has at least one lesson, under Study Companion. The student does not type the question. “Give me a question” asks `ai-tutor` for one question from that course. The first label is “Starting question”. The lesson text used to write the question stays hidden. The student writes an answer and chooses “Check my answer”. The card then shows the lesson plan, the retrieved text, and a verdict of `supported`, `partial`, or `unsupported` with citations. Confidence below 0.70, or a verdict with no citation, is refused and shows no verdict. “Give me another question” is harder after `supported` and easier after `partial` or `unsupported`. Retrieval merges vector search with English full-text search. The question and the grade are saved on that course’s chat. No submission is written. “Give me a question” needs 4 free message slots so the check still fits. This is not a sidebar item and it is not the Learning Assistant. The same embed host is required. Each of the two requests counts toward the hourly cap of 20. The four-minute path is `docs/assessment-4/demo.md`. One recorded call is `docs/assessment-4/tutor-trace.md`.
 
 ### Study Companion
 
@@ -276,6 +276,10 @@ The repository migrations set hourly caps: Study Companion 30, Learning Assistan
 - AI prompts and request bodies are not sent to Sentry.
 - The public Cloudflare tunnel, when used, exposes whatever is behind it. The intended temporary setup forwards only `POST /api/embed`. Tunnelling Ollama itself also exposes the rest of the local Ollama API until the tunnel stops.
 
+## Assessment 4 demo
+
+About four minutes, for the tutor, the hybrid scorecard, and the CI gate. The script is `docs/assessment-4/demo.md`. `npm run demo:assessment-4` checks the saved trace and the score reports. Use **Advanced Developer Documentation and Process Mastery**, which already has lesson notes. If the embed host or Gemini is down, read `docs/assessment-4/tutor-trace.md` instead of waiting on a live question.
+
 ## demo order
 
 About five to eight minutes. Use one course that is already published, with at least one lesson, one assignment, and one file, and one student who is not yet enrolled in it.
@@ -295,8 +299,7 @@ About five to eight minutes. Use one course that is already published, with at l
 ## Do not claim these in the demo
 
 - Google Calendar sync, personal Google import, or a push webhook. The calendar is inside EduHub only.
-- That `20261124180000_ai_threads.sql` is already applied on the hosted database. Until it is, saved chats cannot load.
-- A fine-tuned model inside the assistant. Ollama in the live assistant is the embedding model.
+- A fine-tuned model inside the assistant. Ollama in the live assistant is the embedding model. The level scores are the existing Gemini and Ollama comparison.
 - Stripe, Slack, or any payment flow.
 - Rejecting a pending course, restoring an archived course, or deleting a course file.
 - Creating another admin, or any role change besides student to instructor.

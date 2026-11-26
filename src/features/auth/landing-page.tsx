@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowRight,
   Award,
   Bell,
   BookOpen,
@@ -162,7 +161,7 @@ export function LandingPage({ checking }: { checking: boolean }) {
             <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <GraduationCap className="size-5" />
             </div>
-            <span className="text-lg font-semibold tracking-tight text-foreground">EduHub</span>
+            <span className="font-display text-xl font-semibold text-primary">EduHub</span>
           </div>
           {checking ? (
             <span className="rounded-md border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
@@ -178,73 +177,72 @@ export function LandingPage({ checking }: { checking: boolean }) {
           )}
         </header>
 
-        <section className="flex flex-1 flex-col items-center justify-center py-10 text-center sm:py-14">
-          <span className="rounded-md bg-brand-soft px-3 py-1 text-xs font-medium text-foreground">
-            A small learning management system
-          </span>
-          <h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl">
-            Courses, submissions and grades — in one calm place.
-          </h1>
-          <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            EduHub gives students, instructors and admins their own clear spaces, so every part of a
-            course has a natural home. Students can ask the Study Companion or the Learning
-            Assistant, and instructors can draft a course with the AI Course Builder. A finished
-            course brings a certificate and a notice.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              to="/student"
-              className={`inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-raised transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard hover:bg-primary-hover motion-reduce:transition-none ${controlFocus}`}
-            >
-              Start as a student
-              <ArrowRight className="size-4" />
-            </Link>
-            <a
-              href="#roles"
-              className={`inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard hover:bg-sage motion-reduce:transition-none ${controlFocus}`}
-            >
-              Choose your role
-            </a>
+        <section className="grid flex-1 items-start gap-10 py-10 lg:grid-cols-[minmax(0,1.5fr)_16rem] lg:py-16">
+          <div className="max-w-[40rem]">
+            <h1 className="text-3xl font-semibold leading-[1.15] text-foreground sm:text-4xl">
+              <span className="mark-line">
+                Courses, submissions and grades — in one calm place.
+              </span>
+            </h1>
+            <p className="mt-5 max-w-[62ch] text-base leading-relaxed text-muted-foreground sm:text-lg">
+              EduHub gives students, instructors and admins their own clear spaces, so every part of
+              a course has a natural home. Students can ask the Study Companion or the Learning
+              Assistant, and instructors can draft a course with the AI Course Builder. A finished
+              course brings a certificate and a notice.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                to="/student"
+                className={`inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-raised transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard hover:bg-primary-hover motion-reduce:transition-none ${controlFocus}`}
+              >
+                Start as a student
+              </Link>
+              <a
+                href="#roles"
+                className={`inline-flex h-9 items-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition-[color,background-color,border-color,box-shadow] duration-150 ease-standard hover:bg-sage motion-reduce:transition-none ${controlFocus}`}
+              >
+                Choose your role
+              </a>
+            </div>
           </div>
+          <aside className="max-w-[28ch] border-t border-border pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-1">
+            <p className="text-xl leading-snug text-foreground">One catalogue. Three rooms.</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Students keep a shelf. Instructors mark the work. Admins decide what is published.
+            </p>
+          </aside>
         </section>
 
-        <section id="roles" className="scroll-mt-8 pb-4 pt-12">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-              Three clear areas, one platform
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Each role sees only what it needs — nothing more.
-            </p>
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <section id="roles" className="scroll-mt-8 pb-4 pt-8">
+          <h2 className="text-2xl font-semibold text-foreground">
+            Three clear areas, one platform
+          </h2>
+          <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
+            Each role sees only what it needs — nothing more.
+          </p>
+          <div className="mt-6 grid border border-border bg-card lg:grid-cols-3 lg:divide-x lg:divide-border">
             {roleAreas.map((role) => (
               <Link
                 key={role.name}
                 to={role.to}
-                className={`flex flex-col rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none ${controlFocus}`}
+                className={`flex flex-col border-b border-border p-5 last:border-b-0 lg:border-b-0 ${controlFocus}`}
               >
                 <div className={`flex size-8 items-center justify-center rounded-md ${role.soft}`}>
                   <role.icon className={`size-4 ${role.tone}`} />
                 </div>
-                <h3 className="mt-3 text-base font-medium text-foreground">{role.name}</h3>
+                <h3 className="mt-4 text-xl font-medium text-foreground">{role.name}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {role.description}
                 </p>
                 <ul className="mt-5 space-y-1.5">
                   {role.items.map((item) => (
-                    <li
-                      key={item}
-                      className="flex items-center gap-2 text-sm text-muted-foreground"
-                    >
-                      <span className="size-1.5 rounded-full bg-border" />
+                    <li key={item} className="text-sm text-muted-foreground">
                       {item}
                     </li>
                   ))}
                 </ul>
-                <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+                <span className="mt-6 text-sm font-medium text-primary">
                   Open {role.name.toLowerCase()} area
-                  <ArrowRight className="size-4" />
                 </span>
               </Link>
             ))}
@@ -252,90 +250,72 @@ export function LandingPage({ checking }: { checking: boolean }) {
         </section>
 
         <section className="pb-4 pt-12">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">AI agents</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Study Companion and Learning Assistant for students, and AI Course Builder for
-              instructors.
-            </p>
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="text-2xl font-semibold text-foreground">AI agents</h2>
+          <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
+            Study Companion and Learning Assistant for students, and AI Course Builder for
+            instructors.
+          </p>
+          <div className="mt-6 divide-y divide-border border border-border bg-card">
             {agents.map((agent) => (
-              <div
-                key={agent.name}
-                className="rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none"
-              >
-                <div className="flex items-center gap-3">
+              <div key={agent.name} className="grid gap-4 p-5 sm:grid-cols-[11rem_minmax(0,1fr)]">
+                <div className="flex items-start gap-3">
                   <div
-                    className={`flex size-8 items-center justify-center rounded-md ${agent.soft}`}
+                    className={`flex size-8 shrink-0 items-center justify-center rounded-md ${agent.soft}`}
                   >
                     <agent.icon className={`size-4 ${agent.tone}`} />
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground">{agent.audience}</p>
-                    <h3 className="text-base font-medium text-foreground">{agent.name}</h3>
+                    <p className="text-sm text-muted-foreground">{agent.audience}</p>
+                    <h3 className="text-lg font-medium text-foreground">{agent.name}</h3>
                   </div>
                 </div>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{agent.detail}</p>
+                <p className="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
+                  {agent.detail}
+                </p>
               </div>
             ))}
           </div>
         </section>
 
         <section className="pb-4 pt-12">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-              How a course moves through EduHub
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">One shared workflow, five steps.</p>
-          </div>
-          <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <h2 className="text-2xl font-semibold text-foreground">
+            How a course moves through EduHub
+          </h2>
+          <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
+            One shared workflow, five steps.
+          </p>
+          <ol className="mt-8 grid gap-8 border-l-2 border-primary pl-5 lg:grid-cols-5 lg:gap-4 lg:border-l-0 lg:border-t-2 lg:pl-0 lg:pt-5">
             {flow.map((step, index) => (
-              <li
-                key={step.title}
-                className="rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex size-8 items-center justify-center rounded-md bg-secondary">
-                    <step.icon className="size-4.5 text-muted-foreground" />
-                  </div>
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                </div>
-                <h3 className="mt-4 text-base font-medium text-foreground">{step.title}</h3>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{step.detail}</p>
+              <li key={step.title}>
+                <p className="text-2xl text-primary">{index + 1}</p>
+                <h3 className="mt-2 text-base font-medium text-foreground">{step.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.detail}</p>
               </li>
             ))}
           </ol>
         </section>
 
         <section className="pb-8 pt-12">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-              After a student enrolls
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Lesson completion, a certificate, and notices sit on top of the five steps above.
-            </p>
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="text-2xl font-semibold text-foreground">After a student enrolls</h2>
+          <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted-foreground">
+            Lesson completion, a certificate, and notices sit on top of the five steps above.
+          </p>
+          <div className="mt-6 divide-y divide-border border border-border bg-card">
             {afterEnrollment.map((item) => (
-              <div
-                key={item.title}
-                className="rounded-xl border border-border bg-card p-4 shadow-raised transition-[color,background-color,border-color,box-shadow] duration-200 ease-standard motion-reduce:transition-none"
-              >
-                <div className="flex size-8 items-center justify-center rounded-md bg-secondary">
-                  <item.icon className="size-4 text-muted-foreground" />
+              <div key={item.title} className="grid gap-3 p-5 sm:grid-cols-[auto_minmax(0,1fr)]">
+                <item.icon className="size-4 text-primary" />
+                <div>
+                  <h3 className="text-base font-medium text-foreground">{item.title}</h3>
+                  <p className="mt-1 max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
+                    {item.detail}
+                  </p>
                 </div>
-                <h3 className="mt-3 text-base font-medium text-foreground">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.detail}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <footer className="mt-auto border-t border-border py-6 text-center text-xs text-muted-foreground">
+        <footer className="mt-auto border-t border-border py-6 text-sm text-muted-foreground">
           Better learning builds brighter futures.
         </footer>
       </div>

@@ -24,7 +24,7 @@ export function AppHeader({
   userId: string;
 }) {
   const name = fullName || email || "Signed in";
-  const detail = [email, roleLabel[role]].filter(Boolean).join(" · ");
+  const detail = [email, roleLabel[role]].filter(Boolean).join(", ");
 
   return (
     <header className="flex min-w-0 items-center gap-2 border-b bg-background px-4 py-3 print:hidden sm:gap-3 md:px-6">
@@ -32,7 +32,7 @@ export function AppHeader({
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <ProfileMenu role={role} email={email} fullName={fullName} userId={userId} />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">{name}</p>
+          <p className="truncate font-display text-sm font-semibold text-foreground">{name}</p>
           <p className="truncate text-xs text-muted-foreground">{detail}</p>
         </div>
       </div>

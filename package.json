@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
+    "demo:assessment-4": "npx tsx scripts/assessment-4-demo.ts",
     "test:e2e": "vitest run src/test/student-happy-path.test.tsx",
     "test:watch": "vitest",
     "prepare": "husky"

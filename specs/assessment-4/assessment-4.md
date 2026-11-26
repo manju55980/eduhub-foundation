@@ -151,13 +151,15 @@ The log is written at submission. Do not fill it in before the work exists.
 
 ## Status
 
-The planner, retriever, and grader are specified in `features/student/student-course-tutor.md`. They are a card on the enrolled course, not a sidebar page. `ai-tutor` asks one question, then grades the answer. A successful grade trace is saved on that student’s tutor chat for the course. A recorded live trace of one real question is not in this repository. `ai-tutor` was deployed on 24 November 2026. On that date the production database already had the chat tables and the tutor hourly limit.
+The planner, retriever, and grader are specified in `features/student/student-course-tutor.md`. They are a card on the enrolled course, not a sidebar page. `ai-tutor` asks one question, then grades the answer. A successful grade trace is saved on that student’s tutor chat for the course. One live trace, for Advanced Developer Documentation and Process Mastery, is in `docs/assessment-4/tutor-trace.md`. `ai-tutor` was deployed on 24 November 2026. On that date the production database already had the chat tables and the tutor hourly limit.
 
 Hybrid retrieval is specified in `features/student/student-hybrid-rag.md`. The catalogue search and the course tutor merge vector rows with English full-text rows. The score script writes `docs/assessment-4/hybrid-rag.md` beside the Assessment 2 report. The three extra scores are lexical stand-ins. They do not call a judge model.
 
 The next tutor question follows the latest grade. `supported` asks a harder question. `partial` and `unsupported` ask an easier one. The card labels that change. The held-out macro F1 stays 1.000 on all 40 rows. The classifier still does not write `courses.level`.
 
 The eval gate is specified in `features/student/student-eval-gate.md`. CI fails when All-row faithfulness is below 1.000 or either macro F1 is below 0.80. It reads the saved reports. It does not call a model.
+
+The four-minute demo is `docs/assessment-4/demo.md`. `npm run demo:assessment-4` checks the saved trace and the score reports. It does not call a model.
 
 Not started:
 

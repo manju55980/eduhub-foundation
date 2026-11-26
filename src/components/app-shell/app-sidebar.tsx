@@ -66,7 +66,7 @@ export function AppSidebar({ role }: { role: AppRole }) {
   return (
     <Sidebar collapsible="offcanvas" className="print:hidden">
       <SidebarHeader className="px-5 py-5">
-        <div className="flex items-center gap-2 text-base font-semibold text-foreground">
+        <div className="flex items-center gap-2 font-display text-lg font-semibold text-sidebar-foreground">
           <GraduationCap className="size-5 text-primary" />
           EduHub
         </div>
